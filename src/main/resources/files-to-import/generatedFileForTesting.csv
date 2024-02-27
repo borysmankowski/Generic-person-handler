@@ -1,0 +1,4 @@
+TYPE,name,surname,pesel,height,weight,emailaddress,(univeristyName/pensionAmount/employmentStartDate), (yearsOfStudies/workedYears/currentPosition), (courseName/currentSalary), (scholarship)
+STUDENT,Malina,Eno,30668280097,156,104,Malina.Eno@yopmail.com,Politechnika,4,Informatyka,2000
+PENSIONER,Merle,Ilka,38638120958,164,117,Merle.Ilka@yopmail.com,1000,43
+EMPLOYEE,Blondelle,Eachern,29911702284,181,45,Blondelle.Eachern@yopmail.com,2024-01-01,sprzatacz,5000
