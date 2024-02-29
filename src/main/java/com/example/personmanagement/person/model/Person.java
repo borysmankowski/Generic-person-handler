@@ -17,7 +17,7 @@ import org.hibernate.validator.constraints.pl.PESEL;
 @NoArgsConstructor
 @Entity
 @ToString(callSuper = true)
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Person {
 
     @Id
