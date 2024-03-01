@@ -2,16 +2,12 @@ package com.example.personmanagement.person;
 
 import com.example.personmanagement.employee.EmployeeCreationStrategy;
 import com.example.personmanagement.employee.model.CreateEmployeeCommand;
-import com.example.personmanagement.employee.model.EmployeeDto;
-import com.example.personmanagement.person.model.CreatePersonCommand;
+import com.example.personmanagement.pensioner.model.CreatePensionerCommand;
 import com.example.personmanagement.person.model.Person;
-import com.example.personmanagement.person.model.PersonDto;
 import com.example.personmanagement.student.model.CreateStudentCommand;
-import com.example.personmanagement.student.model.Student;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.http.ContentType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,14 +16,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.port;
-import static javax.security.auth.callback.ConfirmationCallback.OK;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -45,7 +34,7 @@ class PersonControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Mock
+    @Autowired
     private PersonRepository personRepository;
 
     @Test
@@ -80,8 +69,7 @@ class PersonControllerTest {
 
         PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
 
-        Person newPerson = creationStrategy.create(createEmployeeCommand);
-        return newPerson;
+        return creationStrategy.create(createEmployeeCommand);
     }
 
     @Test
@@ -189,6 +177,91 @@ class PersonControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
+    void givenStudentsWithSamePESEL_WhenCreateStudents_ThenShouldFail() throws Exception {
+        // given
+        String pesel = "99010264551";
+
+        CreateStudentCommand student1 = new CreateStudentCommand();
+        student1.setType("STUDENT");
+        student1.setName("John");
+        student1.setSurname("Doe");
+        student1.setEmailAddress("john@example.com");
+        student1.setPesel(pesel);
+        student1.setNameOfUniversity("University A");
+        student1.setYearOfStudies(2);
+        student1.setCourseName("Computer Science");
+        student1.setScholarship(1000.0);
+        postStudent(student1);
+
+        // when
+        CreateStudentCommand student2 = new CreateStudentCommand();
+        student2.setType("STUDENT");
+        student2.setName("Jane");
+        student2.setSurname("Doe");
+        student2.setEmailAddress("jane@example.com");
+        student2.setPesel(pesel);
+        student2.setNameOfUniversity("University B");
+        student2.setYearOfStudies(3);
+        student2.setCourseName("Electrical Engineering");
+        student2.setScholarship(1200.0);
+
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(student2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void givenPensionersWithSamePESEL_WhenCreatePensioners_ThenShouldFail() throws Exception {
+        // given
+        String pesel = "99010264551";
+
+        CreatePensionerCommand pensioner1 = new CreatePensionerCommand();
+        pensioner1.setType("PENSIONER");
+        pensioner1.setName("John");
+        pensioner1.setSurname("Doe");
+        pensioner1.setEmailAddress("john@example.com");
+        pensioner1.setPesel(pesel);
+        pensioner1.setPensionAmount(2000.0);
+        pensioner1.setWorkedYears(30);
+        postPensioner(pensioner1);
+
+        // when
+        CreatePensionerCommand pensioner2 = new CreatePensionerCommand();
+        pensioner2.setType("PENSIONER");
+        pensioner2.setName("Jane");
+        pensioner2.setSurname("Doe");
+        pensioner2.setEmailAddress("jane@example.com");
+        pensioner2.setPesel(pesel);
+        pensioner2.setPensionAmount(1800.0);
+        pensioner2.setWorkedYears(25);
+
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pensioner2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    void postPensioner(CreatePensionerCommand pensioner) throws Exception {
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pensioner)))
+                .andExpect(status().isCreated());
+    }
+
+
+    void postStudent(CreateStudentCommand student) throws Exception {
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(student)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
     void searchWithoutParameters() throws Exception {
         mockMvc.perform(get("/api/people")
                         .accept(MediaType.APPLICATION_JSON))
@@ -211,5 +284,10 @@ class PersonControllerTest {
                         .param("heightTo", "180")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @AfterEach
+    public void setUp() {
+        personRepository.deleteAll();
     }
 }
