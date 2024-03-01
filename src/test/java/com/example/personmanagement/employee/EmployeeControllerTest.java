@@ -3,17 +3,11 @@ package com.example.personmanagement.employee;
 import com.devskiller.jfairy.Fairy;
 import com.example.personmanagement.employee.model.AddJobPositionCommand;
 import com.example.personmanagement.employee.model.CreateEmployeeCommand;
-import com.example.personmanagement.employee.model.Employee;
 import com.example.personmanagement.employee.model.EmployeeDto;
-import com.example.personmanagement.employee.model.JobPosition;
 import com.example.personmanagement.person.PersonRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.http.ContentType;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,20 +16,10 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
 
-import static io.restassured.RestAssured.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,7 +36,12 @@ class EmployeeControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-    
+
+    @Autowired
+    private PersonRepository personRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
 
     @Test
@@ -92,6 +81,35 @@ class EmployeeControllerTest {
                 .andExpect(jsonPath("$.message").value("New job position overlaps with existing position"));
     }
 
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void givenEmployeesWithSamePESEL_WhenCreateEmployees_ThenShouldFail() throws Exception {
+        // given
+        String pesel = "59052491861";
+
+        CreateEmployeeCommand employee1 = new CreateEmployeeCommand();
+        employee1.setType("EMPLOYEE");
+        employee1.setName("John");
+        employee1.setSurname("Doe");
+        employee1.setEmailAddress("john@example.com");
+        employee1.setPesel(pesel);
+        postEmployee(employee1);
+
+        // when
+        CreateEmployeeCommand employee2 = new CreateEmployeeCommand();
+        employee2.setType("EMPLOYEE");
+        employee2.setName("Jane");
+        employee2.setSurname("Doe");
+        employee2.setEmailAddress("jane@example.com");
+        employee2.setPesel(pesel);
+
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(employee2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
 
     private ResultActions postJobPosition(Long personId, AddJobPositionCommand command) throws Exception {
         return mockMvc.perform(post("/api/employees/{personId}/positions", personId)
@@ -120,6 +138,12 @@ class EmployeeControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andReturn();
         return objectMapper.readValue(result.getResponse().getContentAsString(), EmployeeDto.class);
+    }
+
+    @AfterEach
+    public void setUp() {
+        personRepository.deleteAll();
+        employeeRepository.deleteAll();
     }
 
 
