@@ -1,70 +1,52 @@
 package com.example.personmanagement.person.model;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 
+@Component
 public class PersonSpecification {
 
     public static Specification<Person> any() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(criteriaBuilder.literal(true));
     }
 
-    public static Specification<Person> typeEquals(String type) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("type"), type);
+
+    public Specification<Person> addSpecification(Specification<Person> specification, SearchCriteria criteria) {
+        switch (criteria.getOperation()) {
+            case "eq" -> specification = specification.and(equalSpecification(criteria));
+            case "like" -> specification = specification.and(likeSpecification(criteria));
+            case "range" -> specification = specification.and(rangeSpecification(criteria));
+            default -> {
+            }
+        }
+        return specification;
     }
 
-    public static Specification<Person> nameContainsIgnoreCase(String name) {
+    private Specification<Person> equalSpecification(SearchCriteria criteria) {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%");
+                criteriaBuilder.equal(root.get(criteria.getKey()), criteria.getValue());
     }
 
-    public static Specification<Person> surnameContainsIgnoreCase(String surname) {
+    private Specification<Person> likeSpecification(SearchCriteria criteria) {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("surname")), "%" + surname.toLowerCase() + "%");
+                criteriaBuilder.like(criteriaBuilder.lower(root.get(criteria.getKey())),
+                        "%" + criteria.getValue().toString().toLowerCase() + "%");
     }
 
-    public static Specification<Person> ageBetween(Integer ageFrom, Integer ageTo) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.between(root.get("age"), ageFrom, ageTo);
-    }
+    private <T extends Comparable<? super T>> Specification<Person> rangeSpecification(SearchCriteria criteria) {
+        return (root, query, criteriaBuilder) -> {
+            Object minValue = criteria.getValue();
+            Object maxValue = criteria.getSecondValue();
 
-    public static Specification<Person> peselEquals(String pesel) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("pesel"), pesel);
-    }
-
-    public static Specification<Person> genderEquals(String gender) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("gender"), gender);
-    }
-
-    public static Specification<Person> heightBetween(Double heightFrom, Double heightTo) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.between(root.get("height"), heightFrom, heightTo);
-    }
-
-    public static Specification<Person> weightBetween(Double weightFrom, Double weightTo) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.between(root.get("weight"), weightFrom, weightTo);
-    }
-
-    public static Specification<Person> emailAddressContainsIgnoreCase(String emailAddress) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("emailAddress")), "%" + emailAddress.toLowerCase() + "%");
-    }
-
-    public static Specification<Person> salaryBetween(Double salaryFrom, Double salaryTo) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.between(root.get("currentSalary"), salaryFrom, salaryTo);
-    }
-
-    public static Specification<Person> universityNameEquals(String universityName) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("nameOfUniversity"), universityName);
-    }
-
-    public static Specification<Person> numberOfJobPositionsBetween(Integer numberOfJobPositionsFrom, Integer numberOfJobPositionsTo) {
-        return ((root, query, criteriaBuilder) ->
-                criteriaBuilder.between(root.get("numberOfJobPositions"), numberOfJobPositionsFrom, numberOfJobPositionsTo));
+            if (minValue != null) {
+                if (maxValue != null) {
+                    return criteriaBuilder.between(root.get(criteria.getKey()), (T) minValue, (T) maxValue);
+                } else {
+                    return criteriaBuilder.greaterThanOrEqualTo(root.get(criteria.getKey()), (T) minValue);
+                }
+            } else {
+                return null;
+            }
+        };
     }
 }

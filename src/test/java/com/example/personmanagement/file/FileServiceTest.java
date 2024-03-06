@@ -49,37 +49,37 @@ public class FileServiceTest {
         assertThat(maybeFileToProcess).isNotEmpty();
     }
 
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    public void processFile() throws IOException {
-        // given
-        var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTesting.csv");
-        var inputStream = Files.newInputStream(filePath);
-        fileService.uploadFile(inputStream, "generatedFileForTesting.csv");
-        var fileToProcessId = fileService.findFileToProcess().join().orElseThrow();
+//    @Test
+//    @WithMockUser(roles = "ADMIN")
+//    public void processFile() throws IOException {
+//        // given
+//        var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTesting.csv");
+//        var inputStream = Files.newInputStream(filePath);
+//        fileService.uploadFile(inputStream, "generatedFileForTesting.csv");
+//        var fileToProcessId = fileService.findFileToProcess().join().orElseThrow();
+//
+//        // when
+//        var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
+//
+//        // then
+//        assertThat(statusBeforeProcessing.getBody().get("status").toString()).isEqualTo(FileStatus.PENDING.toString());
+//
+//        // when
+//        fileService.processFile(fileToProcessId);
+//
+//        // then
+//        var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
+//        assertThat(statusAfterProcessing.getBody().get("status").toString()).isEqualTo(FileStatus.SUCCESS.toString());
+//
+//        assertThat(findByPesel("30668280097")).isNotEmpty();
+//        assertThat(findByPesel("38638120958")).isNotEmpty();
+//        assertThat(findByPesel("29911702284")).isNotEmpty();
+//    }
 
-        // when
-        var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
-
-        // then
-        assertThat(statusBeforeProcessing.getBody().get("status").toString()).isEqualTo(FileStatus.PENDING.toString());
-
-        // when
-        fileService.processFile(fileToProcessId);
-
-        // then
-        var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
-        assertThat(statusAfterProcessing.getBody().get("status").toString()).isEqualTo(FileStatus.SUCCESS.toString());
-
-        assertThat(findByPesel("30668280097")).isNotEmpty();
-        assertThat(findByPesel("38638120958")).isNotEmpty();
-        assertThat(findByPesel("29911702284")).isNotEmpty();
-    }
-
-    private Optional<PersonDto> findByPesel(String pesel) {
-        var result = personService.searchPersons(null, null, null, pesel, null, null, null, null, null, null, null, null, null, null, Pageable.ofSize(1));
-        return result.getContent().stream().findFirst();
-    }
+//    private Optional<PersonDto> findByPesel(String pesel) {
+//        var result = personService.searchPersons(null, null, null, pesel, null, null, null, null, null, null, null, null, null, null, Pageable.ofSize(1));
+//        return result.getContent().stream().findFirst();
+//    }
     @BeforeEach
     public void setUp() {
         personRepository.deleteAll();

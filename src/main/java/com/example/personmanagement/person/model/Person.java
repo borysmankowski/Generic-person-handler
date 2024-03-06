@@ -28,13 +28,19 @@ public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
+//    @Column(name = "TYPE")
     private String type;
+//    @Column(name = "NAME")
     private String name;
+//    @Column(name = "SURNAME")
     private String surname;
     @Column(unique = true)
     private String pesel;
+//    @Column(name = "HEIGHT")
     private double height;
+//    @Column(name = "WEIGHT")
     private double weight;
+//    @Column(name = "EMAIL_ADDRESS")
     private String emailAddress;
     @Version
     private int version;
