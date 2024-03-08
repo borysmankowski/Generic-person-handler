@@ -3,6 +3,7 @@ package com.example.personmanagement.file;
 import com.example.personmanagement.person.PersonRepository;
 import com.example.personmanagement.person.PersonService;
 import com.example.personmanagement.person.model.PersonDto;
+import com.example.personmanagement.person.model.SearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import org.springframework.test.context.ActiveProfiles;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +51,6 @@ public class FileServiceTest {
         // then
         assertThat(maybeFileToProcess).isNotEmpty();
     }
-
     @Test
     @WithMockUser(roles = "ADMIN")
     public void processFile() throws IOException {
@@ -71,13 +73,22 @@ public class FileServiceTest {
         var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
         assertThat(statusAfterProcessing.getBody().get("status").toString()).isEqualTo(FileStatus.SUCCESS.toString());
 
-        assertThat(findByPesel("30668280097")).isNotEmpty();
-        assertThat(findByPesel("38638120958")).isNotEmpty();
-        assertThat(findByPesel("29911702284")).isNotEmpty();
+        assertThat(findByPesel("70081539775")).isNotEmpty();
+        assertThat(findByPesel("90122199526")).isNotEmpty();
+        assertThat(findByPesel("51010932991")).isNotEmpty();
+
+
     }
 
     private Optional<PersonDto> findByPesel(String pesel) {
-        var result = personService.searchPersons(null, null, null, pesel, null, null, null, null, null, null, null, null, null, null, Pageable.ofSize(1));
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setKey("pesel");
+        searchCriteria.setOperation("eq");
+        searchCriteria.setValue(pesel);
+
+        var searchCriteriaList = List.of(searchCriteria);
+
+        var result = personService.searchPersons(searchCriteriaList, Pageable.unpaged());
         return result.getContent().stream().findFirst();
     }
     @BeforeEach
