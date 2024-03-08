@@ -4,6 +4,7 @@ import com.example.personmanagement.employee.EmployeeCreationStrategy;
 import com.example.personmanagement.employee.model.CreateEmployeeCommand;
 import com.example.personmanagement.pensioner.model.CreatePensionerCommand;
 import com.example.personmanagement.person.model.Person;
+import com.example.personmanagement.person.model.SearchCriteria;
 import com.example.personmanagement.student.model.CreateStudentCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -16,6 +17,10 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -263,25 +268,44 @@ class PersonControllerTest {
 
     @Test
     void searchWithoutParameters() throws Exception {
-        mockMvc.perform(get("/api/people")
+        // Empty list of search criteria
+        mockMvc.perform(post("/api/people/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Collections.emptyList()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
     void searchByEmployeeType() throws Exception {
-        mockMvc.perform(get("/api/people")
-                        .param("type", "EMPLOYEE")
+
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setKey("type");
+        searchCriteria.setOperation("eq");
+        searchCriteria.setValue("EMPLOYEE");
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
+        );
+
+        mockMvc.perform(post("/api/people/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(searchCriteriaList))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
     void searchByEmployeeTypeWithHeightRange() throws Exception {
-        mockMvc.perform(get("/api/people")
-                        .param("type", "EMPLOYEE")
-                        .param("heightFrom", "150")
-                        .param("heightTo", "180")
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setKey("height");
+        searchCriteria.setOperation("range");
+        searchCriteria.setValue("100");
+        searchCriteria.setSecondValue("200");
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
+        );
+
+        mockMvc.perform(post("/api/people/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(searchCriteriaList))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

@@ -118,6 +118,8 @@ public class FileService {
                 createAndAddToDatabase(strategy, data);
             } catch (DuplicateResourceException e) {
                 log.warn("Skipping line due to duplicate Pesel: {}", line);
+            } catch (IllegalArgumentException e) {
+                log.warn("Skipping line due to invalid Pesel: {}", line);
             }
         } else {
             throw new ResourceNotFoundException("Unknown type: " + type);
