@@ -16,5 +16,9 @@ spring:
     dir: "src/main/resources/files-to-import"
   batch:
     size: 100
+  servlet:
+    multipart:
+      max-file-size: 5000MB
+      max-request-size: 5000MB
 server:
   port: 8080
