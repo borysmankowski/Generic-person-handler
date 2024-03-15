@@ -24,7 +24,7 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/{id}/status")
-    public ResponseEntity<Map<String, Object>> getFileImportStatus(@PathVariable Long id) {
+    public ResponseEntity<FileImportStatusResponse> getFileImportStatus(@PathVariable Long id) {
         return fileService.getFileImportStatus(id);
     }
 

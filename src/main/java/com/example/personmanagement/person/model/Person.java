@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.validator.constraints.pl.PESEL;
 
 @Getter
 @Setter
@@ -32,6 +33,7 @@ public class Person {
     private String name;
     private String surname;
     @Column(unique = true)
+    @PESEL
     private String pesel;
     private double height;
     private double weight;

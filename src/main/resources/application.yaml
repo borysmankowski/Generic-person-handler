@@ -11,6 +11,7 @@ spring:
       ddl-auto: update  # or your preferred value
   tasks:
     scheduled:
+      enabled: true
       cron: "0 * * * * *"
   upload:
     dir: "src/main/resources/files-to-import"
@@ -22,3 +23,6 @@ spring:
       max-request-size: 5000MB
 server:
   port: 8080
+aws:
+  serviceEndpoint: http://localhost:4566
+  signingRegion: eu-north-1

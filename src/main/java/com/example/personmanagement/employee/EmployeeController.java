@@ -23,14 +23,14 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
 
-    @PostMapping("/{personId}/positions")
+    @PostMapping("/{employeeId}/positions")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<JobPositionResponseBody> addJobPositionToPerson(
-            @PathVariable Long personId,
+            @PathVariable Long employeeId,
             @RequestBody AddJobPositionCommand command) {
-        employeeService.addJobPosition(personId, command);
+        employeeService.addJobPosition(employeeId, command);
 
-        JobPositionResponseBody responseBody = new JobPositionResponseBody("Job position added successfully",personId);
+        JobPositionResponseBody responseBody = new JobPositionResponseBody("Job position added successfully",employeeId);
 
         return ResponseEntity.ok(responseBody);
     }

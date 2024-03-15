@@ -15,7 +15,6 @@ public class CreatePersonCommand {
     private String name;
     @NotBlank(message = "Surname cannot be blank")
     private String surname;
-    @PESEL
     private String pesel;
     private double height;
     private double weight;
