@@ -15,7 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +45,7 @@ public class FileServiceTest {
         fileService.uploadFile(inputStream, "generatedFileForTesting.csv");
 
         // when
-        var maybeFileToProcess = fileService.findFileToProcess().join();
+        var maybeFileToProcess = fileService.findFileToProcess();
 
         // then
         assertThat(maybeFileToProcess).isNotEmpty();
@@ -58,27 +57,53 @@ public class FileServiceTest {
         var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
         fileService.uploadFile(inputStream, "generatedFileForTesting.csv");
-        var fileToProcessId = fileService.findFileToProcess().join().orElseThrow();
+        var fileToProcessId = fileService.findFileToProcess().orElseThrow();
 
         // when
         var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
 
         // then
-        assertThat(statusBeforeProcessing.getBody().get("status").toString()).isEqualTo(FileStatus.PENDING.toString());
+        assertThat(statusBeforeProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
 
         // when
         fileService.processFile(fileToProcessId);
 
         // then
         var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
-        assertThat(statusAfterProcessing.getBody().get("status").toString()).isEqualTo(FileStatus.SUCCESS.toString());
+        assertThat(statusAfterProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.SUCCESS.toString());
 
         assertThat(findByPesel("70081539775")).isNotEmpty();
         assertThat(findByPesel("90122199526")).isNotEmpty();
         assertThat(findByPesel("51010932991")).isNotEmpty();
-
-
     }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void processFileWithDuplicatedPesel() throws IOException {
+        // given
+        var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTestingDuplicatedPesel.csv");
+        var inputStream = Files.newInputStream(filePath);
+        fileService.uploadFile(inputStream, "generatedFileForTesting.csv");
+        var fileToProcessId = fileService.findFileToProcess().orElseThrow();
+
+        // when
+        var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
+
+        // then
+        assertThat(statusBeforeProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+
+        // when
+        fileService.processFile(fileToProcessId);
+
+        // then
+        var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
+        assertThat(statusAfterProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.SUCCESS.toString());
+
+        assertThat(findByPesel("70081539775")).isNotEmpty();
+        assertThat(findByPesel("90122199526")).isNotEmpty();
+        assertThat(findByPesel("51010932991")).isNotEmpty();
+    }
+
 
     private Optional<PersonDto> findByPesel(String pesel) {
         SearchCriteria searchCriteria = new SearchCriteria();

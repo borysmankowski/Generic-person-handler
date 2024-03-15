@@ -1,5 +1,8 @@
 package com.example.personmanagement.file;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.person.PersonCreationStrategy;
@@ -8,22 +11,17 @@ import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.Person;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
+import java.io.BufferedReader;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.io.InputStreamReader;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -38,19 +36,19 @@ public class FileService {
 
     private final ComposedCsvFileRowToCreateCommandStrategy csvFileRowToCreateCommandStrategy;
 
-    private final PeselValidator peselValidator;
 
-    @Value("${spring.upload.dir}")
-    private String UPLOAD_DIR;
+    private final AmazonS3 amazonS3;
 
     public ResponseEntity<String> uploadFile(InputStream inputsStream, String originalFilename) {
         try {
             String uniqueFilename = System.currentTimeMillis() + "_" + originalFilename;
-            Path filePath = Path.of(UPLOAD_DIR, uniqueFilename);
-            Files.copy(inputsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // put file to S3
+            var bucketName = "person-management-bucket"; // todo: do application.yaml
+            amazonS3.putObject(bucketName, uniqueFilename, inputsStream, new ObjectMetadata());
 
             FileImport fileImport = FileImport.builder()
-                    .filePath(filePath.toString())
+                    .filePath(uniqueFilename)
                     .lastProcessedRow(0L)
                     .status(FileStatus.PENDING)
                     .createdAt(LocalDateTime.now())
@@ -58,21 +56,24 @@ public class FileService {
 
             fileImportRepository.save(fileImport);
 
-            return ResponseEntity.ok("File uploaded successfully. FilePath: " + filePath);
-
-        } catch (IOException e) {
+            return ResponseEntity.ok("File uploaded successfully. File name: " + uniqueFilename);
+        } catch (AmazonClientException e) {
             return ResponseEntity.status(500).body("Failed to upload the file.");
         }
     }
 
     @Async
-    public CompletableFuture<Optional<Long>> findFileToProcess() {
-        return CompletableFuture.completedFuture(fileImportRepository
-                .findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
-                .map(FileImport::getId));
+    public Optional<Long> findFileToProcess() {
+        return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
+                .map(FileImport::getId);
     }
 
-    @Transactional
+//    @Transactional
+
+    /**
+     * albo bez transactional - ewentualnie nie zapisze nam się np. postep pliku, przejdziemy jeszcze raz przez te same rekordy, ale bedzie skipowal
+     * albo z transactional - ale pytanie wtedy co robimy przy rollbacku (jesli Pesel just zduplikowany)? Moglibysmy zapisac, ze fail i juz nigdy nie przetwarzac pliku
+     */
     public void processFile(Long fileImportId) {
         FileImport fileImport = fileImportRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasnt been found"));
@@ -82,7 +83,10 @@ public class FileService {
             fileImport.setStartedAt(LocalDateTime.now());
         }
 
-        try (var lines = Files.lines(Path.of(filePath))) {
+        var getObjectResult = amazonS3.getObject("person-management-bucket", filePath);
+        var fileInputStream = getObjectResult.getObjectContent();
+        var reader = new BufferedReader(new InputStreamReader(fileInputStream));
+        try (var lines = reader.lines()) {
             var batchLines = lines.skip(1).skip(fileImport.getLastProcessedRow());
             var iterator = batchLines.iterator();
             var processedLines = 0;
@@ -99,7 +103,7 @@ public class FileService {
                 fileImport.setFinishedAt(LocalDateTime.now());
                 fileImportRepository.save(fileImport);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             fileImport.setStatus(FileStatus.FAILED);
             log.error("Error when processing file");
         }
@@ -111,14 +115,13 @@ public class FileService {
         PersonCreationStrategy strategy = creationStrategyMap.get(type);
 
         if (strategy != null) {
-            CreatePersonCommand command = mapDataToCommand(data);
-
             try {
-                peselValidator.validate(command.getPesel());
                 createAndAddToDatabase(strategy, data);
-            } catch (DuplicateResourceException e) {
+            } catch (DuplicateResourceException e) { //todo: handle invalid pesel
                 log.warn("Skipping line due to duplicate Pesel: {}", line);
             } catch (IllegalArgumentException e) {
+                log.warn("Skipping line due to invalid Pesel: {}", line);
+            } catch (DataIntegrityViolationException e) {
                 log.warn("Skipping line due to invalid Pesel: {}", line);
             }
         } else {
@@ -136,20 +139,18 @@ public class FileService {
         return csvFileRowToCreateCommandStrategy.toCommand(data);
     }
 
-    public ResponseEntity<Map<String, Object>> getFileImportStatus(Long id) {
+    public ResponseEntity<FileImportStatusResponse> getFileImportStatus(Long id) {
         Optional<FileImport> fileImportOptional = fileImportRepository.findById(id);
         return fileImportOptional.map(this::buildStatusResponse)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    private Map<String, Object> buildStatusResponse(FileImport fileImport) {
-        var result = new HashMap<String, Object>();
-        result.put("status", fileImport.getStatus());
-        result.put("createdDate", fileImport.getCreatedAt());
-        result.put("startDate", fileImport.getStartedAt());
-        result.put("lastProcessedRow", fileImport.getLastProcessedRow());
-        return result;
-
+    private FileImportStatusResponse buildStatusResponse(FileImport fileImport) {
+        return new FileImportStatusResponse(
+                fileImport.getStatus(),
+                fileImport.getCreatedAt(),
+                fileImport.getStartedAt(),
+                fileImport.getLastProcessedRow());
     }
 }
