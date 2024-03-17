@@ -1,8 +1,12 @@
+
 package com.example.personmanagement.file;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.ResetException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.person.PersonCreationStrategy;
@@ -11,17 +15,21 @@ import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.Person;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -39,12 +47,13 @@ public class FileService {
 
     private final AmazonS3 amazonS3;
 
+    @Value("${aws.bucketName}")
+    private String bucketName;
+
     public ResponseEntity<String> uploadFile(InputStream inputsStream, String originalFilename) {
         try {
             String uniqueFilename = System.currentTimeMillis() + "_" + originalFilename;
 
-            // put file to S3
-            var bucketName = "person-management-bucket"; // todo: do application.yaml
             amazonS3.putObject(bucketName, uniqueFilename, inputsStream, new ObjectMetadata());
 
             FileImport fileImport = FileImport.builder()
@@ -57,7 +66,11 @@ public class FileService {
             fileImportRepository.save(fileImport);
 
             return ResponseEntity.ok("File uploaded successfully. File name: " + uniqueFilename);
+        } catch (ResetException e) {
+            log.error("Failed to upload the file {}", e.getExtraInfo(), e);
+            return ResponseEntity.status(500).body("Failed to upload the file.");
         } catch (AmazonClientException e) {
+            log.error("Failed to upload the file ", e);
             return ResponseEntity.status(500).body("Failed to upload the file.");
         }
     }
@@ -66,14 +79,9 @@ public class FileService {
     public Optional<Long> findFileToProcess() {
         return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
                 .map(FileImport::getId);
+
     }
 
-//    @Transactional
-
-    /**
-     * albo bez transactional - ewentualnie nie zapisze nam się np. postep pliku, przejdziemy jeszcze raz przez te same rekordy, ale bedzie skipowal
-     * albo z transactional - ale pytanie wtedy co robimy przy rollbacku (jesli Pesel just zduplikowany)? Moglibysmy zapisac, ze fail i juz nigdy nie przetwarzac pliku
-     */
     public void processFile(Long fileImportId) {
         FileImport fileImport = fileImportRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasnt been found"));
@@ -83,20 +91,24 @@ public class FileService {
             fileImport.setStartedAt(LocalDateTime.now());
         }
 
-        var getObjectResult = amazonS3.getObject("person-management-bucket", filePath);
-        var fileInputStream = getObjectResult.getObjectContent();
-        var reader = new BufferedReader(new InputStreamReader(fileInputStream));
+        S3Object getObjectResult = amazonS3.getObject("person-management-bucket", filePath);
+        S3ObjectInputStream fileInputStream = getObjectResult.getObjectContent();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
+        String currentLine = null;
+
         try (var lines = reader.lines()) {
-            var batchLines = lines.skip(1).skip(fileImport.getLastProcessedRow());
-            var iterator = batchLines.iterator();
-            var processedLines = 0;
+            Stream<String> batchLines = lines.skip(1).skip(fileImport.getLastProcessedRow());
+            Iterator<String> iterator = batchLines.iterator();
+            int processedLines = 0;
             try {
                 while (iterator.hasNext()) {
-                    processFileLine(iterator.next());
+                    currentLine = iterator.next();
+                    processFileLine(currentLine);
                     processedLines++;
                 }
                 fileImport.setStatus(FileStatus.SUCCESS);
             } catch (Exception e) {
+                log.error("Error when processing file {}. Line: {}", fileImport.getId(), currentLine, e);
                 fileImport.setStatus(FileStatus.FAILED);
             } finally {
                 fileImport.setLastProcessedRow(fileImport.getLastProcessedRow() + processedLines);
@@ -104,8 +116,8 @@ public class FileService {
                 fileImportRepository.save(fileImport);
             }
         } catch (Exception e) {
+            log.error("Error when processing file {}. Line: {}", fileImport.getId(), currentLine, e);
             fileImport.setStatus(FileStatus.FAILED);
-            log.error("Error when processing file");
         }
     }
 
@@ -117,12 +129,12 @@ public class FileService {
         if (strategy != null) {
             try {
                 createAndAddToDatabase(strategy, data);
-            } catch (DuplicateResourceException e) { //todo: handle invalid pesel
-                log.warn("Skipping line due to duplicate Pesel: {}", line);
+            } catch (DuplicateResourceException | DataIntegrityViolationException e) {
+                log.warn("Skipping line due to duplicate Pesel: {}", line, e);
             } catch (IllegalArgumentException e) {
-                log.warn("Skipping line due to invalid Pesel: {}", line);
-            } catch (DataIntegrityViolationException e) {
-                log.warn("Skipping line due to invalid Pesel: {}", line);
+                log.warn("Skipping line due to invalid Pesel: {}", line, e);
+            } catch (TransactionSystemException e) {
+                log.warn("Skipping line {} due to: {}", line, e.getMessage(), e);
             }
         } else {
             throw new ResourceNotFoundException("Unknown type: " + type);

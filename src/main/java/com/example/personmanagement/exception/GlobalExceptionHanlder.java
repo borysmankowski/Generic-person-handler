@@ -1,5 +1,6 @@
 package com.example.personmanagement.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHanlder {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -22,30 +24,35 @@ public class GlobalExceptionHanlder {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionDto handleResourceNotFoundException(ResourceNotFoundException exception) {
-        return createExceptionDto(exception.getMessage());
+        log.error("Resource Not Found exception",exception);
+        return createExceptionDto("Resource not found!");
     }
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionDto handleDataIntegrityViolationException(DataIntegrityViolationException exception) {
-        return createExceptionDto(exception.getMessage());
+        log.error("Data integrity violation",exception);
+        return createExceptionDto("Data integrity violation!");
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionDto handleDuplicateResourceException(DuplicateResourceException exception) {
-        return createExceptionDto(exception.getMessage());
+        log.error("Duplicated Resource exception",exception);
+        return createExceptionDto("Duplicated Resource!");
     }
 
     @ExceptionHandler(InvalidStrategyTypeException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     public ExceptionDto handleInvalidStrategyTypeException(InvalidStrategyTypeException exception) {
-        return createExceptionDto(exception.getMessage());
+        log.error("Strategy Type exception",exception);
+        return createExceptionDto("Not found strategy type!");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public ExceptionDto handleInvalidStrategyTypeException(IllegalArgumentException exception) {
-        return createExceptionDto(exception.getMessage());
+        log.error("Strategy Type exception",exception);
+        return createExceptionDto("Incorrect strategy type!");
     }
 
     private ExceptionDto createExceptionDto(String message) {
