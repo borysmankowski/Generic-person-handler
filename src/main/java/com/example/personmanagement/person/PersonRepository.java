@@ -16,8 +16,6 @@ public interface PersonRepository extends JpaRepository<Person, Long>, JpaSpecif
     @Query("SELECT p FROM Person p WHERE p.id = :id")
     Optional<Person> findPersonByIdWithLock(Long id);
 
-    boolean existsByPesel(String pesel);
-
 }
 
 

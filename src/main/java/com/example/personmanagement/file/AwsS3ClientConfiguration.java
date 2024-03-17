@@ -10,12 +10,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AwsS3ClientConfiguration {
 
-    // todo: na konstruktor
-    @Value("${aws.serviceEndpoint}")
-    private String serviceEndpoint;
+    private final String serviceEndpoint;
+    private final String signingRegion;
 
-    @Value("${aws.signingRegion}")
-    private String signingRegion;
+    public AwsS3ClientConfiguration(
+            @Value("${aws.serviceEndpoint}") String serviceEndpoint,
+            @Value("${aws.signingRegion}") String signingRegion
+    ) {
+        this.serviceEndpoint = serviceEndpoint;
+        this.signingRegion = signingRegion;
+    }
 
     @Bean
     public AmazonS3 amazonS3() {
