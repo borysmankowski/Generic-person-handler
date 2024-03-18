@@ -3,7 +3,6 @@ package com.example.personmanagement.file;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
-import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -17,11 +16,12 @@ public class FileProcessor {
 
     private final FileService fileService;
     private final DefaultLockRepository lockRepository;
+    private final LockConfiguration lockConfiguration;
 
     @Scheduled(cron = "${spring.tasks.scheduled.cron}")
-    public void processFile() {
+    public void processFile() throws InterruptedException {
         String lockKey = "fileProcessLock";
-        Lock lock = new JdbcLockRegistry(lockRepository).obtain(lockKey);
+        Lock lock = lockConfiguration.jdbcLockRegistry(lockRepository).obtain(lockKey);
         if (lock.tryLock()) {
             try {
                 Optional<Long> optionalId = fileService.findFileToProcess();
@@ -30,7 +30,7 @@ public class FileProcessor {
                 lock.unlock();
             }
         } else {
-            System.out.println("niet good");
+            throw new InterruptedException("The lock has been interrupted!");
         }
     }
 }

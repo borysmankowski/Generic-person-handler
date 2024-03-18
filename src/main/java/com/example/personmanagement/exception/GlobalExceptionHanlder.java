@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.validation.ConstraintViolationException;
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHanlder {
@@ -48,11 +50,28 @@ public class GlobalExceptionHanlder {
         return createExceptionDto("Not found strategy type!");
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionDto handleConstraintViolationException(ConstraintViolationException exception) {
+        log.error("Constraint Violation", exception);
+        ValidationErrorDto errorDto = new ValidationErrorDto();
+        exception.getConstraintViolations().forEach(violation ->
+                errorDto.addViolation(violation.getPropertyPath().toString(), violation.getMessage()));
+        return errorDto;
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public ExceptionDto handleInvalidStrategyTypeException(IllegalArgumentException exception) {
-        log.error("Strategy Type exception",exception);
-        return createExceptionDto("Incorrect strategy type!");
+        log.error("Illegal argument!",exception);
+        return createExceptionDto("Illegal argument!");
+    }
+
+    @ExceptionHandler(JobOverlappingException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public ExceptionDto handleJobOverlappingException(JobOverlappingException exception) {
+        log.error("New job position overlaps with existing position!",exception);
+        return createExceptionDto("New job position overlaps with existing position");
     }
 
     private ExceptionDto createExceptionDto(String message) {

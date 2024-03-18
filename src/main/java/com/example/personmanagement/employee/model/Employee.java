@@ -1,5 +1,6 @@
 package com.example.personmanagement.employee.model;
 
+import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.person.model.Person;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -14,7 +15,6 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 @Getter
@@ -46,7 +46,7 @@ public class Employee extends Person {
         }
         for (JobPosition existingPosition : jobPositions) {
             if (existingPosition.isOverlapping(jobPosition)) {
-                throw new IllegalArgumentException("New job position overlaps with existing position");
+                throw new JobOverlappingException("New job position overlaps with existing position");
             }
         }
         jobPositions.add(jobPosition);
