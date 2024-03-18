@@ -1,5 +1,6 @@
 package com.example.personmanagement.exception;
 
+import jakarta.persistence.RollbackException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -54,10 +55,14 @@ public class GlobalExceptionHanlder {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionDto handleConstraintViolationException(ConstraintViolationException exception) {
         log.error("Constraint Violation", exception);
-        ValidationErrorDto errorDto = new ValidationErrorDto();
-        exception.getConstraintViolations().forEach(violation ->
-                errorDto.addViolation(violation.getPropertyPath().toString(), violation.getMessage()));
-        return errorDto;
+        return createExceptionDto("Constratint exception!");
+    }
+
+    @ExceptionHandler(RollbackException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionDto handleRollbackException(RollbackException exception) {
+        log.error("Rollback", exception);
+        return createExceptionDto("Rollback exception!");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

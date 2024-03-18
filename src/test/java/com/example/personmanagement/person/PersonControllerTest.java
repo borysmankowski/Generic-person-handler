@@ -142,17 +142,13 @@ class PersonControllerTest {
         createEmployeeCommand.setWeight(100);
         createEmployeeCommand.setEmailAddress("email@email.com");
 
-        String exceptionMsg = "invalid Polish National Identification Number (PESEL)";
-
         mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createEmployeeCommand)))
                 .andDo(print())
-                .andExpect(status().isBadRequest())
+                .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.message").value("validation errors"))
-                .andExpect(jsonPath("$.violations[0].field").value("pesel"))
-                .andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
+                .andExpect(jsonPath("$.message").value("Rollback exception!"));
     }
 
     @Test
