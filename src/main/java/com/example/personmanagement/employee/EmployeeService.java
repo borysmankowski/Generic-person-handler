@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 @Service
@@ -16,6 +17,8 @@ import java.time.LocalDate;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+
+    private final Clock clock;
 
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -27,12 +30,10 @@ public class EmployeeService {
                 command.salary()
         );
 
-        Employee employee = employeeRepository.findEmployeeWithLock(employeeId)
-                .filter(Employee.class::isInstance)
-                .map(Employee.class::cast)
+        Employee employee = (Employee) employeeRepository.findEmployeeWithLock(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employeeId));
 
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.now(clock);
 
         if (currentDate.isAfter(jobPosition.getStartDate()) || currentDate.isEqual(jobPosition.getStartDate())) {
             employee.setCurrentPosition(jobPosition.getPositionName());

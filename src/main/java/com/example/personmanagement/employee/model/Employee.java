@@ -13,7 +13,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,17 +38,20 @@ public class Employee extends Person {
 
     public JobPosition findCurrentPosition(LocalDate currentDate) {
         return jobPositions.stream()
-                .filter(it -> currentDate.isAfter(it.getStartDate()) && currentDate.isBefore(it.getEndDate()))
-                .findFirst().orElse(null);
+                .filter(jobPosition -> jobPosition.getStartDate().isAfter(currentDate))
+                .max(Comparator.comparing(JobPosition::getStartDate))
+                .orElse(null);
     }
 
     public void addJobPosition(JobPosition jobPosition) {
         if (jobPositions == null) {
             jobPositions = new HashSet<>();
         }
+
         for (JobPosition existingPosition : jobPositions) {
-            if (existingPosition.isOverlapping(jobPosition)) {
-                throw new JobOverlappingException("New job position overlaps with existing position");
+            if ((jobPosition.getStartDate().isBefore(existingPosition.getEndDate()) || jobPosition.getStartDate().isEqual(existingPosition.getEndDate())) &&
+                    (jobPosition.getEndDate().isAfter(existingPosition.getStartDate()) || jobPosition.getEndDate().isEqual(existingPosition.getStartDate()))) {
+                throw new JobOverlappingException("New job position overlaps with an existing position");
             }
         }
         jobPositions.add(jobPosition);
