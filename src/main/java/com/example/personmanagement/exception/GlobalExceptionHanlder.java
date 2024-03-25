@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolationException;
+import java.io.IOException;
 
 @RestControllerAdvice
 @Slf4j
@@ -56,6 +57,13 @@ public class GlobalExceptionHanlder {
     public ExceptionDto handleConstraintViolationException(ConstraintViolationException exception) {
         log.error("Constraint Violation", exception);
         return createExceptionDto("Constratint exception!");
+    }
+
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionDto handleIOException(IOException exception) {
+        log.error("IOException", exception);
+        return createExceptionDto("IOException exception!");
     }
 
     @ExceptionHandler(RollbackException.class)

@@ -83,6 +83,25 @@ class EmployeeControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void givenEmployeeWithPosition_WhenUpdatingJobPosition_ThenShouldPass() throws Exception {
+        // given
+        var now = LocalDate.now();
+        var employee = postRandomEmployee();
+        var personId = employee.getId();
+        var jobPosition1 = new AddJobPositionCommand("Developer", now, now.plusDays(5), 2000);
+        postJobPosition(personId, jobPosition1);
+
+        // when
+        var updatingJobPosition = new AddJobPositionCommand("Senior Developer", now.plusDays(10), now.plusDays(15), 5000);
+        ResultActions resultActions = postJobPosition(personId, updatingJobPosition);
+
+        // then
+        resultActions
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void givenEmployeesWithSamePESEL_WhenCreateEmployees_ThenShouldFail() throws Exception {
         // given
         String pesel = "59052491861";
