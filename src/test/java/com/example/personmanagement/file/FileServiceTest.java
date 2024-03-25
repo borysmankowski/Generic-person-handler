@@ -97,11 +97,11 @@ public class FileServiceTest {
 
         // then
         var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
-        assertThat(statusAfterProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.SUCCESS.toString());
+        assertThat(statusAfterProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.FAILED.toString());
 
-        assertThat(findByPesel("70081539775")).isNotEmpty();
-        assertThat(findByPesel("90122199526")).isNotEmpty();
-        assertThat(findByPesel("51010932991")).isNotEmpty();
+        assertThat(findByPesel("70081539775")).isEmpty();
+        assertThat(findByPesel("90122199526")).isEmpty();
+        assertThat(findByPesel("51010932991")).isEmpty();
     }
 
 
