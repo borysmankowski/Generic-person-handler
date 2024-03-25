@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionSystemException;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -81,7 +80,7 @@ public class FileService {
                 .map(FileImport::getId);
 
     }
-    @Transactional
+
     public void processFile(Long fileImportId) {
         FileImport fileImport = fileImportRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasnt been found"));
