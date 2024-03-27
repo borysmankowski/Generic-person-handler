@@ -15,5 +15,6 @@ public class EmployeeConfiguration {
     @PostConstruct
     public void objectMapper(){
         objectMapper.registerSubtypes(new NamedType(CreateEmployeeCommand.class,"EMPLOYEE"));
+        objectMapper.registerSubtypes(new NamedType(UpdateEmployeeCommand.class,"EMPLOYEE"));
     }
 }

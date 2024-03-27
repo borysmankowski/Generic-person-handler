@@ -15,5 +15,6 @@ public class StudentConfiguration {
     @PostConstruct
     public void objectMapper(){
         objectMapper.registerSubtypes(new NamedType(CreateStudentCommand.class,"STUDENT"));
+        objectMapper.registerSubtypes(new NamedType(UpdateStudentCommand.class,"STUDENT"));
     }
 }

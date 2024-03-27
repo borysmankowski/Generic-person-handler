@@ -15,6 +15,7 @@ public class PensionerConfiguration {
     @PostConstruct
     public void objectMapper(){
         objectMapper.registerSubtypes(new NamedType(CreatePensionerCommand.class,"PENSIONER"));
+        objectMapper.registerSubtypes(new NamedType(UpdatePensionerCommand.class,"PENSIONER"));
     }
 
 

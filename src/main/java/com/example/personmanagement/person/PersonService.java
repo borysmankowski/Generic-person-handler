@@ -7,6 +7,7 @@ import com.example.personmanagement.person.model.Person;
 import com.example.personmanagement.person.model.PersonDto;
 import com.example.personmanagement.person.model.PersonSpecification;
 import com.example.personmanagement.person.model.SearchCriteria;
+import com.example.personmanagement.person.model.UpdatePersonCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -56,14 +57,14 @@ public class PersonService {
     }
 
     @Transactional
-    public PersonDto updateAnyPerson(Long personId, CreatePersonCommand command) {
+    public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
         Person existingPerson = personRepository.findPersonByIdWithLock(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
 
         String type = command.getType();
         PersonCreationStrategy creationStrategy = creationStrategies.get(type);
 
-        Person updatedPerson = creationStrategy.create(command);
+        Person updatedPerson = creationStrategy.update(command);
         updatedPerson.setId(existingPerson.getId());
 
         log.info("updated: {}", updatedPerson);
