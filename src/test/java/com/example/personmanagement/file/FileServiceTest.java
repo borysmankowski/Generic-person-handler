@@ -63,14 +63,14 @@ public class FileServiceTest {
         var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
 
         // then
-        assertThat(statusBeforeProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+        assertThat(statusBeforeProcessing.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
 
         // when
         fileService.processFile(fileToProcessId);
 
         // then
         var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
-        assertThat(statusAfterProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.SUCCESS.toString());
+        assertThat(statusAfterProcessing.getStatus().toString()).isEqualTo(FileStatus.SUCCESS.toString());
 
         assertThat(findByPesel("70081539775")).isNotEmpty();
         assertThat(findByPesel("90122199526")).isNotEmpty();
@@ -90,17 +90,17 @@ public class FileServiceTest {
         var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
 
         // then
-        assertThat(statusBeforeProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+        assertThat(statusBeforeProcessing.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
 
         // when
         fileService.processFile(fileToProcessId);
 
         // then
         var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
-        assertThat(statusAfterProcessing.getBody().getStatus().toString()).isEqualTo(FileStatus.FAILED.toString());
+        assertThat(statusAfterProcessing.getStatus().toString()).isEqualTo(FileStatus.FAILED.toString());
 
-        assertThat(findByPesel("70081539775")).isEmpty();
-        assertThat(findByPesel("90122199526")).isEmpty();
+        assertThat(findByPesel("70081539775")).isNotEmpty();
+        assertThat(findByPesel("90122199526")).isNotEmpty();
         assertThat(findByPesel("51010932991")).isEmpty();
     }
 

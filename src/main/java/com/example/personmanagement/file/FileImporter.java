@@ -18,13 +18,15 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FileImporter {
+
+    public record Result(long lastProcessedRow, boolean isFinished) {
+    }
 
     private final PersonRepository personRepository;
 
@@ -35,7 +37,7 @@ public class FileImporter {
     private final AmazonS3 amazonS3;
 
     @Transactional
-    public void processFileWithLoad(FileImport fileImport, Consumer<Integer> onRowProcessed) {
+    public Result processFile(FileImport fileImport, long batchStart, long batchSize) {
         String filePath = fileImport.getFilePath();
 
         S3Object getObjectResult = amazonS3.getObject("person-management-bucket", filePath);
@@ -43,17 +45,19 @@ public class FileImporter {
         BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
         String currentLine = null;
 
+        int processedLines = 0;
         try (var lines = reader.lines()) {
-            Stream<String> batchLines = lines.skip(1).skip(fileImport.getLastProcessedRow());
+            Stream<String> batchLines = lines.skip(1).skip(batchStart).limit(batchSize);
             Iterator<String> iterator = batchLines.iterator();
-            int processedLines = 0;
             while (iterator.hasNext()) {
                 currentLine = iterator.next();
                 processFileLine(currentLine);
                 processedLines++;
-                onRowProcessed.accept(processedLines);
             }
         }
+
+        var isFinished = processedLines < batchSize;
+        return new Result(batchStart + processedLines, isFinished);
     }
 
     private void processFileLine(String line) {
@@ -78,5 +82,3 @@ public class FileImporter {
         return csvFileRowToCreateCommandStrategy.toCommand(data);
     }
 }
-
-

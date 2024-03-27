@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 @RequiredArgsConstructor
@@ -23,19 +22,15 @@ public class FileProcessor {
     @Scheduled(cron = "${spring.tasks.scheduled.cron}")
     public void processFile() throws InterruptedException {
         Lock lock = lockConfiguration.jdbcLockRegistry(lockRepository).obtain(LOCK_KEY);
-        try {
-            if (lock.tryLock(60, TimeUnit.MINUTES)) {
-                try {
-                    Optional<Long> optionalId = fileService.findFileToProcess();
-                    optionalId.ifPresent(fileService::processFile);
-                } finally {
-                    lock.unlock();
-                }
-            } else {
-                throw new InterruptedException("The lock acquisition has timed out!");
+        if (lock.tryLock()) {
+            try {
+                Optional<Long> optionalId = fileService.findFileToProcess();
+                optionalId.ifPresent(fileService::processFile);
+            } finally {
+                lock.unlock();
             }
-        } catch (InterruptedException e) {
-            throw new InterruptedException("Lock acquisition interrupted!");
+        } else {
+            throw new InterruptedException("The lock has been interrupted!");
         }
     }
 }
