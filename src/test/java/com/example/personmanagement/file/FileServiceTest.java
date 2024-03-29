@@ -119,6 +119,5 @@ public class FileServiceTest {
     @BeforeEach
     public void setUp() {
         personRepository.deleteAll();
-        fileImportRepository.deleteAll();
     }
 }

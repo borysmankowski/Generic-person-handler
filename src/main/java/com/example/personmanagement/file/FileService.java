@@ -55,8 +55,7 @@ public class FileService {
     }
 
     public Optional<Long> findFileToProcess() {
-        return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
-                .map(FileImport::getId);
+        return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc();
 
     }
 
