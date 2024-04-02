@@ -8,7 +8,7 @@ public interface PersonCreationStrategy {
 
     Person create(CreatePersonCommand command);
 
-    Person update (UpdatePersonCommand command);
+    Person update(Person existingPerson, UpdatePersonCommand command);
 
 
 }

@@ -35,22 +35,47 @@ public class StudentCreationStrategy implements PersonCreationStrategy {
     }
 
     @Override
-    public Person update(UpdatePersonCommand command) {
+    public Person update(Person existingPerson, UpdatePersonCommand command) {
         if (!(command instanceof UpdateStudentCommand studentCommand)) {
             throw new InvalidStrategyTypeException("Invalid command type for StudentUpdateStrategy");
         }
-        return Student.builder()
-                .type(studentCommand.getType())
-                .name(studentCommand.getName())
-                .surname(studentCommand.getSurname())
-                .pesel(studentCommand.getPesel())
-                .height(studentCommand.getHeight())
-                .weight(studentCommand.getWeight())
-                .emailAddress(studentCommand.getEmailAddress())
-                .nameOfUniversity(studentCommand.getNameOfUniversity())
-                .yearOfStudies(studentCommand.getYearOfStudies())
-                .courseName(studentCommand.getCourseName())
-                .scholarship(studentCommand.getScholarship())
-                .build();
+        if (existingPerson instanceof Student) {
+            Student existingStudent = (Student) existingPerson;
+
+            if (studentCommand.getName() != null) {
+                existingStudent.setName(studentCommand.getName());
+            }
+            if (studentCommand.getSurname() != null) {
+                existingStudent.setSurname(studentCommand.getSurname());
+            }
+            if (studentCommand.getPesel() != null) {
+                existingStudent.setPesel(studentCommand.getPesel());
+            }
+            if (studentCommand.getHeight() != 0.0) {
+                existingStudent.setHeight(studentCommand.getHeight());
+            }
+            if (studentCommand.getWeight() != 0.0) {
+                existingStudent.setWeight(studentCommand.getWeight());
+            }
+            if (studentCommand.getEmailAddress() != null) {
+                existingStudent.setEmailAddress(studentCommand.getEmailAddress());
+            }
+            if (studentCommand.getNameOfUniversity() != null) {
+                existingStudent.setNameOfUniversity(studentCommand.getNameOfUniversity());
+            }
+            if (studentCommand.getYearOfStudies() != 0) {
+                existingStudent.setYearOfStudies(studentCommand.getYearOfStudies());
+            }
+            if (studentCommand.getCourseName() != null) {
+                existingStudent.setCourseName(studentCommand.getCourseName());
+            }
+            if (studentCommand.getScholarship() != 0.0) {
+                existingStudent.setScholarship(studentCommand.getScholarship());
+            }
+
+            return existingStudent;
+        } else {
+            throw new IllegalArgumentException("Existing person is not an instance of Student");
+        }
     }
 }

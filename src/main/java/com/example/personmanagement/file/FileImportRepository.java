@@ -47,7 +47,6 @@ public class FileImportRepository {
             FileImport fileImport = jdbcTemplate.queryForObject(sql, new Object[]{id}, new FileImportRowMapper());
             return Optional.ofNullable(fileImport);
         } catch (DataAccessException e) {
-            // Handle any potential exceptions or empty result sets here
             return Optional.empty();
         }
     }

@@ -33,23 +33,45 @@ public class EmployeeCreationStrategy implements PersonCreationStrategy {
     }
 
     @Override
-    public Person update(UpdatePersonCommand command) {
+    public Person update(Person existingPerson, UpdatePersonCommand command) {
         if (!(command instanceof UpdateEmployeeCommand employeeCommand)) {
             throw new InvalidStrategyTypeException("Invalid command type for EmployeeUpdateStrategy");
         }
+        if (existingPerson instanceof Employee) {
+            Employee existingEmployee = (Employee) existingPerson;
 
-        return Employee.builder()
-                .type(employeeCommand.getType())
-                .name(employeeCommand.getName())
-                .surname(employeeCommand.getSurname())
-                .pesel(employeeCommand.getPesel())
-                .height(employeeCommand.getHeight())
-                .weight(employeeCommand.getWeight())
-                .emailAddress(employeeCommand.getEmailAddress())
-                .employmentStartDate(employeeCommand.getEmploymentStartDate())
-                .currentPosition(employeeCommand.getCurrentPosition())
-                .currentSalary(employeeCommand.getCurrentSalary())
-                .build();
+            if (employeeCommand.getName() != null) {
+                existingEmployee.setName(employeeCommand.getName());
+            }
+            if (employeeCommand.getSurname() != null) {
+                existingEmployee.setSurname(employeeCommand.getSurname());
+            }
+            if (employeeCommand.getPesel() != null) {
+                existingEmployee.setPesel(employeeCommand.getPesel());
+            }
+            if (employeeCommand.getHeight() != 0.0) {
+                existingEmployee.setHeight(employeeCommand.getHeight());
+            }
+            if (employeeCommand.getWeight() != 0.0) {
+                existingEmployee.setWeight(employeeCommand.getWeight());
+            }
+            if (employeeCommand.getEmailAddress() != null) {
+                existingEmployee.setEmailAddress(employeeCommand.getEmailAddress());
+            }
+            if (employeeCommand.getEmploymentStartDate() != null) {
+                existingEmployee.setEmploymentStartDate(employeeCommand.getEmploymentStartDate());
+            }
+            if (employeeCommand.getCurrentPosition() != null) {
+                existingEmployee.setCurrentPosition(employeeCommand.getCurrentPosition());
+            }
+            if (employeeCommand.getCurrentSalary() != 0.0) {
+                existingEmployee.setCurrentSalary(employeeCommand.getCurrentSalary());
+            }
+
+            return existingEmployee;
+        } else {
+            throw new IllegalArgumentException("Existing person is not an instance of Employee");
+        }
     }
 
 }

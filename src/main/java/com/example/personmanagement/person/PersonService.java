@@ -64,7 +64,7 @@ public class PersonService {
         String type = command.getType();
         PersonCreationStrategy creationStrategy = creationStrategies.get(type);
 
-        Person updatedPerson = creationStrategy.update(command);
+        Person updatedPerson = creationStrategy.update(existingPerson,command);
         updatedPerson.setId(existingPerson.getId());
 
         log.info("updated: {}", updatedPerson);
