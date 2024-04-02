@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,17 +24,15 @@ public class FileController {
 
     @GetMapping("/{id}/status")
     public ResponseEntity<FileImportStatusResponse> getFileImportStatus(@PathVariable Long id) {
-        return fileService.getFileImportStatus(id);
+        return ResponseEntity.ok(fileService.getFileImportStatus(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'IMPORTER')")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("Please upload a file.");
+            return ResponseEntity.badRequest().body(new FileUploadResponse("Error occured when uplodaing a file",file.getOriginalFilename()));
         }
-        return fileService.uploadFile(file.getInputStream(), file.getOriginalFilename());
+        return ResponseEntity.ok(fileService.uploadFile(file.getInputStream(), file.getOriginalFilename()));
     }
-
-
 }

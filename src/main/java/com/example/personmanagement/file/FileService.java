@@ -9,7 +9,6 @@ import com.example.personmanagement.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -30,7 +29,7 @@ public class FileService {
 
     private final FileImporter fileImporter;
 
-    public ResponseEntity<String> uploadFile(InputStream inputsStream, String originalFilename) {
+    public FileUploadResponse uploadFile(InputStream inputsStream, String originalFilename) {
         try {
             String uniqueFilename = System.currentTimeMillis() + "_" + originalFilename;
 
@@ -43,21 +42,20 @@ public class FileService {
                     .createdAt(LocalDateTime.now())
                     .build();
 
-            fileImportRepository.save(fileImport);
+            fileImportRepository.insert(fileImport);
 
-            return ResponseEntity.ok("File uploaded successfully. File name: " + uniqueFilename);
+            return new FileUploadResponse("File uploaded successfully. File name: ", uniqueFilename);
         } catch (ResetException e) {
             log.error("Failed to upload the file {}", e.getExtraInfo(), e);
-            return ResponseEntity.status(500).body("Failed to upload the file.");
+            return new FileUploadResponse("Failed to upload the file. ", originalFilename);
         } catch (AmazonClientException e) {
             log.error("Failed to upload the file ", e);
-            return ResponseEntity.status(500).body("Failed to upload the file.");
+            return new FileUploadResponse("Failed to upload the file. ", originalFilename);
         }
     }
 
     public Optional<Long> findFileToProcess() {
-        return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
-                .map(FileImport::getId);
+        return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc();
 
     }
 
@@ -68,28 +66,31 @@ public class FileService {
             if (fileImport.getStartedAt() == null) {
                 fileImport.setStartedAt(LocalDateTime.now());
             }
-            fileImporter.processFileWithLoad(fileImport, (lastProcessedRow) -> onRowProcessed((long) lastProcessedRow, fileImport));
+
+            var processing = true;
+
+            while (processing) {
+                var batchStart = fileImport.getLastProcessedRow();
+                var batchResult = fileImporter.processFile(fileImport, batchStart, 2);
+                fileImport.setLastProcessedRow(batchResult.lastProcessedRow());
+                processing = !batchResult.isFinished();
+            }
+
             fileImport.setFinishedAt(LocalDateTime.now());
             fileImport.setStatus(FileStatus.SUCCESS);
-            fileImportRepository.save(fileImport);
-
+            fileImportRepository.update(fileImport);
         } catch (Exception e) {
             log.error("Error when processing file {}", fileImportId, e);
             fileImport.setFinishedAt(LocalDateTime.now());
             fileImport.setStatus(FileStatus.FAILED);
-            fileImportRepository.save(fileImport);
+            fileImportRepository.update(fileImport);
         }
     }
 
-    private void onRowProcessed(long lastProcessedRow, FileImport fileImport) {
-        fileImport.setLastProcessedRow(lastProcessedRow);
-    }
-
-    public ResponseEntity<FileImportStatusResponse> getFileImportStatus(Long id) {
+    public FileImportStatusResponse getFileImportStatus(Long id) {
         Optional<FileImport> fileImportOptional = fileImportRepository.findById(id);
         return fileImportOptional.map(this::buildStatusResponse)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("File import status not found!"));
     }
 
     private FileImportStatusResponse buildStatusResponse(FileImport fileImport) {

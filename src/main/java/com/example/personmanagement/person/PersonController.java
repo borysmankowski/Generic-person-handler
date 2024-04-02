@@ -3,13 +3,13 @@ package com.example.personmanagement.person;
 import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.PersonDto;
 import com.example.personmanagement.person.model.SearchCriteria;
+import com.example.personmanagement.person.model.UpdatePersonCommand;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -44,7 +44,7 @@ public class PersonController {
     @PutMapping("/{personId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasRole('ADMIN')")
-    public PersonDto updatePersonDetails(@PathVariable Long personId, @RequestBody @Valid CreatePersonCommand command) {
+    public PersonDto updatePersonDetails(@PathVariable Long personId, @RequestBody @Valid UpdatePersonCommand command) {
         return personService.updateAnyPerson(personId, command);
     }
 
