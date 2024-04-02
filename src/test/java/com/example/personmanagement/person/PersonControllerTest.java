@@ -2,6 +2,8 @@ package com.example.personmanagement.person;
 
 import com.example.personmanagement.employee.EmployeeCreationStrategy;
 import com.example.personmanagement.employee.model.CreateEmployeeCommand;
+import com.example.personmanagement.employee.model.EmployeeDto;
+import com.example.personmanagement.employee.model.UpdateEmployeeCommand;
 import com.example.personmanagement.pensioner.model.CreatePensionerCommand;
 import com.example.personmanagement.person.model.Person;
 import com.example.personmanagement.person.model.SearchCriteria;
@@ -151,6 +153,39 @@ class PersonControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void UpdatePersonDetails() throws Exception {
+        UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
+        updateEmployeeCommand.setType("EMPLOYEE");
+        updateEmployeeCommand.setName("newName");
+        updateEmployeeCommand.setSurname("newSurname");
+        updateEmployeeCommand.setPesel("00250714618");
+        updateEmployeeCommand.setHeight(180);
+        updateEmployeeCommand.setWeight(80);
+        updateEmployeeCommand.setEmailAddress("newemail@test.com");
+
+        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        createEmployeeCommand.setType("EMPLOYEE");
+        createEmployeeCommand.setName("name");
+        createEmployeeCommand.setSurname("Surname");
+        createEmployeeCommand.setPesel("00250714618");
+        createEmployeeCommand.setHeight(100);
+        createEmployeeCommand.setWeight(100);
+        createEmployeeCommand.setEmailAddress("email@email.com");
+
+        EmployeeDto employee = postEmployee(createEmployeeCommand);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}",employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(updateEmployeeCommand.getName()))
+                .andExpect(jsonPath("$.surname").value(updateEmployeeCommand.getSurname()))
+                .andExpect(jsonPath("$.emailAddress").value(updateEmployeeCommand.getEmailAddress()));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void CreatePersonFailureBlankEmail() throws Exception {
 
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
@@ -258,6 +293,15 @@ class PersonControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(student)))
                 .andExpect(status().isCreated());
+    }
+
+    private EmployeeDto postEmployee(CreateEmployeeCommand requestBody) throws Exception {
+        var result = mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andReturn();
+        return objectMapper.readValue(result.getResponse().getContentAsString(), EmployeeDto.class);
     }
 
     @Test
