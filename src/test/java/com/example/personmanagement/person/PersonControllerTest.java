@@ -303,7 +303,6 @@ class PersonControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
-
     @AfterEach
     public void setUp() {
         personRepository.deleteAll();

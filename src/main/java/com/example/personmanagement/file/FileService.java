@@ -42,7 +42,7 @@ public class FileService {
                     .createdAt(LocalDateTime.now())
                     .build();
 
-            fileImportRepository.save(fileImport);
+            fileImportRepository.insert(fileImport);
 
             return new FileUploadResponse("File uploaded successfully. File name: ", uniqueFilename);
         } catch (ResetException e) {
@@ -78,12 +78,12 @@ public class FileService {
 
             fileImport.setFinishedAt(LocalDateTime.now());
             fileImport.setStatus(FileStatus.SUCCESS);
-            fileImportRepository.save(fileImport);
+            fileImportRepository.update(fileImport);
         } catch (Exception e) {
             log.error("Error when processing file {}", fileImportId, e);
             fileImport.setFinishedAt(LocalDateTime.now());
             fileImport.setStatus(FileStatus.FAILED);
-            fileImportRepository.save(fileImport);
+            fileImportRepository.update(fileImport);
         }
     }
 

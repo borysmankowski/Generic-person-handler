@@ -65,7 +65,6 @@ public class PersonService {
         PersonCreationStrategy creationStrategy = creationStrategies.get(type);
 
         Person updatedPerson = creationStrategy.update(existingPerson,command);
-        updatedPerson.setId(existingPerson.getId());
 
         log.info("updated: {}", updatedPerson);
         return personMapper.toDto(personRepository.save(updatedPerson));
