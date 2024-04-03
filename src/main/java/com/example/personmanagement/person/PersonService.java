@@ -58,7 +58,7 @@ public class PersonService {
 
     @Transactional
     public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
-        Person existingPerson = personRepository.findPersonByIdWithLock(personId)
+        Person existingPerson = personRepository.findPersonById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
 
         String type = command.getType();

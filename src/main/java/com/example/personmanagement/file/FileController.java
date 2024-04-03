@@ -33,6 +33,6 @@ public class FileController {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(new FileUploadResponse("Error occured when uplodaing a file",file.getOriginalFilename()));
         }
-        return ResponseEntity.ok(fileService.uploadFile(file.getInputStream(), file.getOriginalFilename()));
+        return ResponseEntity.ok(fileService.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getSize()));
     }
 }
