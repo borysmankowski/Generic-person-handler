@@ -29,11 +29,12 @@ public class FileService {
 
     private final FileImporter fileImporter;
 
-    public FileUploadResponse uploadFile(InputStream inputsStream, String originalFilename) {
+    public FileUploadResponse uploadFile(InputStream inputsStream, String originalFilename, long byteSize) {
         try {
             String uniqueFilename = System.currentTimeMillis() + "_" + originalFilename;
-
-            amazonS3.putObject(bucketName, uniqueFilename, inputsStream, new ObjectMetadata());
+            var s3metadata = new ObjectMetadata();
+            s3metadata.setContentLength(byteSize);
+            amazonS3.putObject(bucketName, uniqueFilename, inputsStream, s3metadata);
 
             FileImport fileImport = FileImport.builder()
                     .filePath(uniqueFilename)

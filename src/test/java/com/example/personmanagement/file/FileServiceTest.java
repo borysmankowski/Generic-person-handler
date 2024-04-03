@@ -42,7 +42,7 @@ public class FileServiceTest {
         // given
         var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
-        fileService.uploadFile(inputStream, "generatedFileForTesting.csv");
+        fileService.uploadFile(inputStream, "generatedFileForTesting.csv",Files.size(filePath));
 
         // when
         var maybeFileToProcess = fileService.findFileToProcess();
@@ -56,7 +56,8 @@ public class FileServiceTest {
         // given
         var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
-        fileService.uploadFile(inputStream, "generatedFileForTesting.csv");
+
+        fileService.uploadFile(inputStream, "generatedFileForTesting.csv",Files.size(filePath));
         var fileToProcessId = fileService.findFileToProcess().orElseThrow();
 
         // when
@@ -83,7 +84,7 @@ public class FileServiceTest {
         // given
         var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         var inputStream = Files.newInputStream(filePath);
-        fileService.uploadFile(inputStream, "generatedFileForTesting.csv");
+        fileService.uploadFile(inputStream, "generatedFileForTesting.csv",Files.size(filePath));
         var fileToProcessId = fileService.findFileToProcess().orElseThrow();
 
         // when

@@ -13,7 +13,7 @@ public interface PersonRepository extends JpaRepository<Person, Long>, JpaSpecif
 
     @Lock(LockModeType.OPTIMISTIC)
     @Query("SELECT p FROM Person p WHERE p.id = :id")
-    Optional<Person> findPersonByIdWithLock(Long id);
+    Optional<Person> findPersonById(Long id);
 
 }
 
