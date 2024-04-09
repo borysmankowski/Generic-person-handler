@@ -1,17 +1,17 @@
 
 package com.example.personmanagement.file;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.ResetException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -22,19 +22,16 @@ public class FileService {
 
     private final FileImportRepository fileImportRepository;
 
-    private final AmazonS3 amazonS3;
-
-    @Value("${aws.bucketName}")
-    private String bucketName;
-
     private final FileImporter fileImporter;
 
-    public FileUploadResponse uploadFile(InputStream inputsStream, String originalFilename, long byteSize) {
+    @Value("${spring.upload.dir}")
+    private String UPLOAD_DIR;
+
+    public FileUploadResponse uploadFile(InputStream inputsStream, String originalFilename) {
         try {
             String uniqueFilename = System.currentTimeMillis() + "_" + originalFilename;
-            var s3metadata = new ObjectMetadata();
-            s3metadata.setContentLength(byteSize);
-            amazonS3.putObject(bucketName, uniqueFilename, inputsStream, s3metadata);
+            Path filePath = Path.of(UPLOAD_DIR, uniqueFilename);
+            Files.copy(inputsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
             FileImport fileImport = FileImport.builder()
                     .filePath(uniqueFilename)
@@ -46,10 +43,7 @@ public class FileService {
             fileImportRepository.insert(fileImport);
 
             return new FileUploadResponse("File uploaded successfully. File name: ", uniqueFilename);
-        } catch (ResetException e) {
-            log.error("Failed to upload the file {}", e.getExtraInfo(), e);
-            return new FileUploadResponse("Failed to upload the file. ", originalFilename);
-        } catch (AmazonClientException e) {
+        } catch (IOException e) {
             log.error("Failed to upload the file ", e);
             return new FileUploadResponse("Failed to upload the file. ", originalFilename);
         }
