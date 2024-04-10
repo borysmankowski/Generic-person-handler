@@ -4,14 +4,10 @@ package com.example.personmanagement.file;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -24,14 +20,11 @@ public class FileService {
 
     private final FileImporter fileImporter;
 
-    @Value("${spring.upload.dir}")
-    private String UPLOAD_DIR;
+    private final FileStorage fileStorage;
 
-    public FileUploadResponse uploadFile(InputStream inputsStream, String originalFilename) {
+    public FileUploadResponse uploadFile(InputStream inputsStream, String originalFilename, long byteSize) {
         try {
-            String uniqueFilename = System.currentTimeMillis() + "_" + originalFilename;
-            Path filePath = Path.of(UPLOAD_DIR, uniqueFilename);
-            Files.copy(inputsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            var uniqueFilename = fileStorage.save(inputsStream, originalFilename, byteSize);
 
             FileImport fileImport = FileImport.builder()
                     .filePath(uniqueFilename)

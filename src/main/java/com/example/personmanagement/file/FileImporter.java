@@ -8,15 +8,11 @@ import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.Person;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -35,15 +31,11 @@ public class FileImporter {
 
     private final ComposedCsvFileRowToCreateCommandStrategy csvFileRowToCreateCommandStrategy;
 
-    @Value("${spring.upload.dir}")
-    private String UPLOAD_DIR;
+    private final FileStorage fileStorage;
 
     @Transactional
     public Result processFile(FileImport fileImport, long batchStart, long batchSize) throws FileNotFoundException {
-
-        Path filePath = Path.of(UPLOAD_DIR,fileImport.getFilePath());
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(String.valueOf(filePath))));
+        BufferedReader reader = fileStorage.load(fileImport.getFilePath());
 
         String currentLine = null;
 

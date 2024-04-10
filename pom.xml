@@ -52,15 +52,15 @@
 
 
 
-        <!--        AMAZON S3     -->
+<!--                AMAZON S3-->
 
-<!--        <dependency>-->
-<!--            <groupId>com.amazonaws</groupId>-->
-<!--            <artifactId>aws-java-sdk-s3</artifactId>-->
-<!--            <version>1.12.677</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.12.677</version>
+        </dependency>
 
-        <!-- Other dependencies -->
+<!--         Other dependencies-->
 
         <dependency>
             <groupId>com.h2database</groupId>

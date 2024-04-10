@@ -24,6 +24,8 @@ spring:
   integration:
     jdbc:
       initialize-schema: always
+  upload:
+    dir: "src/main/resources/files-to-import"
 server:
   port: 8080
 aws:
@@ -46,3 +48,5 @@ logging:
           InstanceMetadataServiceResourceFetcher: error
         util:
           EC2MetadataUtils: error
+file-storage:
+  solution: local
