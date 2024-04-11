@@ -1,9 +1,6 @@
 
 package com.example.personmanagement.file;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.person.PersonCreationStrategy;
 import com.example.personmanagement.person.PersonRepository;
@@ -15,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -34,15 +31,12 @@ public class FileImporter {
 
     private final ComposedCsvFileRowToCreateCommandStrategy csvFileRowToCreateCommandStrategy;
 
-    private final AmazonS3 amazonS3;
+    private final FileStorage fileStorage;
 
     @Transactional
-    public Result processFile(FileImport fileImport, long batchStart, long batchSize) {
-        String filePath = fileImport.getFilePath();
+    public Result processFile(FileImport fileImport, long batchStart, long batchSize) throws FileNotFoundException {
+        BufferedReader reader = fileStorage.load(fileImport.getFilePath());
 
-        S3Object getObjectResult = amazonS3.getObject("person-management-bucket", filePath);
-        S3ObjectInputStream fileInputStream = getObjectResult.getObjectContent();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
         String currentLine = null;
 
         int processedLines = 0;

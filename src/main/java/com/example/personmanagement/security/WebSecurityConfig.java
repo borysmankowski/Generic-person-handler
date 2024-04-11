@@ -46,6 +46,7 @@ public class WebSecurityConfig {
                         .requestMatchers(mvcMatcherBuilder.pattern(UPLOAD_URL_PATTERN)).permitAll()
                         .anyRequest().authenticated()
 
+
         );
 
         http.httpBasic(Customizer.withDefaults());

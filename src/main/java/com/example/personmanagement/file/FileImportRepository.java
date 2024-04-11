@@ -22,8 +22,13 @@ public class FileImportRepository {
 
     public void insert(FileImport fileImport) throws DataAccessException {
         String sql = "INSERT INTO file_import (file_path, last_processed_row, status, created_at) VALUES (?, ?, ?, ?)";
-        jdbcTemplate.update(sql, fileImport.getFilePath(), fileImport.getLastProcessedRow(),
-                fileImport.getStatus().toString(), fileImport.getCreatedAt());
+        try {
+            jdbcTemplate.update(sql, fileImport.getFilePath(), fileImport.getLastProcessedRow(),
+                    fileImport.getStatus().toString(), fileImport.getCreatedAt());
+        } catch (DataAccessException e) {
+            log.error("Error occurred while inserting file import data: {}", e.getMessage());
+            throw e;
+        }
     }
 
     public void update(FileImport fileImport) throws DataAccessException {
@@ -37,24 +42,42 @@ public class FileImportRepository {
                     started_at = ?
                 WHERE id = ?
                 """;
-        jdbcTemplate.update(sql, fileImport.getFilePath(), fileImport.getLastProcessedRow(),
-                fileImport.getStatus().toString(), fileImport.getFinishedAt(), fileImport.getStartedAt(), fileImport.getId());
+        try {
+            jdbcTemplate.update(sql, fileImport.getFilePath(), fileImport.getLastProcessedRow(),
+                    fileImport.getStatus().toString(), fileImport.getFinishedAt(), fileImport.getStartedAt(), fileImport.getId());
+        } catch (DataAccessException e) {
+            log.error("Error occurred while updating file import data: {}", e.getMessage());
+            throw e;
+        }
     }
 
     public Optional<Long> findFirstByStatusOrderByCreatedAtAsc() throws EmptyResultDataAccessException {
         String sql = "SELECT id FROM file_import WHERE status = ? ORDER BY created_at ASC LIMIT 1";
-        Long fileId = jdbcTemplate.queryForObject(sql, new Object[]{FileStatus.PENDING.toString()}, Long.class);
-        return Optional.ofNullable(fileId);
+        try {
+            Long fileId = jdbcTemplate.queryForObject(sql, new Object[]{FileStatus.PENDING.toString()}, Long.class);
+            return Optional.ofNullable(fileId);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public Optional<FileImport> findById(Long id) throws DataAccessException {
         String sql = "SELECT * FROM file_import WHERE id = ?";
-        FileImport fileImport = jdbcTemplate.queryForObject(sql, new Object[]{id}, new FileImportRowMapper());
-        return Optional.ofNullable(fileImport);
+        try {
+            FileImport fileImport = jdbcTemplate.queryForObject(sql, new Object[]{id}, new FileImportRowMapper());
+            return Optional.ofNullable(fileImport);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     public void deleteAll() {
         String sql = "TRUNCATE TABLE file_import";
-        jdbcTemplate.update(sql);
+        try {
+            jdbcTemplate.update(sql);
+        } catch (DataAccessException e) {
+            log.error("Error occurred while deleting all file import data: {}", e.getMessage());
+            throw e;
+        }
     }
 }
