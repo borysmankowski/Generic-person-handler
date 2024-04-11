@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS public.file_import (
+CREATE TABLE IF NOT EXISTS file_import (
                                                   id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                                   created_at TIMESTAMP(6),
     file_path VARCHAR(255),
