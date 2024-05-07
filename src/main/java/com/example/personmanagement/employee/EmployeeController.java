@@ -26,7 +26,7 @@ public class EmployeeController {
             @RequestBody AddJobPositionCommand command) {
         employeeService.addJobPosition(employeeId, command);
 
-        JobPositionResponseBody responseBody = new JobPositionResponseBody("Job position added successfully",employeeId);
+        JobPositionResponseBody responseBody = new JobPositionResponseBody("Job position added successfully", employeeId);
 
         return ResponseEntity.ok(responseBody);
     }

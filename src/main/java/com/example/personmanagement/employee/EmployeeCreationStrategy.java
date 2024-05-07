@@ -37,8 +37,7 @@ public class EmployeeCreationStrategy implements PersonCreationStrategy {
         if (!(command instanceof UpdateEmployeeCommand employeeCommand)) {
             throw new InvalidStrategyTypeException("Invalid command type for EmployeeUpdateStrategy");
         }
-        if (existingPerson instanceof Employee) {
-            Employee existingEmployee = (Employee) existingPerson;
+        if (existingPerson instanceof Employee existingEmployee) {
 
             if (employeeCommand.getName() != null) {
                 existingEmployee.setName(employeeCommand.getName());

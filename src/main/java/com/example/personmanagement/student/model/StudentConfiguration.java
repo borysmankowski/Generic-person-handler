@@ -13,8 +13,8 @@ public class StudentConfiguration {
     private final ObjectMapper objectMapper;
 
     @PostConstruct
-    public void objectMapper(){
-        objectMapper.registerSubtypes(new NamedType(CreateStudentCommand.class,"STUDENT"));
-        objectMapper.registerSubtypes(new NamedType(UpdateStudentCommand.class,"STUDENT"));
+    public void objectMapper() {
+        objectMapper.registerSubtypes(new NamedType(CreateStudentCommand.class, "STUDENT"));
+        objectMapper.registerSubtypes(new NamedType(UpdateStudentCommand.class, "STUDENT"));
     }
 }

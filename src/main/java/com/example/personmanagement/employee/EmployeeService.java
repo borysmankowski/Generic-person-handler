@@ -3,6 +3,7 @@ package com.example.personmanagement.employee;
 import com.example.personmanagement.employee.model.AddJobPositionCommand;
 import com.example.personmanagement.employee.model.Employee;
 import com.example.personmanagement.employee.model.JobPosition;
+import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +31,20 @@ public class EmployeeService {
                 command.salary()
         );
 
-        Employee employee = (Employee) employeeRepository.findEmployeeWithLock(employeeId)
+        Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employeeId));
 
         LocalDate currentDate = LocalDate.now(clock);
+
+        for (JobPosition existingPosition : employee.getJobPositions()) {
+            LocalDate existingStartDate = existingPosition.getStartDate();
+            LocalDate existingEndDate = existingPosition.getEndDate();
+
+            if ((jobPosition.getStartDate().isBefore(existingEndDate) || jobPosition.getStartDate().isEqual(existingEndDate)) &&
+                    (jobPosition.getEndDate().isAfter(existingStartDate) || jobPosition.getEndDate().isEqual(existingStartDate))) {
+                throw new JobOverlappingException("New job position overlaps with an existing position");
+            }
+        }
 
         if (currentDate.isAfter(jobPosition.getStartDate()) || currentDate.isEqual(jobPosition.getStartDate())) {
             employee.setCurrentPosition(jobPosition.getPositionName());
@@ -49,6 +60,4 @@ public class EmployeeService {
         employee.addJobPosition(jobPosition);
         employeeRepository.save(employee);
     }
-
 }
-

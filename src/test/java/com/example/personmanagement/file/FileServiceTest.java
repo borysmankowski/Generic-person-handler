@@ -40,9 +40,9 @@ public class FileServiceTest {
     @WithMockUser(roles = "ADMIN")
     public void findFileToProcess() throws IOException {
         // given
-        var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTesting.csv");
+        var filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
-        fileService.uploadFile(inputStream, "generatedFileForTesting.csv",Files.size(filePath));
+        fileService.uploadFile(inputStream, "generatedFileForTesting.csv", Files.size(filePath));
 
         // when
         var maybeFileToProcess = fileService.findFileToProcess();
@@ -50,14 +50,15 @@ public class FileServiceTest {
         // then
         assertThat(maybeFileToProcess).isNotEmpty();
     }
+
     @Test
     @WithMockUser(roles = "ADMIN")
     public void processFile() throws IOException {
         // given
-        var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTesting.csv");
+        var filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
 
-        fileService.uploadFile(inputStream, "generatedFileForTesting.csv",Files.size(filePath));
+        fileService.uploadFile(inputStream, "generatedFileForTesting.csv", Files.size(filePath));
         var fileToProcessId = fileService.findFileToProcess().orElseThrow();
 
         // when
@@ -82,9 +83,9 @@ public class FileServiceTest {
     @WithMockUser(roles = "ADMIN")
     public void processFileWithDuplicatedPesel() throws IOException {
         // given
-        var filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTestingDuplicatedPesel.csv");
+        var filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         var inputStream = Files.newInputStream(filePath);
-        fileService.uploadFile(inputStream, "generatedFileForTesting.csv",Files.size(filePath));
+        fileService.uploadFile(inputStream, "generatedFileForTesting.csv", Files.size(filePath));
         var fileToProcessId = fileService.findFileToProcess().orElseThrow();
 
         // when
@@ -117,6 +118,7 @@ public class FileServiceTest {
         var result = personService.searchPersons(searchCriteriaList, Pageable.unpaged());
         return result.getContent().stream().findFirst();
     }
+
     @BeforeEach
     public void setUp() {
         personRepository.deleteAll();

@@ -1,4 +1,3 @@
-
 package com.example.personmanagement.file;
 
 import com.example.personmanagement.exception.ResourceNotFoundException;
@@ -60,21 +59,22 @@ public class FileService {
             var processing = true;
 
             while (processing) {
-                var batchStart = fileImport.getLastProcessedRow();
-                var batchResult = fileImporter.processFile(fileImport, batchStart, 2);
+                Long batchStart = fileImport.getLastProcessedRow();
+                FileImporter.Result batchResult = fileImporter.processFile(fileImport, batchStart, 2);
                 fileImport.setLastProcessedRow(batchResult.lastProcessedRow());
+                fileImport.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();
+                fileImportRepository.update(fileImport);
             }
 
             fileImport.setFinishedAt(LocalDateTime.now());
             fileImport.setStatus(FileStatus.SUCCESS);
-            fileImportRepository.update(fileImport);
         } catch (Exception e) {
             log.error("Error when processing file {}", fileImportId, e);
             fileImport.setFinishedAt(LocalDateTime.now());
             fileImport.setStatus(FileStatus.FAILED);
-            fileImportRepository.update(fileImport);
         }
+        fileImportRepository.update(fileImport);
     }
 
     public FileImportStatusResponse getFileImportStatus(Long id) {

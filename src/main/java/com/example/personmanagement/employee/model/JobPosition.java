@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,6 +36,10 @@ public class JobPosition {
     @Version
     private int version;
 
+    @ManyToOne
+    @JoinColumn(name = "employee_id")
+    private Employee employee;
+
     public JobPosition(String positionName, LocalDate startDate, LocalDate endDate, double salary) {
         this.positionName = positionName;
         this.startDate = startDate;
@@ -41,8 +47,4 @@ public class JobPosition {
         this.salary = salary;
     }
 
-    public boolean isOverlapping(JobPosition other) {
-        return !(this.endDate.isBefore(other.startDate) || other.endDate.isBefore(this.startDate));
-
-    }
 }
