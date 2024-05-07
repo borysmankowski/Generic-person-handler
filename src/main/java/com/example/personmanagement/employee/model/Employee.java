@@ -3,8 +3,8 @@ package com.example.personmanagement.employee.model;
 import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.person.model.Person;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,9 +14,9 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,6 +24,7 @@ import java.util.Set;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@DiscriminatorValue("EMPLOYEE")
 @ToString(callSuper = true)
 public class Employee extends Person {
 
@@ -31,8 +32,8 @@ public class Employee extends Person {
     private String currentPosition;
     private double currentSalary;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<JobPosition> jobPositions;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
+    private List<JobPosition> jobPositions;
     private int numberOfJobPositions = 0;
 
     public JobPosition findCurrentPosition(LocalDate currentDate) {
@@ -44,7 +45,7 @@ public class Employee extends Person {
 
     public void addJobPosition(JobPosition jobPosition) {
         if (jobPositions == null) {
-            jobPositions = new HashSet<>();
+            jobPositions = new ArrayList<>();
         }
 
         for (JobPosition existingPosition : jobPositions) {
@@ -54,6 +55,7 @@ public class Employee extends Person {
             }
         }
         jobPositions.add(jobPosition);
+        jobPosition.setEmployee(this);
         numberOfJobPositions++;
     }
 }

@@ -28,7 +28,7 @@ class FileControllerTest {
     @WithMockUser(roles = "ADMIN")
     void testFileLoaderEndpoint() throws Exception {
         // given
-        Path filePath = Paths.get("src/main/resources/files-to-import/generatedFileForTesting.csv");
+        Path filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "testFile.csv",

@@ -39,8 +39,7 @@ public class StudentCreationStrategy implements PersonCreationStrategy {
         if (!(command instanceof UpdateStudentCommand studentCommand)) {
             throw new InvalidStrategyTypeException("Invalid command type for StudentUpdateStrategy");
         }
-        if (existingPerson instanceof Student) {
-            Student existingStudent = (Student) existingPerson;
+        if (existingPerson instanceof Student existingStudent) {
 
             if (studentCommand.getName() != null) {
                 existingStudent.setName(studentCommand.getName());

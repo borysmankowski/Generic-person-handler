@@ -63,6 +63,7 @@ public class PersonSpecification {
             }
         };
     }
+
     private static LocalDate parseDate(Object value) {
         try {
             return LocalDate.parse((String) value);

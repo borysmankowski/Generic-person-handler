@@ -1,4 +1,3 @@
-
 package com.example.personmanagement.file;
 
 import com.example.personmanagement.exception.ResourceNotFoundException;
@@ -12,9 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.util.Iterator;
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -34,42 +35,40 @@ public class FileImporter {
     private final FileStorage fileStorage;
 
     @Transactional
-    public Result processFile(FileImport fileImport, long batchStart, long batchSize) throws FileNotFoundException {
-        BufferedReader reader = fileStorage.load(fileImport.getFilePath());
-
-        String currentLine = null;
-
-        int processedLines = 0;
-        try (var lines = reader.lines()) {
+    public Result processFile(FileImport fileImport, long batchStart, long batchSize) throws IOException {
+        AtomicInteger processedLines = new AtomicInteger();
+        try (BufferedReader reader = fileStorage.load(fileImport.getFilePath())) {
+            var lines = reader.lines();
             Stream<String> batchLines = lines.skip(1).skip(batchStart).limit(batchSize);
-            Iterator<String> iterator = batchLines.iterator();
-            while (iterator.hasNext()) {
-                currentLine = iterator.next();
-                processFileLine(currentLine);
-                processedLines++;
-            }
+            List<Person> entities = batchLines.map(line -> {
+                Person person = processFileLine(line);
+                processedLines.getAndIncrement();
+                return person;
+            }).collect(Collectors.toList());
+            personRepository.saveAllAndFlush(entities);
         }
 
-        var isFinished = processedLines < batchSize;
-        return new Result(batchStart + processedLines, isFinished);
+        boolean isFinished = processedLines.get() < batchSize;
+        return new Result(batchStart + processedLines.get(), isFinished);
     }
 
-    private void processFileLine(String line) {
+    private Person processFileLine(String line) {
         String[] data = line.split(",");
         String type = data[0];
         PersonCreationStrategy strategy = creationStrategyMap.get(type);
+        Person person;
 
         if (strategy != null) {
-            createAndAddToDatabase(strategy, data);
+            person = createAndAddToDatabase(strategy, data);
         } else {
             throw new ResourceNotFoundException("Unknown type: " + type);
         }
+        return person;
     }
 
-    private void createAndAddToDatabase(PersonCreationStrategy strategy, String[] data) {
+    private Person createAndAddToDatabase(PersonCreationStrategy strategy, String[] data) {
         CreatePersonCommand command = mapDataToCommand(data);
-        Person person = strategy.create(command);
-        personRepository.save(person);
+        return strategy.create(command);
     }
 
     private CreatePersonCommand mapDataToCommand(String[] data) {

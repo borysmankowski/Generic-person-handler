@@ -174,7 +174,7 @@ class PersonControllerTest {
 
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}",employee.getId())
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
                 .andDo(print())
@@ -347,6 +347,7 @@ class PersonControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
     @AfterEach
     public void setUp() {
         personRepository.deleteAll();
