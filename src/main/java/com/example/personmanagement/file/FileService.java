@@ -29,9 +29,9 @@ public class FileService {
 
     private final FileImporter fileImporter;
 
-    public ResponseEntity<FileUploadResponse> uploadFile(InputStream inputStream, String originalFilename, long byteSize) {
+    public FileUploadResponse uploadFile(InputStream inputStream, String originalFilename, long byteSize) {
         if (byteSize <= 0) {
-            return ResponseEntity.badRequest().body(new FileUploadResponse("Error occurred when uploading a file", originalFilename));
+            return new FileUploadResponse("Error occurred when uploading a file", originalFilename);
         }
         try {
             String uniqueFilename = fileStorage.save(inputStream, originalFilename, byteSize);
@@ -46,10 +46,10 @@ public class FileService {
             fileImporter.insert(fileInformation);
 
             FileUploadResponse response = new FileUploadResponse("File uploaded successfully. File name: " + uniqueFilename, uniqueFilename);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return response;
         } catch (IOException e) {
             log.error("Failed to upload the file", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new FileUploadResponse("Failed to upload the file.", originalFilename));
+            return new FileUploadResponse("Failed to upload the file.", originalFilename);
         }
     }
 

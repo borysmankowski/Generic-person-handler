@@ -2,6 +2,7 @@ package com.example.personmanagement.file;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +31,7 @@ public class FileController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'IMPORTER')")
     public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        return fileService.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
+         FileUploadResponse uploadResponse = fileService.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
+        return ResponseEntity.status(HttpStatus.CREATED).body(uploadResponse);
     }
 }
