@@ -1,8 +1,13 @@
 package com.example.personmanagement.file;
 
 import com.example.personmanagement.exception.ResourceNotFoundException;
+import com.example.personmanagement.file.processor.FileImporter;
+import com.example.personmanagement.file.processor.FileProcessor;
+import com.example.personmanagement.file.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -18,27 +23,33 @@ public class FileService {
 
     private final FileImportRepository fileImportRepository;
 
-    private final FileImporter fileImporter;
+    private final FileProcessor fileProcessor;
 
     private final FileStorage fileStorage;
 
-    public FileUploadResponse uploadFile(InputStream inputsStream, String originalFilename, long byteSize) {
-        try {
-            var uniqueFilename = fileStorage.save(inputsStream, originalFilename, byteSize);
+    private final FileImporter fileImporter;
 
-            FileImport fileImport = FileImport.builder()
+    public ResponseEntity<FileUploadResponse> uploadFile(InputStream inputStream, String originalFilename, long byteSize) {
+        if (byteSize <= 0) {
+            return ResponseEntity.badRequest().body(new FileUploadResponse("Error occurred when uploading a file", originalFilename));
+        }
+        try {
+            String uniqueFilename = fileStorage.save(inputStream, originalFilename, byteSize);
+
+            FileInformation fileInformation = FileInformation.builder()
                     .filePath(uniqueFilename)
                     .lastProcessedRow(0L)
                     .status(FileStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .build();
 
-            fileImportRepository.insert(fileImport);
+            fileImporter.insert(fileInformation);
 
-            return new FileUploadResponse("File uploaded successfully. File name: ", uniqueFilename);
+            FileUploadResponse response = new FileUploadResponse("File uploaded successfully. File name: " + uniqueFilename, uniqueFilename);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IOException e) {
-            log.error("Failed to upload the file ", e);
-            return new FileUploadResponse("Failed to upload the file. ", originalFilename);
+            log.error("Failed to upload the file", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new FileUploadResponse("Failed to upload the file.", originalFilename));
         }
     }
 
@@ -49,45 +60,45 @@ public class FileService {
     }
 
     public void processFile(Long fileImportId) {
-        FileImport fileImport = fileImportRepository.findById(fileImportId)
+        FileInformation fileInformation = fileImportRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasnt been found"));
         try {
-            if (fileImport.getStartedAt() == null) {
-                fileImport.setStartedAt(LocalDateTime.now());
+            if (fileInformation.getStartedAt() == null) {
+                fileInformation.setStartedAt(LocalDateTime.now());
             }
 
             var processing = true;
 
             while (processing) {
-                Long batchStart = fileImport.getLastProcessedRow();
-                FileImporter.Result batchResult = fileImporter.processFile(fileImport, batchStart, 2);
-                fileImport.setLastProcessedRow(batchResult.lastProcessedRow());
-                fileImport.setStatus(FileStatus.IN_PROGRESS);
+                Long batchStart = fileInformation.getLastProcessedRow();
+                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 2);
+                fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
+                fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();
-                fileImportRepository.update(fileImport);
+                fileImporter.update(fileInformation);
             }
 
-            fileImport.setFinishedAt(LocalDateTime.now());
-            fileImport.setStatus(FileStatus.SUCCESS);
+            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setStatus(FileStatus.SUCCESS);
         } catch (Exception e) {
             log.error("Error when processing file {}", fileImportId, e);
-            fileImport.setFinishedAt(LocalDateTime.now());
-            fileImport.setStatus(FileStatus.FAILED);
+            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setStatus(FileStatus.FAILED);
         }
-        fileImportRepository.update(fileImport);
+        fileImporter.update(fileInformation);
     }
 
     public FileImportStatusResponse getFileImportStatus(Long id) {
-        Optional<FileImport> fileImportOptional = fileImportRepository.findById(id);
+        Optional<FileInformation> fileImportOptional = fileImportRepository.findById(id);
         return fileImportOptional.map(this::buildStatusResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("File import status not found!"));
     }
 
-    private FileImportStatusResponse buildStatusResponse(FileImport fileImport) {
+    private FileImportStatusResponse buildStatusResponse(FileInformation fileInformation) {
         return new FileImportStatusResponse(
-                fileImport.getStatus(),
-                fileImport.getCreatedAt(),
-                fileImport.getStartedAt(),
-                fileImport.getLastProcessedRow());
+                fileInformation.getStatus(),
+                fileInformation.getCreatedAt(),
+                fileInformation.getStartedAt(),
+                fileInformation.getLastProcessedRow());
     }
 }

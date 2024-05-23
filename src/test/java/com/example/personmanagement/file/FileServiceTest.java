@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,7 +117,7 @@ public class FileServiceTest {
         var searchCriteriaList = List.of(searchCriteria);
 
         var result = personService.searchPersons(searchCriteriaList, Pageable.unpaged());
-        return result.getContent().stream().findFirst();
+        return Objects.requireNonNull(result.getBody()).getContent().stream().findFirst();
     }
 
     @BeforeEach

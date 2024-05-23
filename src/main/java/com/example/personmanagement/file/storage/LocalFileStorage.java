@@ -1,4 +1,4 @@
-package com.example.personmanagement.file;
+package com.example.personmanagement.file.storage;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

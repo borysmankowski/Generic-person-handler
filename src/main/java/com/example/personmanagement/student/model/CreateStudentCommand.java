@@ -3,7 +3,9 @@ package com.example.personmanagement.student.model;
 import com.example.personmanagement.person.model.CreatePersonCommand;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class CreateStudentCommand extends CreatePersonCommand {
 

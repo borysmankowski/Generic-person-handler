@@ -1,4 +1,4 @@
-package com.example.personmanagement.file;
+package com.example.personmanagement.file.storage;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;

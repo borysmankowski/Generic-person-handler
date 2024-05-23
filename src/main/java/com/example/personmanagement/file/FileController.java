@@ -22,7 +22,7 @@ public class FileController {
 
     private final FileService fileService;
 
-    @GetMapping("/{id}/status")
+    @GetMapping("/{id}")
     public ResponseEntity<FileImportStatusResponse> getFileImportStatus(@PathVariable Long id) {
         return ResponseEntity.ok(fileService.getFileImportStatus(id));
     }
@@ -30,9 +30,6 @@ public class FileController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'IMPORTER')")
     public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(new FileUploadResponse("Error occured when uplodaing a file", file.getOriginalFilename()));
-        }
-        return ResponseEntity.ok(fileService.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getSize()));
+        return fileService.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
     }
 }

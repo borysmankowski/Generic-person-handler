@@ -1,8 +1,12 @@
-package com.example.personmanagement.file;
+package com.example.personmanagement.file.processor;
 
 import com.example.personmanagement.exception.ResourceNotFoundException;
+import com.example.personmanagement.file.ComposedCsvFileRowToCreateCommandStrategy;
+import com.example.personmanagement.file.FileInformation;
+import com.example.personmanagement.file.storage.FileStorage;
 import com.example.personmanagement.person.PersonCreationStrategy;
 import com.example.personmanagement.person.PersonRepository;
+import com.example.personmanagement.person.PersonValidator;
 import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.Person;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +25,14 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class FileImporter {
+public class FileProcessor {
 
     public record Result(long lastProcessedRow, boolean isFinished) {
     }
 
     private final PersonRepository personRepository;
+
+    private final PersonValidator personValidator;
 
     private final Map<String, PersonCreationStrategy> creationStrategyMap;
 
@@ -35,16 +41,19 @@ public class FileImporter {
     private final FileStorage fileStorage;
 
     @Transactional
-    public Result processFile(FileImport fileImport, long batchStart, long batchSize) throws IOException {
+    public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException {
         AtomicInteger processedLines = new AtomicInteger();
-        try (BufferedReader reader = fileStorage.load(fileImport.getFilePath())) {
+        try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
             var lines = reader.lines();
             Stream<String> batchLines = lines.skip(1).skip(batchStart).limit(batchSize);
             List<Person> entities = batchLines.map(line -> {
                 Person person = processFileLine(line);
+                personValidator.validate(person);
                 processedLines.getAndIncrement();
                 return person;
             }).collect(Collectors.toList());
+
+            personValidator.validatePersonsForBatchSave(entities);
             personRepository.saveAllAndFlush(entities);
         }
 
@@ -55,7 +64,8 @@ public class FileImporter {
     private Person processFileLine(String line) {
         String[] data = line.split(",");
         String type = data[0];
-        PersonCreationStrategy strategy = creationStrategyMap.get(type);
+        String key = type.toLowerCase() + "CreationStrategy";
+        PersonCreationStrategy strategy = creationStrategyMap.get(key);
         Person person;
 
         if (strategy != null) {

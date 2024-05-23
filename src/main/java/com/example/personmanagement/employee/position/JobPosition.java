@@ -1,5 +1,6 @@
-package com.example.personmanagement.employee.model;
+package com.example.personmanagement.employee.position;
 
+import com.example.personmanagement.employee.model.Employee;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

@@ -1,5 +1,6 @@
 package com.example.personmanagement.employee.model;
 
+import com.example.personmanagement.employee.position.JobPosition;
 import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.person.model.Person;
 import jakarta.persistence.CascadeType;

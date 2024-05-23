@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,23 +32,29 @@ public class PersonService {
 
     private final PersonMapper personMapper;
 
+    private final PersonValidator personValidator;
+
     private final Map<String, PersonCreationStrategy> creationStrategies;
 
+    private final Map<String, PersonUpdateStrategy> updateStrategies;
 
-    public PersonDto create(CreatePersonCommand command) {
+
+    public ResponseEntity<PersonDto> create(CreatePersonCommand command) {
         String type = command.getType();
-        PersonCreationStrategy creationStrategy = creationStrategies.get(type);
+        String key = type.toLowerCase() + "CreationStrategy";
+        PersonCreationStrategy creationStrategy = creationStrategies.get(key);
 
         if (creationStrategy == null) {
-            throw new ResourceNotFoundException("Missing strategy type: " + type);
+            throw new ResourceNotFoundException("Missing strategy type: " + key);
         }
         Person newPerson = creationStrategy.create(command);
-        log.info("created: {}", newPerson);
-        return personMapper.toDto(personRepository.save(newPerson));
+        personValidator.validate(newPerson);
+        PersonDto personDto = personMapper.toDto(personRepository.save(newPerson));
+        return new ResponseEntity<>(personDto, HttpStatus.CREATED);
     }
 
     @Transactional(readOnly = true)
-    public Page<PersonDto> searchPersons(List<SearchCriteria> searchCriteria, Pageable pageable) {
+    public ResponseEntity<Page<PersonDto>> searchPersons(List<SearchCriteria> searchCriteria, Pageable pageable) {
         Specification<Person> specification = PersonSpecification.any();
 
         for (SearchCriteria criteria : searchCriteria) {
@@ -54,25 +62,27 @@ public class PersonService {
         }
 
         Page<Person> result = personRepository.findAll(specification, pageable);
-        return result.map(personMapper::toDto);
+        Page<PersonDto> dtoResult = result.map(personMapper::toDto);
+        return new ResponseEntity<>(dtoResult, HttpStatus.OK);
     }
 
     @Transactional
-    public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
+    public ResponseEntity<PersonDto> updateAnyPerson(Long personId, UpdatePersonCommand command) {
         Person existingPerson = personRepository.findById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
 
         String type = command.getType();
-        PersonCreationStrategy creationStrategy = creationStrategies.get(type);
+        String key = type.toLowerCase() + "UpdateStrategy";
+        PersonUpdateStrategy updateStrategy = updateStrategies.get(key);
         PersonDto personDto;
 
         try {
-            Person updatedPerson = creationStrategy.update(existingPerson, command);
+            Person updatedPerson = updateStrategy.update(existingPerson, command);
             personDto = personMapper.toDto(personRepository.save(updatedPerson));
         } catch (OptimisticLockException exception) {
-            throw new IllegalStateException("Person was modified during your update, please fetch newest version and retry");
+            throw new IllegalStateException("Person was modified during your update, please fetch the newest version and retry");
         }
-        return personDto;
+        return new ResponseEntity<>(personDto, HttpStatus.OK);
     }
 
 

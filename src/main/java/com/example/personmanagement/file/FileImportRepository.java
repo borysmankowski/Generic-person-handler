@@ -1,5 +1,6 @@
 package com.example.personmanagement.file;
 
+import com.example.personmanagement.mapper.FileImportRowMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -20,37 +21,6 @@ public class FileImportRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void insert(FileImport fileImport) throws DataAccessException {
-        String sql = "INSERT INTO file_import (file_path, last_processed_row, status, created_at) VALUES (?, ?, ?, ?)";
-        try {
-            jdbcTemplate.update(sql, fileImport.getFilePath(), fileImport.getLastProcessedRow(),
-                    fileImport.getStatus().toString(), fileImport.getCreatedAt());
-        } catch (DataAccessException e) {
-            log.error("Error occurred while inserting file import data: {}", e.getMessage());
-            throw e;
-        }
-    }
-
-    public void update(FileImport fileImport) throws DataAccessException {
-        String sql = """
-                UPDATE file_import
-                SET
-                    file_path = ?,
-                    last_processed_row = ?,
-                    status = ?,
-                    finished_at = ?,
-                    started_at = ?
-                WHERE id = ?
-                """;
-        try {
-            jdbcTemplate.update(sql, fileImport.getFilePath(), fileImport.getLastProcessedRow(),
-                    fileImport.getStatus().toString(), fileImport.getFinishedAt(), fileImport.getStartedAt(), fileImport.getId());
-        } catch (DataAccessException e) {
-            log.error("Error occurred while updating file import data: {}", e.getMessage());
-            throw e;
-        }
-    }
-
     public Optional<Long> findFirstByStatusOrderByCreatedAtAsc() throws EmptyResultDataAccessException {
         String sql = "SELECT id FROM file_import WHERE status = ? ORDER BY created_at ASC LIMIT 1";
         try {
@@ -61,11 +31,11 @@ public class FileImportRepository {
         }
     }
 
-    public Optional<FileImport> findById(Long id) throws DataAccessException {
+    public Optional<FileInformation> findById(Long id) throws DataAccessException {
         String sql = "SELECT * FROM file_import WHERE id = ?";
         try {
-            FileImport fileImport = jdbcTemplate.queryForObject(sql, new Object[]{id}, new FileImportRowMapper());
-            return Optional.ofNullable(fileImport);
+            FileInformation fileInformation = jdbcTemplate.queryForObject(sql, new Object[]{id}, new FileImportRowMapper());
+            return Optional.ofNullable(fileInformation);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }

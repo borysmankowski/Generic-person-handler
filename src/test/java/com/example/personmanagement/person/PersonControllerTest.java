@@ -20,9 +20,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -148,7 +149,7 @@ class PersonControllerTest {
                 .andDo(print())
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.message").value("Rollback exception!"));
+                .andExpect(jsonPath("$.message").value("validation errors"));
     }
 
     @Test
@@ -243,7 +244,7 @@ class PersonControllerTest {
         mockMvc.perform(post("/api/people")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(student2)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
@@ -276,7 +277,7 @@ class PersonControllerTest {
         mockMvc.perform(post("/api/people")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(pensioner2)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
@@ -306,13 +307,18 @@ class PersonControllerTest {
 
     @Test
     void searchWithoutParameters() throws Exception {
-        // Empty list of search criteria
-        mockMvc.perform(post("/api/people/search")
+
+        List<String> list = new ArrayList<>();
+
+        String searchCriteriaJson = objectMapper.writeValueAsString(list);
+
+        mockMvc.perform(get("/api/people")
+                        .param("search-criteria", searchCriteriaJson)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Collections.emptyList()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
 
     @Test
     void searchByEmployeeType() throws Exception {
@@ -321,15 +327,16 @@ class PersonControllerTest {
         searchCriteria.setKey("type");
         searchCriteria.setOperation("eq");
         searchCriteria.setValue("EMPLOYEE");
-        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
-        );
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria);
+        String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
 
-        mockMvc.perform(post("/api/people/search")
+        mockMvc.perform(get("/api/people")
+                        .param("search-criteria", searchCriteriaJson)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(searchCriteriaList))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
 
     @Test
     void searchByEmployeeTypeWithHeightRange() throws Exception {
@@ -341,12 +348,15 @@ class PersonControllerTest {
         List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
         );
 
-        mockMvc.perform(post("/api/people/search")
+        String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
+
+        mockMvc.perform(get("/api/people")
+                        .param("search-criteria", searchCriteriaJson)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(searchCriteriaList))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
 
     @AfterEach
     public void setUp() {

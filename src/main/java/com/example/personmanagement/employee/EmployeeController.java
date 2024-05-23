@@ -1,7 +1,7 @@
 package com.example.personmanagement.employee;
 
-import com.example.personmanagement.employee.model.AddJobPositionCommand;
-import com.example.personmanagement.employee.model.JobPositionResponseBody;
+import com.example.personmanagement.employee.position.AddJobPositionCommand;
+import com.example.personmanagement.employee.position.JobPositionResponseBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +19,7 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
 
-    @PostMapping("/{employeeId}/positions")
+    @PostMapping("/{employeeId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<JobPositionResponseBody> addJobPositionToPerson(
             @PathVariable Long employeeId,

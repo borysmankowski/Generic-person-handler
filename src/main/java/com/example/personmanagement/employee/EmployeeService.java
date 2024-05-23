@@ -1,8 +1,8 @@
 package com.example.personmanagement.employee;
 
-import com.example.personmanagement.employee.model.AddJobPositionCommand;
 import com.example.personmanagement.employee.model.Employee;
-import com.example.personmanagement.employee.model.JobPosition;
+import com.example.personmanagement.employee.position.AddJobPositionCommand;
+import com.example.personmanagement.employee.position.JobPosition;
 import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
