@@ -117,7 +117,7 @@ public class FileServiceTest {
         var searchCriteriaList = List.of(searchCriteria);
 
         var result = personService.searchPersons(searchCriteriaList, Pageable.unpaged());
-        return Objects.requireNonNull(result.getBody()).getContent().stream().findFirst();
+        return Objects.requireNonNull(result).getContent().stream().findFirst();
     }
 
     @BeforeEach

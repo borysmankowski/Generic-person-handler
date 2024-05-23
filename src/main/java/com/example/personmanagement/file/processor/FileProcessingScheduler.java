@@ -14,7 +14,7 @@ import java.util.concurrent.locks.Lock;
 @RequiredArgsConstructor
 @Component
 @ConditionalOnProperty(name = "spring.tasks.scheduled.enabled", havingValue = "true")
-public class FileFinder {
+public class FileProcessingScheduler {
 
     public static final String LOCK_KEY = "fileProcessLock";
     private final FileService fileService;

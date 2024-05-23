@@ -39,7 +39,7 @@ public class PersonService {
     private final Map<String, PersonUpdateStrategy> updateStrategies;
 
 
-    public ResponseEntity<PersonDto> create(CreatePersonCommand command) {
+    public PersonDto create(CreatePersonCommand command) {
         String type = command.getType();
         String key = type.toLowerCase() + "CreationStrategy";
         PersonCreationStrategy creationStrategy = creationStrategies.get(key);
@@ -49,12 +49,11 @@ public class PersonService {
         }
         Person newPerson = creationStrategy.create(command);
         personValidator.validate(newPerson);
-        PersonDto personDto = personMapper.toDto(personRepository.save(newPerson));
-        return new ResponseEntity<>(personDto, HttpStatus.CREATED);
+        return personMapper.toDto(personRepository.save(newPerson));
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<Page<PersonDto>> searchPersons(List<SearchCriteria> searchCriteria, Pageable pageable) {
+    public Page<PersonDto> searchPersons(List<SearchCriteria> searchCriteria, Pageable pageable) {
         Specification<Person> specification = PersonSpecification.any();
 
         for (SearchCriteria criteria : searchCriteria) {
@@ -62,12 +61,11 @@ public class PersonService {
         }
 
         Page<Person> result = personRepository.findAll(specification, pageable);
-        Page<PersonDto> dtoResult = result.map(personMapper::toDto);
-        return new ResponseEntity<>(dtoResult, HttpStatus.OK);
+        return result.map(personMapper::toDto);
     }
 
     @Transactional
-    public ResponseEntity<PersonDto> updateAnyPerson(Long personId, UpdatePersonCommand command) {
+    public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
         Person existingPerson = personRepository.findById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
 
@@ -82,8 +80,6 @@ public class PersonService {
         } catch (OptimisticLockException exception) {
             throw new IllegalStateException("Person was modified during your update, please fetch the newest version and retry");
         }
-        return new ResponseEntity<>(personDto, HttpStatus.OK);
+        return personDto;
     }
-
-
 }
