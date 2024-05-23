@@ -1,9 +1,9 @@
 package com.example.personmanagement.employee;
 
 import com.devskiller.jfairy.Fairy;
-import com.example.personmanagement.employee.model.AddJobPositionCommand;
 import com.example.personmanagement.employee.model.CreateEmployeeCommand;
 import com.example.personmanagement.employee.model.EmployeeDto;
+import com.example.personmanagement.employee.position.AddJobPositionCommand;
 import com.example.personmanagement.person.PersonRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -125,13 +125,13 @@ class EmployeeControllerTest {
         mockMvc.perform(post("/api/people")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(employee2)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
 
     private ResultActions postJobPosition(Long personId, AddJobPositionCommand command) throws Exception {
-        return mockMvc.perform(post("/api/employees/{personId}/positions", personId)
+        return mockMvc.perform(post("/api/employees/{personId}", personId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(command))
                 .accept(MediaType.APPLICATION_JSON));

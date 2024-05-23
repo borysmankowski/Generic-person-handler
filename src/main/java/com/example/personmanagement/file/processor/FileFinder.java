@@ -1,5 +1,7 @@
-package com.example.personmanagement.file;
+package com.example.personmanagement.file.processor;
 
+import com.example.personmanagement.file.FileService;
+import com.example.personmanagement.file.LockConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
@@ -12,7 +14,7 @@ import java.util.concurrent.locks.Lock;
 @RequiredArgsConstructor
 @Component
 @ConditionalOnProperty(name = "spring.tasks.scheduled.enabled", havingValue = "true")
-public class FileProcessor {
+public class FileFinder {
 
     public static final String LOCK_KEY = "fileProcessLock";
     private final FileService fileService;
@@ -34,5 +36,3 @@ public class FileProcessor {
         }
     }
 }
-
-

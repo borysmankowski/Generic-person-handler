@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public class FileImport {
+public class FileInformation {
     private Long id;
     private String filePath;
     private Long lastProcessedRow;

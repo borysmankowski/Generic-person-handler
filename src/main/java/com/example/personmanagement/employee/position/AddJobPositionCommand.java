@@ -1,4 +1,4 @@
-package com.example.personmanagement.employee.model;
+package com.example.personmanagement.employee.position;
 
 import java.time.LocalDate;
 

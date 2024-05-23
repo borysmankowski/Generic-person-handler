@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -20,7 +19,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@ToString(callSuper = true)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Person {
 
@@ -30,8 +28,6 @@ public class Person {
     private String type;
     private String name;
     private String surname;
-    //    @Column(unique = true)
-//    @PESEL
     private String pesel;
     private double height;
     private double weight;
