@@ -34,4 +34,5 @@ public class Employee extends Person {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
     private List<JobPosition> jobPositions;
     private int numberOfJobPositions = 0;
+
 }
