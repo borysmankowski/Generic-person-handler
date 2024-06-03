@@ -43,17 +43,19 @@ public class FileProcessor {
     @Transactional
     public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException {
         AtomicInteger processedLines = new AtomicInteger();
+
+
         try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
             var lines = reader.lines();
             Stream<String> batchLines = lines.skip(1).skip(batchStart).limit(batchSize);
             List<Person> entities = batchLines.map(line -> {
                 Person person = processFileLine(line);
-                personValidator.validate(person);
+//                personValidator.validate(person);
                 processedLines.getAndIncrement();
                 return person;
             }).collect(Collectors.toList());
 
-            personValidator.validatePersonsForBatchSave(entities);
+//            personValidator.validatePersonsForBatchSave(entities);
             personRepository.saveAllAndFlush(entities);
         }
 

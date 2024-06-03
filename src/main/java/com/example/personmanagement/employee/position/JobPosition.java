@@ -34,18 +34,9 @@ public class JobPosition {
     private LocalDate startDate;
     private LocalDate endDate;
     private double salary;
-    @Version
-    private int version;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
     private Employee employee;
-
-    public JobPosition(String positionName, LocalDate startDate, LocalDate endDate, double salary) {
-        this.positionName = positionName;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.salary = salary;
-    }
 
 }

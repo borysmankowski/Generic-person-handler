@@ -15,6 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +74,7 @@ public class FileService {
 
             while (processing) {
                 Long batchStart = fileInformation.getLastProcessedRow();
-                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 2);
+                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 7);
                 fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
                 fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();

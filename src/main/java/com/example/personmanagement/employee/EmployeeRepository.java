@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    @Query("SELECT e FROM Employee e left join fetch e.jobPositions jb where e.id=:id")
+//    @Query("SELECT e FROM Employee e left join fetch e.jobPositions jb where e.id=:id")
     Optional<Employee> findById(@Param("id") Long id);
 }
