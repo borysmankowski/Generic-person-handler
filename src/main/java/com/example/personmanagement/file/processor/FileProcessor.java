@@ -50,12 +50,12 @@ public class FileProcessor {
             Stream<String> batchLines = lines.skip(1).skip(batchStart).limit(batchSize);
             List<Person> entities = batchLines.map(line -> {
                 Person person = processFileLine(line);
-//                personValidator.validate(person);
+                personValidator.validate(person);
                 processedLines.getAndIncrement();
                 return person;
             }).collect(Collectors.toList());
 
-//            personValidator.validatePersonsForBatchSave(entities);
+            personValidator.validatePersonsForBatchSave(entities);
             personRepository.saveAllAndFlush(entities);
         }
 

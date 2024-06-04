@@ -16,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -32,7 +33,7 @@ public class Employee extends Person {
     private double currentSalary;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
-    private List<JobPosition> jobPositions;
+    private Set<JobPosition> jobPositions;
     private int numberOfJobPositions = 0;
 
 }

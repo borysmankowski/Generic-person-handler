@@ -13,7 +13,6 @@ public class FileImporter {
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
     public FileImporter(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }

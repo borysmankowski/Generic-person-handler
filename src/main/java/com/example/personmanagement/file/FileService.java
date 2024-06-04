@@ -74,7 +74,7 @@ public class FileService {
 
             while (processing) {
                 Long batchStart = fileInformation.getLastProcessedRow();
-                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 7);
+                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 2);
                 fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
                 fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();

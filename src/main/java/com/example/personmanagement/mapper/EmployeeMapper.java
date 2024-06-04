@@ -9,6 +9,7 @@ import com.example.personmanagement.person.model.Person;
 import com.example.personmanagement.person.model.PersonDto;
 import org.springframework.stereotype.Component;
 
+import javax.swing.text.html.Option;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,7 +36,9 @@ public class EmployeeMapper implements PersonTypeMapper {
                     .employmentStartDate(employee.getEmploymentStartDate())
                     .currentPosition(employee.getCurrentPosition())
                     .currentSalary(employee.getCurrentSalary())
-                    .numberOfJobPositions(0)
+                    .numberOfJobPositions(Optional.ofNullable(employee.getJobPositions())
+                            .map(Set::size)
+                            .orElse(0))
                     .build();
         }
         throw new InvalidStrategyTypeException("Unsupported type!");

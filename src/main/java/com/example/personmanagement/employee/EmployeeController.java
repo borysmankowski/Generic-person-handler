@@ -20,10 +20,9 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-
-    @PostMapping("/{employeeId}")
+    @PostMapping("/{employeeId}/positions")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<PositionDto> addJobPositionToPerson(@PathVariable Long employeeId, @RequestBody @Valid CreatePositionCommand command) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(employeeService.addJobPosition(employeeId, command));
+        return ResponseEntity.status(HttpStatus.OK).body(employeeService.addJobPosition(employeeId, command));
     }
 }

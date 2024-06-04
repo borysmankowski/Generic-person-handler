@@ -3,7 +3,7 @@ package com.example.personmanagement.employee;
 import com.devskiller.jfairy.Fairy;
 import com.example.personmanagement.employee.model.CreateEmployeeCommand;
 import com.example.personmanagement.employee.model.EmployeeDto;
-import com.example.personmanagement.employee.position.AddJobPositionCommand;
+import com.example.personmanagement.employee.position.CreatePositionCommand;
 import com.example.personmanagement.person.PersonRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -52,13 +52,12 @@ class EmployeeControllerTest {
         var personId = employee.getId();
 
         // when
-        AddJobPositionCommand command = new AddJobPositionCommand("Developer", LocalDate.now(), LocalDate.now().plusDays(5), 2000);
+        CreatePositionCommand command = new CreatePositionCommand("Developer", LocalDate.now(), LocalDate.now().plusDays(5), 2000);
         ResultActions resultActions = postJobPosition(personId, command);
 
         // then
         resultActions
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Job position added successfully"));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -68,11 +67,11 @@ class EmployeeControllerTest {
         var now = LocalDate.now();
         var employee = postRandomEmployee();
         var personId = employee.getId();
-        var jobPosition1 = new AddJobPositionCommand("Developer", now, now.plusDays(5), 2000);
+        var jobPosition1 = new CreatePositionCommand("Developer", now, now.plusDays(5), 2000);
         postJobPosition(personId, jobPosition1);
 
         // when
-        var overlappingJobPosition = new AddJobPositionCommand("Senior Developer", now, now.plusDays(5), 5000);
+        var overlappingJobPosition = new CreatePositionCommand("Senior Developer", now, now.plusDays(5), 5000);
         ResultActions resultActions = postJobPosition(personId, overlappingJobPosition);
 
         // then
@@ -88,11 +87,15 @@ class EmployeeControllerTest {
         var now = LocalDate.now();
         var employee = postRandomEmployee();
         var personId = employee.getId();
-        var jobPosition1 = new AddJobPositionCommand("Developer", now, now.plusDays(5), 2000);
-        postJobPosition(personId, jobPosition1);
+        CreatePositionCommand command = new CreatePositionCommand();
+        command.setPositionName("Developer");
+        command.setStartDate(LocalDate.now());
+        command.setEndDate(LocalDate.now().plusDays(5));
+        command.setSalary(2000);
+        postJobPosition(personId, command);
 
         // when
-        var updatingJobPosition = new AddJobPositionCommand("Senior Developer", now.plusDays(10), now.plusDays(15), 5000);
+        var updatingJobPosition = new CreatePositionCommand("Senior Developer", now.plusDays(10), now.plusDays(15), 5000);
         ResultActions resultActions = postJobPosition(personId, updatingJobPosition);
 
         // then
@@ -130,8 +133,8 @@ class EmployeeControllerTest {
     }
 
 
-    private ResultActions postJobPosition(Long personId, AddJobPositionCommand command) throws Exception {
-        return mockMvc.perform(post("/api/employees/{personId}", personId)
+    private ResultActions postJobPosition(Long personId, CreatePositionCommand command) throws Exception {
+        return mockMvc.perform(post("/api/employees/{personId}/positions", personId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(command))
                 .accept(MediaType.APPLICATION_JSON));
