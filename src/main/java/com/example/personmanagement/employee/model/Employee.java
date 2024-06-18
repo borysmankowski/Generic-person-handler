@@ -5,7 +5,6 @@ import com.example.personmanagement.person.model.Person;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +14,6 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -34,6 +32,6 @@ public class Employee extends Person {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
     private Set<JobPosition> jobPositions;
-    private int numberOfJobPositions = 0;
+    private Integer numberOfJobPositions = 0;
 
 }

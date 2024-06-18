@@ -1,33 +1,34 @@
 package com.example.personmanagement.employee.model.csvimport;
 
-import com.example.personmanagement.employee.model.CreateEmployeeCommand;
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.PersonFileImportStrategy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
 
 @Component("employeeFileImportStrategy")
 public class EmployeeFileImportStrategy implements PersonFileImportStrategy {
 
     @Override
-    public void insert(CreatePersonCommand command, JdbcTemplate jdbcTemplate) {
-        if (!(command instanceof CreateEmployeeCommand employeeCommand)) {
-            throw new InvalidStrategyTypeException("Invalid command type for EmployeeFileImportStrategy");
+    public void insert(String[] data, JdbcTemplate jdbcTemplate) {
+        if (!"EMPLOYEE".equals(data[0])) {
+            throw new InvalidStrategyTypeException("Invalid data type for EmployeeFileImportStrategy");
         }
 
-        String sql = "INSERT INTO person (type, name, surname, pesel, height, weight, email_address, employment_start_date, current_position, current_salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO person (type, name, surname, pesel, height, weight, email_address, employment_start_date, current_position, current_salary, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql,
-                employeeCommand.getType(),
-                employeeCommand.getName(),
-                employeeCommand.getSurname(),
-                employeeCommand.getPesel(),
-                employeeCommand.getHeight(),
-                employeeCommand.getWeight(),
-                employeeCommand.getEmailAddress(),
-                employeeCommand.getEmploymentStartDate(),
-                employeeCommand.getCurrentPosition(),
-                employeeCommand.getCurrentSalary()
+                data[0],
+                data[1],
+                data[2],
+                data[3],
+                Double.parseDouble(data[4]),
+                Double.parseDouble(data[5]),
+                data[6],
+                LocalDate.parse(data[7]),
+                data[8],
+                Double.parseDouble(data[9]),
+                0
         );
     }
 }

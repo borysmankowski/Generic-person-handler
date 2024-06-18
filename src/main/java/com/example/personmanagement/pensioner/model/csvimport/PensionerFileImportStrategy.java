@@ -1,8 +1,6 @@
 package com.example.personmanagement.pensioner.model.csvimport;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.pensioner.model.CreatePensionerCommand;
-import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.PersonFileImportStrategy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -11,22 +9,23 @@ import org.springframework.stereotype.Component;
 public class PensionerFileImportStrategy implements PersonFileImportStrategy {
 
     @Override
-    public void insert(CreatePersonCommand command, JdbcTemplate jdbcTemplate) {
-        if (!(command instanceof CreatePensionerCommand pensionerCommand)) {
-            throw new InvalidStrategyTypeException("Invalid command type for PensionerFileImportStrategy");
+    public void insert(String[] data, JdbcTemplate jdbcTemplate) {
+        if (!"PENSIONER".equals(data[0])) {
+            throw new InvalidStrategyTypeException("Invalid data type for PensionerFileImportStrategy");
         }
 
-        String sql = "INSERT INTO person (type, name, surname, pesel, height, weight, email_address, pension_amount, worked_years) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO person (type, name, surname, pesel, height, weight, email_address, pension_amount, worked_years, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql,
-                pensionerCommand.getType(),
-                pensionerCommand.getName(),
-                pensionerCommand.getSurname(),
-                pensionerCommand.getPesel(),
-                pensionerCommand.getHeight(),
-                pensionerCommand.getWeight(),
-                pensionerCommand.getEmailAddress(),
-                pensionerCommand.getPensionAmount(),
-                pensionerCommand.getWorkedYears()
+                data[0],
+                data[1],
+                data[2],
+                data[3],
+                Double.parseDouble(data[4]),
+                Double.parseDouble(data[5]),
+                data[6],
+                Double.parseDouble(data[7]),
+                Integer.parseInt(data[8]),
+                0
         );
     }
 }
