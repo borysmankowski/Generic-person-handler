@@ -23,7 +23,7 @@ public class PositionMapper {
         return dto;
     }
 
-    public static JobPosition fromCreateCommand(CreatePositionCommand command){
+    public static JobPosition fromCreateCommand(CreatePositionCommand command) {
         JobPosition jobPosition = new JobPosition();
         jobPosition.setPositionName(command.getPositionName());
         jobPosition.setStartDate(command.getStartDate());

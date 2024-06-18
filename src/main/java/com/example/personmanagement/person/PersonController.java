@@ -38,14 +38,15 @@ public class PersonController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PersonDto> createPerson(@RequestBody @Valid CreatePersonCommand command) {
-           PersonDto personCreated = personService.create(command);
+        PersonDto personCreated = personService.create(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(personCreated);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Page<PersonDto>> searchPersons(@RequestParam(value = "search-criteria", required = false) String searchCriteriaParam, Pageable pageable) throws JsonProcessingException {
-        List<SearchCriteria> searchCriteria = objectMapper.readValue(searchCriteriaParam, new TypeReference<List<SearchCriteria>>() {});
+        List<SearchCriteria> searchCriteria = objectMapper.readValue(searchCriteriaParam, new TypeReference<List<SearchCriteria>>() {
+        });
         Page<PersonDto> personDtoPage = personService.searchPersons(searchCriteria, pageable);
         return ResponseEntity.ok(personDtoPage);
     }

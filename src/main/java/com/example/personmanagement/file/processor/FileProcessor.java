@@ -1,10 +1,8 @@
 package com.example.personmanagement.file.processor;
 
 import com.example.personmanagement.exception.ResourceNotFoundException;
-import com.example.personmanagement.file.ComposedCsvFileRowToCreateCommandStrategy;
 import com.example.personmanagement.file.FileInformation;
 import com.example.personmanagement.file.storage.FileStorage;
-import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.PersonFileImportStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +26,6 @@ public class FileProcessor {
 
     private final Map<String, PersonFileImportStrategy> fileImportStrategyMap;
 
-    private final ComposedCsvFileRowToCreateCommandStrategy csvFileRowToCreateCommandStrategy;
-
     private final FileStorage fileStorage;
 
     private final JdbcTemplate jdbcTemplate;
@@ -44,6 +40,7 @@ public class FileProcessor {
             batchLines.forEach(line -> {
                 processFileLine(line);
                 processedLines.getAndIncrement();
+
             });
         }
 
@@ -58,14 +55,9 @@ public class FileProcessor {
         PersonFileImportStrategy strategy = fileImportStrategyMap.get(key);
 
         if (strategy != null) {
-            CreatePersonCommand command = mapDataToCommand(data);
-            strategy.insert(command, jdbcTemplate);
+            strategy.insert(data, jdbcTemplate);
         } else {
             throw new ResourceNotFoundException("Unknown type: " + type);
         }
-    }
-
-    private CreatePersonCommand mapDataToCommand(String[] data) {
-        return csvFileRowToCreateCommandStrategy.toCommand(data);
     }
 }

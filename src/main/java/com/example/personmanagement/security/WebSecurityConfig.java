@@ -53,7 +53,6 @@ public class WebSecurityConfig {
         );
 
 
-
         http.httpBasic(Customizer.withDefaults());
 
         return http.build();
