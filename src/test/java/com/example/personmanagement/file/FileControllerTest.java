@@ -39,7 +39,7 @@ class FileControllerTest {
         var result = mockMvc.perform(MockMvcRequestBuilders.multipart("/api/file-imports")
                 .file(file));
 
-        result.andExpect(MockMvcResultMatchers.status().isCreated());
+        result.andExpect(MockMvcResultMatchers.status().isAccepted());
     }
 
 

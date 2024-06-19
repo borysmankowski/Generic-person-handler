@@ -4,9 +4,9 @@ import jakarta.persistence.RollbackException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolationException;
@@ -17,78 +17,63 @@ import java.io.IOException;
 public class GlobalExceptionHanlder {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ValidationErrorDto handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+    public ResponseEntity<ValidationErrorDto> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         ValidationErrorDto errorDto = new ValidationErrorDto();
         exception.getFieldErrors().forEach(error ->
                 errorDto.addViolation(error.getField(), error.getDefaultMessage()));
-        return errorDto;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDto);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionDto handleResourceNotFoundException(ResourceNotFoundException exception) {
+    public ResponseEntity<ExceptionDto> handleResourceNotFoundException(ResourceNotFoundException exception) {
         log.error("Resource Not Found exception", exception);
-        return createExceptionDto("Resource not found!");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ExceptionDto("Resource not found!"));
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionDto handleDataIntegrityViolationException(DataIntegrityViolationException exception) {
-        log.error("Data integrity violation", exception);
-        return createExceptionDto("Data integrity violation!");
+    @ExceptionHandler({
+            DataIntegrityViolationException.class,
+            ConstraintViolationException.class,
+            IOException.class,
+            RollbackException.class,
+            IllegalArgumentException.class,
+            JobOverlappingException.class
+    })
+    public ResponseEntity<ExceptionDto> handleBadRequestExceptions(Exception exception) {
+        String message;
+        if (exception instanceof DataIntegrityViolationException) {
+            log.error("Data integrity violation", exception);
+            message = "Data integrity violation!";
+        } else if (exception instanceof ConstraintViolationException) {
+            log.error("Constraint Violation", exception);
+            message = "Constraint violation!";
+        } else if (exception instanceof IOException) {
+            log.error("IOException", exception);
+            message = "IOException!";
+        } else if (exception instanceof RollbackException) {
+            log.error("Rollback", exception);
+            message = "Rollback exception!";
+        } else if (exception instanceof IllegalArgumentException) {
+            log.error("Illegal argument!", exception);
+            message = "Illegal argument!";
+        } else if (exception instanceof JobOverlappingException) {
+            log.error("New job position overlaps with existing position!", exception);
+            message = "New job position overlaps with existing position!";
+        } else {
+            log.error("Unhandled exception", exception);
+            message = "Bad request!";
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto(message));
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ExceptionDto handleDuplicateResourceException(DuplicateResourceException exception) {
+    public ResponseEntity<ExceptionDto> handleDuplicateResourceException(DuplicateResourceException exception) {
         log.error("Duplicated Resource exception", exception);
-        return createExceptionDto("Duplicated Resource!");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionDto("Duplicated Resource!"));
     }
 
     @ExceptionHandler(InvalidStrategyTypeException.class)
-    @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    public ExceptionDto handleInvalidStrategyTypeException(InvalidStrategyTypeException exception) {
+    public ResponseEntity<ExceptionDto> handleInvalidStrategyTypeException(InvalidStrategyTypeException exception) {
         log.error("Strategy Type exception", exception);
-        return createExceptionDto("Not found strategy type!");
-    }
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionDto handleConstraintViolationException(ConstraintViolationException exception) {
-        log.error("Constraint Violation", exception);
-        return createExceptionDto("Constratint exception!");
-    }
-
-    @ExceptionHandler(IOException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionDto handleIOException(IOException exception) {
-        log.error("IOException", exception);
-        return createExceptionDto("IOException exception!");
-    }
-
-    @ExceptionHandler(RollbackException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionDto handleRollbackException(RollbackException exception) {
-        log.error("Rollback", exception);
-        return createExceptionDto("Rollback exception!");
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public ExceptionDto handleInvalidStrategyTypeException(IllegalArgumentException exception) {
-        log.error("Illegal argument!", exception);
-        return createExceptionDto("Illegal argument!");
-    }
-
-    @ExceptionHandler(JobOverlappingException.class)
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public ExceptionDto handleJobOverlappingException(JobOverlappingException exception) {
-        log.error("New job position overlaps with existing position!", exception);
-        return createExceptionDto("New job position overlaps with existing position");
-    }
-
-    private ExceptionDto createExceptionDto(String message) {
-        return new ExceptionDto(message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto("Not found strategy type!"));
     }
 }

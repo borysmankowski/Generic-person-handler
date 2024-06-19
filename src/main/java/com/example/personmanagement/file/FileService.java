@@ -6,8 +6,6 @@ import com.example.personmanagement.file.processor.FileProcessor;
 import com.example.personmanagement.file.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +69,7 @@ public class FileService {
 
             while (processing) {
                 Long batchStart = fileInformation.getLastProcessedRow();
-                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 2);
+                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 200);
                 fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
                 fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();

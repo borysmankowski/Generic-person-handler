@@ -33,11 +33,14 @@ public class WebSecurityConfig {
                                                       HandlerMappingIntrospector introspector) throws Exception {
         MvcRequestMatcher.Builder mvcMatcherBuilder = new MvcRequestMatcher.Builder(introspector);
 
-        http.csrf(csrfConfigurer ->
-                csrfConfigurer.ignoringRequestMatchers(mvcMatcherBuilder.pattern(PERSON_URL_PATTERN),
-                        mvcMatcherBuilder.pattern(EMPLOYEE_URL_PATTERN),
-                        mvcMatcherBuilder.pattern(UPLOAD_URL_PATTERN)
-                ));
+//        http.csrf(csrfConfigurer ->
+//                csrfConfigurer.ignoringRequestMatchers(mvcMatcherBuilder.pattern(PERSON_URL_PATTERN),
+//                        mvcMatcherBuilder.pattern(EMPLOYEE_URL_PATTERN),
+//                        mvcMatcherBuilder.pattern(UPLOAD_URL_PATTERN)
+//                ));
+
+        http.csrf().disable();
+        http.headers().frameOptions().disable();
 
         http.authorizeHttpRequests(auth ->
                 auth
@@ -48,6 +51,7 @@ public class WebSecurityConfig {
 
 
         );
+
 
         http.httpBasic(Customizer.withDefaults());
 

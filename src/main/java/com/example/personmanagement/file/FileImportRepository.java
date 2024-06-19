@@ -2,7 +2,6 @@ package com.example.personmanagement.file;
 
 import com.example.personmanagement.mapper.FileImportRowMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,7 +15,6 @@ public class FileImportRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
     public FileImportRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
