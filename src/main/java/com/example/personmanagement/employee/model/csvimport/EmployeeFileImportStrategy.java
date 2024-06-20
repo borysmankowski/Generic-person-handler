@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Component("employeeFileImportStrategy")
 public class EmployeeFileImportStrategy implements PersonFileImportStrategy {
@@ -30,5 +31,33 @@ public class EmployeeFileImportStrategy implements PersonFileImportStrategy {
                 Double.parseDouble(data[9]),
                 0
         );
+    }
+
+    @Override
+    public void bulkInsert(List<String[]> dataList, JdbcTemplate jdbcTemplate) {
+        String sql = "INSERT INTO person (type, name, surname, pesel, height, weight, email_address, employment_start_date, current_position, current_salary, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        List<Object[]> batchArgs = dataList.stream()
+                .map(data -> {
+                    if (!"EMPLOYEE".equals(data[0])) {
+                        throw new InvalidStrategyTypeException("Invalid data type for EmployeeFileImportStrategy");
+                    }
+                    return new Object[]{
+                            data[0],
+                            data[1],
+                            data[2],
+                            data[3],
+                            Double.parseDouble(data[4]),
+                            Double.parseDouble(data[5]),
+                            data[6],
+                            LocalDate.parse(data[7]),
+                            data[8],
+                            Double.parseDouble(data[9]),
+                            0 // version
+                    };
+                })
+                .toList();
+
+        jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 }

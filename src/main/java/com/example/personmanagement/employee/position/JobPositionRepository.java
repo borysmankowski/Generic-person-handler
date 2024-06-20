@@ -9,5 +9,4 @@ public interface JobPositionRepository extends JpaRepository<JobPosition, Long> 
 
     List<JobPosition> findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(Long employeeId, LocalDate endDate, LocalDate startDate);
 
-    List<JobPosition> findByEmployeeId(Long id);
 }
