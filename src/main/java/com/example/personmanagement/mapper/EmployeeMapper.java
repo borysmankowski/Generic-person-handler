@@ -32,9 +32,6 @@ public class EmployeeMapper implements PersonTypeMapper {
                     .height(person.getHeight())
                     .weight(person.getWeight())
                     .emailAddress(person.getEmailAddress())
-                    .employmentStartDate(employee.getEmploymentStartDate())
-                    .currentPosition(employee.getCurrentPosition())
-                    .currentSalary(employee.getCurrentSalary())
                     .numberOfJobPositions(Optional.ofNullable(employee.getJobPositions())
                             .map(Set::size)
                             .orElse(0))
@@ -55,9 +52,6 @@ public class EmployeeMapper implements PersonTypeMapper {
                     .weight(employeeCommand.getWeight())
                     .height(employeeCommand.getHeight())
                     .emailAddress(employeeCommand.getEmailAddress())
-                    .employmentStartDate(employeeCommand.getEmploymentStartDate())
-                    .currentPosition(employeeCommand.getCurrentPosition())
-                    .currentSalary(employeeCommand.getCurrentSalary())
                     .numberOfJobPositions(0)
                     .build();
         }
