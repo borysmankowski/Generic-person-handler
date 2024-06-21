@@ -35,6 +35,15 @@ public class EmployeeUpdateStrategy implements PersonUpdateStrategy {
             if (employeeCommand.getEmailAddress() != null) {
                 existingEmployee.setEmailAddress(employeeCommand.getEmailAddress());
             }
+            if (employeeCommand.getEmploymentStartDate() != null) {
+                existingEmployee.setEmploymentStartDate(employeeCommand.getEmploymentStartDate());
+            }
+            if (employeeCommand.getCurrentPosition() != null) {
+                existingEmployee.setCurrentPosition(employeeCommand.getCurrentPosition());
+            }
+            if (employeeCommand.getCurrentSalary() != 0.0) {
+                existingEmployee.setCurrentSalary(employeeCommand.getCurrentSalary());
+            }
 
             return existingEmployee;
         } else {

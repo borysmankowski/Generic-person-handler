@@ -37,7 +37,6 @@ public class FileProcessor {
     public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
-        ConcurrentHashMap<String, Boolean> uniquePeselSet = new ConcurrentHashMap<>();
         long currentLine = 0;
 
         try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
@@ -50,27 +49,23 @@ public class FileProcessor {
 
             while ((line = reader.readLine()) != null && processedLines.get() < batchSize) {
                 String[] data = line.split(",");
-                String pesel = data[3];
+                batchData.add(data);
+                processedLines.getAndIncrement();
 
-                if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) == null) {
-                    batchData.add(data);
-                    processedLines.getAndIncrement();
-
-                    if (batchData.size() >= 10000) {
-                        bulkInsert(batchData);
-                        batchData.clear();
-                        System.gc();
-                    }
+                if (batchData.size() >= 10000) {
+                    bulkInsert(batchData);
+                    batchData.clear();
+//                    System.gc();
                 }
             }
 
+            // Insert any remaining data
             if (!batchData.isEmpty()) {
                 bulkInsert(batchData);
                 batchData.clear();
-                System.gc();
+//                System.gc();
             }
         }
-
         boolean isFinished = processedLines.get() < batchSize;
         return new Result(batchStart + processedLines.get(), isFinished);
     }
