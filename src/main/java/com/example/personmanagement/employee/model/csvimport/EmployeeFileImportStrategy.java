@@ -53,7 +53,7 @@ public class EmployeeFileImportStrategy implements PersonFileImportStrategy {
                             LocalDate.parse(data[7]),
                             data[8],
                             Double.parseDouble(data[9]),
-                            0 // version
+                            0
                     };
                 })
                 .toList();

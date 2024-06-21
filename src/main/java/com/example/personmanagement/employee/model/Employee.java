@@ -26,6 +26,10 @@ import java.util.Set;
 @ToString(callSuper = true)
 public class Employee extends Person {
 
+    private LocalDate employmentStartDate;
+    private String currentPosition;
+    private double currentSalary;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
     private Set<JobPosition> jobPositions;
     private Integer numberOfJobPositions = 0;

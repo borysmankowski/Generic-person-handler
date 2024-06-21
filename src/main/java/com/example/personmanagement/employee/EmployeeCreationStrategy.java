@@ -24,6 +24,9 @@ public class EmployeeCreationStrategy implements PersonCreationStrategy {
                 .height(employeeCommand.getHeight())
                 .weight(employeeCommand.getWeight())
                 .emailAddress(employeeCommand.getEmailAddress())
+                .employmentStartDate(employeeCommand.getEmploymentStartDate())
+                .currentPosition(employeeCommand.getCurrentPosition())
+                .currentSalary(employeeCommand.getCurrentSalary())
                 .build();
     }
 
