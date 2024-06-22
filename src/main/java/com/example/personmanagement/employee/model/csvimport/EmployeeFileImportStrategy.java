@@ -35,7 +35,7 @@ public class EmployeeFileImportStrategy implements PersonFileImportStrategy {
 
     @Override
     public void bulkInsert(List<String[]> dataList, JdbcTemplate jdbcTemplate) {
-        String sql = "INSERT INTO person (type, name, surname, pesel, height, weight, email_address, employment_start_date, current_position, current_salary, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO person (type, name, surname, pesel, height, weight, email_address,version) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         List<Object[]> batchArgs = dataList.stream()
                 .map(data -> {
@@ -50,9 +50,6 @@ public class EmployeeFileImportStrategy implements PersonFileImportStrategy {
                             Double.parseDouble(data[4]),
                             Double.parseDouble(data[5]),
                             data[6],
-                            LocalDate.parse(data[7]),
-                            data[8],
-                            Double.parseDouble(data[9]),
                             0
                     };
                 })

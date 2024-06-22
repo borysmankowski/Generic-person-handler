@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,7 @@ public class FileProcessor {
     public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
+        ConcurrentHashMap<String, Boolean> uniquePeselSet = new ConcurrentHashMap<>();
         long currentLine = 0;
 
         try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
@@ -45,39 +47,31 @@ public class FileProcessor {
             while (currentLine < batchStart && reader.readLine() != null) {
                 currentLine++;
             }
+            String[] data;
+            String pesel;
 
             while ((line = reader.readLine()) != null && processedLines.get() < batchSize) {
-                String[] data = line.split(",");
-                batchData.add(data);
-                processedLines.getAndIncrement();
+                data = line.split(",");
+                pesel = data[3];
 
-                if (batchData.size() >= 20000) {
-                    bulkInsert(batchData);
-                    batchData.clear();
+                if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) == null) {
+                    batchData.add(data);
+                    processedLines.getAndIncrement();
+
+                    if (batchData.size() >= batchSize) {
+                        bulkInsert(batchData);
+                        batchData.clear();
+                    }
                 }
             }
-
             if (!batchData.isEmpty()) {
                 bulkInsert(batchData);
                 batchData.clear();
             }
         }
+
         boolean isFinished = processedLines.get() < batchSize;
         return new Result(batchStart + processedLines.get(), isFinished);
-    }
-
-
-    private void processFileLine(String line) {
-        String[] data = line.split(",");
-        String type = data[0];
-        String key = type.toLowerCase() + "FileImportStrategy";
-        PersonFileImportStrategy strategy = fileImportStrategyMap.get(key);
-
-        if (strategy != null) {
-            strategy.insert(data, jdbcTemplate);
-        } else {
-            throw new ResourceNotFoundException("Unknown type: " + type);
-        }
     }
 
     private void bulkInsert(List<String[]> batchData) {

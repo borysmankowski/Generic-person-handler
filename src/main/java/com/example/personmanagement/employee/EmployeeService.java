@@ -5,6 +5,7 @@ import com.example.personmanagement.employee.position.CreatePositionCommand;
 import com.example.personmanagement.employee.position.JobPosition;
 import com.example.personmanagement.employee.position.JobPositionRepository;
 import com.example.personmanagement.employee.position.PositionDto;
+import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.mapper.PositionMapper;
 import jakarta.transaction.Transactional;
@@ -33,7 +34,7 @@ public class EmployeeService {
                 employeeId, command.getEndDate(), command.getStartDate());
 
         if (!overlappingPositions.isEmpty()) {
-            throw new ResourceNotFoundException("The position dates overlap with existing position dates.");
+            throw new JobOverlappingException("The position dates overlap with existing position dates.");
         }
 
         JobPosition newPosition = PositionMapper.fromCreateCommand(command);
