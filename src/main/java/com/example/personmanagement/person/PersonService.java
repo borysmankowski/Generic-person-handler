@@ -55,9 +55,6 @@ public class PersonService {
         Specification<Person> specification = PersonSpecification.any();
 
         for (SearchCriteria criteria : searchCriteria) {
-            if ("salary".equals(criteria.getKey())) {
-                criteria.setOperation("salaryRange");
-            }
             specification = PersonSpecification.addSpecification(specification, criteria);
         }
 
