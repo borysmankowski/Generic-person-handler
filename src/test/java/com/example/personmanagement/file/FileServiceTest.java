@@ -84,7 +84,7 @@ public class FileServiceTest {
     @WithMockUser(roles = "ADMIN")
     public void processFileWithDuplicatedPesel() throws IOException {
         // given
-        var filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
+        var filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
         fileService.uploadFile(inputStream, "generatedFileForTestingDuplicatedPesel.csv", Files.size(filePath));
         var fileToProcessId = fileService.findFileToProcess().orElseThrow();

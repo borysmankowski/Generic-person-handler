@@ -35,6 +35,13 @@ public class PersonSpecification {
 
     public static Specification<Person> employeeSalaryBetween(SearchCriteria criteria) {
         return (root, query, criteriaBuilder) -> {
+            Double minValue = Double.parseDouble(criteria.getValue().toString());
+            Double maxValue = Double.parseDouble(criteria.getSecondValue().toString());
+
+            if (minValue > maxValue) {
+                throw new IllegalArgumentException("Min value cannot be greater than max value");
+            }
+
             Subquery<JobPosition> subquery = query.subquery(JobPosition.class);
             Root<Employee> employeeRoot = subquery.from(Employee.class);
             Join<Employee, JobPosition> jobPositionJoin = employeeRoot.join("jobPositions");
@@ -42,9 +49,7 @@ public class PersonSpecification {
             subquery.select(jobPositionJoin.get("salary"))
                     .where(criteriaBuilder.equal(jobPositionJoin.get("employee"), root));
 
-            Predicate salaryPredicate = criteriaBuilder.between(jobPositionJoin.get("salary"),
-                    Double.parseDouble(criteria.getValue().toString()),
-                    Double.parseDouble(criteria.getSecondValue().toString()));
+            Predicate salaryPredicate = criteriaBuilder.between(jobPositionJoin.get("salary"), minValue, maxValue);
 
             return criteriaBuilder.exists(subquery.select(jobPositionJoin).where(salaryPredicate));
         };
@@ -65,6 +70,12 @@ public class PersonSpecification {
         return (root, query, criteriaBuilder) -> {
             Object minValue = criteria.getValue();
             Object maxValue = criteria.getSecondValue();
+
+            if (minValue instanceof Comparable && maxValue instanceof Comparable) {
+                if (((Comparable) minValue).compareTo(maxValue) > 0) {
+                    throw new IllegalArgumentException("Min value cannot be greater than max value");
+                }
+            }
 
             if (isDate(minValue) && isDate(maxValue)) {
                 LocalDate minDate = parseDate(minValue);
