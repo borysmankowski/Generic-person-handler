@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -52,18 +51,15 @@ public class FileProcessor {
                 batchData.add(data);
                 processedLines.getAndIncrement();
 
-                if (batchData.size() >= 10000) {
+                if (batchData.size() >= 20000) {
                     bulkInsert(batchData);
                     batchData.clear();
-//                    System.gc();
                 }
             }
 
-            // Insert any remaining data
             if (!batchData.isEmpty()) {
                 bulkInsert(batchData);
                 batchData.clear();
-//                System.gc();
             }
         }
         boolean isFinished = processedLines.get() < batchSize;

@@ -58,6 +58,7 @@ public class FileService {
     }
 
     public void processFile(Long fileImportId) {
+        final long batchSize = 20000;
         FileInformation fileInformation = fileImportRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasnt been found"));
         try {
@@ -69,7 +70,7 @@ public class FileService {
 
             while (processing) {
                 Long batchStart = fileInformation.getLastProcessedRow();
-                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 10000);
+                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, batchSize);
                 fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
                 fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();
