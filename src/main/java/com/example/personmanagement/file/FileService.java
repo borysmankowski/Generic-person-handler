@@ -6,7 +6,6 @@ import com.example.personmanagement.file.processor.FileProcessor;
 import com.example.personmanagement.file.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -51,7 +50,6 @@ public class FileService {
         }
     }
 
-    @Async
     public Optional<Long> findFileToProcess() {
         return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc();
 

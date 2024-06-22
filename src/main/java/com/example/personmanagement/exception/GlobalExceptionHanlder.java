@@ -56,8 +56,8 @@ public class GlobalExceptionHanlder {
             log.error("Illegal argument!", exception);
             message = "Illegal argument!";
         } else if (exception instanceof JobOverlappingException) {
-            log.error("New job position overlaps with existing position!", exception);
-            message = "New job position overlaps with existing position!";
+            log.error("New job position overlaps with existing position", exception);
+            message = "New job position overlaps with existing position";
         } else {
             log.error("Unhandled exception", exception);
             message = "Bad request!";

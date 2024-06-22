@@ -55,13 +55,15 @@ public class PersonService {
         Specification<Person> specification = PersonSpecification.any();
 
         for (SearchCriteria criteria : searchCriteria) {
+            if ("salary".equals(criteria.getKey())) {
+                criteria.setOperation("salaryRange");
+            }
             specification = PersonSpecification.addSpecification(specification, criteria);
         }
 
         Page<Person> result = personRepository.findAll(specification, pageable);
         return result.map(personMapper::toDto);
     }
-
     @Transactional
     public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
         Person existingPerson = personRepository.findById(personId)

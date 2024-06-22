@@ -1,5 +1,10 @@
 package com.example.personmanagement.person.model;
 
+import com.example.personmanagement.employee.model.Employee;
+import com.example.personmanagement.employee.position.JobPosition;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +24,52 @@ public class PersonSpecification {
             case "eq" -> specification = specification.and(equalSpecification(criteria));
             case "like" -> specification = specification.and(likeSpecification(criteria));
             case "range" -> specification = specification.and(rangeSpecification(criteria));
+            case "salaryRange" -> specification = specification.and(salaryRangeSpecification(criteria));
             default -> {
             }
         }
         return specification;
+    }
+
+    private static Specification<Person> salaryRangeSpecification(SearchCriteria criteria) {
+        return (root, query, criteriaBuilder) -> {
+            // Ensure this specification is applied only to Employee entities
+            if (!Employee.class.isAssignableFrom(root.getJavaType())) {
+                return criteriaBuilder.conjunction();
+            }
+
+            // Extract minSalary and maxSalary from the criteria
+            Double minSalary = (Double) criteria.getValue();
+            Double maxSalary = (Double) criteria.getSecondValue();
+
+            // Create a subquery to fetch the job positions for each employee
+            Subquery<Double> subquery = query.subquery(Double.class);
+            Root<JobPosition> subRoot = subquery.from(JobPosition.class);
+
+            // Select the average salary for the job positions associated with each employee
+            subquery.select(criteriaBuilder.avg(subRoot.get("salary")))
+                    .where(criteriaBuilder.equal(subRoot.get("employee"), root));
+
+            // Create predicates for the salary range
+            Predicate salaryPredicate = null;
+            if (minSalary != null && maxSalary != null) {
+                salaryPredicate = criteriaBuilder.between(subquery, minSalary, maxSalary);
+            } else if (minSalary != null) {
+                salaryPredicate = criteriaBuilder.greaterThanOrEqualTo(subquery, minSalary);
+            } else if (maxSalary != null) {
+                salaryPredicate = criteriaBuilder.lessThanOrEqualTo(subquery, maxSalary);
+            }
+
+            // Ensure that employees without job positions are excluded
+            Predicate hasJobPositionPredicate = criteriaBuilder.exists(subquery);
+
+            // Combine the salary predicate and the hasJobPositionPredicate
+            if (salaryPredicate != null) {
+                return criteriaBuilder.and(hasJobPositionPredicate, salaryPredicate);
+            } else {
+                return hasJobPositionPredicate;
+            }
+        };
     }
 
     private static Specification<Person> equalSpecification(SearchCriteria criteria) {
