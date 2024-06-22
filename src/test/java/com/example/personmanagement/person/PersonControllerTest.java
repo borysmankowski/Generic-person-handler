@@ -357,6 +357,101 @@ class PersonControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void searchByEmployeeTypeWithEqualValueToSecondValueHeightRange() throws Exception {
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setKey("height");
+        searchCriteria.setOperation("range");
+        searchCriteria.setValue("200");
+        searchCriteria.setSecondValue("200");
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
+        );
+
+        String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
+
+        mockMvc.perform(get("/api/people")
+                        .param("search-criteria", searchCriteriaJson)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void searchByEmployeeTypeWithWrongHeightRange() throws Exception {
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setKey("height");
+        searchCriteria.setOperation("range");
+        searchCriteria.setValue("200");
+        searchCriteria.setSecondValue("100");
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
+        );
+
+        String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
+
+        mockMvc.perform(get("/api/people")
+                        .param("search-criteria", searchCriteriaJson)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void searchByEmployeeTypeWithSalaryRange() throws Exception {
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setKey("salary");
+        searchCriteria.setOperation("salaryRange");
+        searchCriteria.setValue("1000");
+        searchCriteria.setSecondValue("2000");
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
+        );
+
+        String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
+
+        mockMvc.perform(get("/api/people")
+                        .param("search-criteria", searchCriteriaJson)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void searchByEmployeeTypeWithValueEqualToSecondValueSalaryRange() throws Exception {
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setKey("salary");
+        searchCriteria.setOperation("salaryRange");
+        searchCriteria.setValue("2000");
+        searchCriteria.setSecondValue("2000");
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
+        );
+
+        String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
+
+        mockMvc.perform(get("/api/people")
+                        .param("search-criteria", searchCriteriaJson)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void searchByEmployeeTypeWithWrongSalaryRange() throws Exception {
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setKey("salary");
+        searchCriteria.setOperation("salaryRange");
+        searchCriteria.setValue("2000");
+        searchCriteria.setSecondValue("1000");
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
+        );
+
+        String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
+
+        mockMvc.perform(get("/api/people")
+                        .param("search-criteria", searchCriteriaJson)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
 
     @AfterEach
     public void setUp() {
