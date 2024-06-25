@@ -1,5 +1,6 @@
 package com.example.personmanagement.file;
 
+import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.file.processor.FileImporter;
 import com.example.personmanagement.file.processor.FileProcessor;
@@ -56,9 +57,9 @@ public class FileService {
     }
 
     public void processFile(Long fileImportId) {
-        final long batchSize = 20000;
+        final long batchSize = 2;
         FileInformation fileInformation = fileImportRepository.findById(fileImportId)
-                .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasnt been found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
         try {
             if (fileInformation.getStartedAt() == null) {
                 fileInformation.setStartedAt(LocalDateTime.now());
@@ -77,10 +78,18 @@ public class FileService {
 
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.SUCCESS);
+
+        } catch (DuplicateResourceException e) {
+            log.error("Duplicate PESEL found when processing file {}", fileImportId, e);
+            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setStatus(FileStatus.FAILED);
+            fileImporter.update(fileInformation);
+
         } catch (Exception e) {
             log.error("Error when processing file {}", fileImportId, e);
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.FAILED);
+            fileImporter.update(fileInformation);
         }
         fileImporter.update(fileInformation);
     }
