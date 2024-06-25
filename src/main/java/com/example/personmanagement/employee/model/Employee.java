@@ -13,7 +13,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDate;
 import java.util.Set;
 
 @Getter
@@ -28,6 +27,5 @@ public class Employee extends Person {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
     private Set<JobPosition> jobPositions;
-    private Integer numberOfJobPositions = 0;
 
 }

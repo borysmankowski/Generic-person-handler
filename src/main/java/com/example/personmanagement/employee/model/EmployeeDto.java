@@ -8,8 +8,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDate;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,5 +15,6 @@ import java.time.LocalDate;
 @SuperBuilder
 @ToString(callSuper = true)
 public class EmployeeDto extends PersonDto {
+
     private int numberOfJobPositions;
 }

@@ -52,7 +52,6 @@ public class EmployeeMapper implements PersonTypeMapper {
                     .weight(employeeCommand.getWeight())
                     .height(employeeCommand.getHeight())
                     .emailAddress(employeeCommand.getEmailAddress())
-                    .numberOfJobPositions(0)
                     .build();
         }
         throw new InvalidStrategyTypeException("Unsupported type!");

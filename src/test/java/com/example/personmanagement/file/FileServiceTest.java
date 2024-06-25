@@ -86,7 +86,7 @@ public class FileServiceTest {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         var inputStream = Files.newInputStream(filePath);
-        fileService.uploadFile(inputStream, "generatedFileForTesting.csv", Files.size(filePath));
+        fileService.uploadFile(inputStream, "generatedFileForTestingDuplicatedPesel.csv", Files.size(filePath));
         var fileToProcessId = fileService.findFileToProcess().orElseThrow();
 
         // when
@@ -102,8 +102,8 @@ public class FileServiceTest {
         var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
         assertThat(statusAfterProcessing.getStatus().toString()).isEqualTo(FileStatus.FAILED.toString());
 
-        assertThat(findByPesel("70081539775")).isNotEmpty();
-        assertThat(findByPesel("90122199526")).isNotEmpty();
+        assertThat(findByPesel("70081539775")).isEmpty();
+        assertThat(findByPesel("90122199526")).isEmpty();
         assertThat(findByPesel("51010932991")).isEmpty();
     }
 

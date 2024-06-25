@@ -1,12 +1,12 @@
 package com.example.personmanagement.file;
 
+import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.file.processor.FileImporter;
 import com.example.personmanagement.file.processor.FileProcessor;
 import com.example.personmanagement.file.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -51,15 +51,15 @@ public class FileService {
         }
     }
 
-    @Async
     public Optional<Long> findFileToProcess() {
         return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc();
 
     }
 
     public void processFile(Long fileImportId) {
+        final long batchSize = 20000;
         FileInformation fileInformation = fileImportRepository.findById(fileImportId)
-                .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasnt been found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
         try {
             if (fileInformation.getStartedAt() == null) {
                 fileInformation.setStartedAt(LocalDateTime.now());
@@ -69,7 +69,7 @@ public class FileService {
 
             while (processing) {
                 Long batchStart = fileInformation.getLastProcessedRow();
-                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, 10000);
+                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, batchSize);
                 fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
                 fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();
@@ -78,10 +78,18 @@ public class FileService {
 
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.SUCCESS);
+
+        } catch (DuplicateResourceException e) {
+            log.error("Duplicate PESEL found when processing file {}", fileImportId, e);
+            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setStatus(FileStatus.FAILED);
+            fileImporter.update(fileInformation);
+
         } catch (Exception e) {
             log.error("Error when processing file {}", fileImportId, e);
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.FAILED);
+            fileImporter.update(fileInformation);
         }
         fileImporter.update(fileInformation);
     }

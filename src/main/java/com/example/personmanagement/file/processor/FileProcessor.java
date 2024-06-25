@@ -1,5 +1,6 @@
 package com.example.personmanagement.file.processor;
 
+import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.file.FileInformation;
 import com.example.personmanagement.file.storage.FileStorage;
@@ -33,8 +34,9 @@ public class FileProcessor {
 
     private final JdbcTemplate jdbcTemplate;
 
+
     @Transactional
-    public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException {
+    public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
         ConcurrentHashMap<String, Boolean> uniquePeselSet = new ConcurrentHashMap<>();
@@ -48,45 +50,33 @@ public class FileProcessor {
                 currentLine++;
             }
 
+            String[] data;
+            String pesel;
+
             while ((line = reader.readLine()) != null && processedLines.get() < batchSize) {
-                String[] data = line.split(",");
-                String pesel = data[3];
+                data = line.split(",");
+                pesel = data[3];
 
-                if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) == null) {
-                    batchData.add(data);
-                    processedLines.getAndIncrement();
+                if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) != null) {
+                    throw new DuplicateResourceException("Duplicate PESEL found: " + pesel);
+                }
+                batchData.add(data);
+                processedLines.getAndIncrement();
 
-                    if (batchData.size() >= 10000) {
-                        bulkInsert(batchData);
-                        batchData.clear();
-                        System.gc();
-                    }
+                if (batchData.size() >= batchSize) {
+                    bulkInsert(batchData);
+                    batchData.clear();
                 }
             }
 
             if (!batchData.isEmpty()) {
                 bulkInsert(batchData);
                 batchData.clear();
-                System.gc();
             }
         }
 
         boolean isFinished = processedLines.get() < batchSize;
         return new Result(batchStart + processedLines.get(), isFinished);
-    }
-
-
-    private void processFileLine(String line) {
-        String[] data = line.split(",");
-        String type = data[0];
-        String key = type.toLowerCase() + "FileImportStrategy";
-        PersonFileImportStrategy strategy = fileImportStrategyMap.get(key);
-
-        if (strategy != null) {
-            strategy.insert(data, jdbcTemplate);
-        } else {
-            throw new ResourceNotFoundException("Unknown type: " + type);
-        }
     }
 
     private void bulkInsert(List<String[]> batchData) {

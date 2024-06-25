@@ -29,7 +29,7 @@ public class StudentFileImportStrategy implements PersonFileImportStrategy {
                 Integer.parseInt(data[8]),
                 data[9],
                 Double.parseDouble(data[10]),
-                0 // version
+                0
         );
     }
 
@@ -54,7 +54,7 @@ public class StudentFileImportStrategy implements PersonFileImportStrategy {
                             Integer.parseInt(data[8]),
                             data[9],
                             Double.parseDouble(data[10]),
-                            0 // version
+                            0
                     };
                 })
                 .toList();
