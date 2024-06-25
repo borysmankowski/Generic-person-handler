@@ -1,8 +1,10 @@
 package com.example.personmanagement.file.processor;
 
+import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.file.FileInformation;
 import com.example.personmanagement.file.storage.FileStorage;
+import com.example.personmanagement.person.PersonRepository;
 import com.example.personmanagement.person.model.PersonFileImportStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -33,8 +37,10 @@ public class FileProcessor {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final PersonRepository personRepository;
+
     @Transactional
-    public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException {
+    public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
         ConcurrentHashMap<String, Boolean> uniquePeselSet = new ConcurrentHashMap<>();
@@ -47,23 +53,31 @@ public class FileProcessor {
             while (currentLine < batchStart && reader.readLine() != null) {
                 currentLine++;
             }
+
             String[] data;
             String pesel;
+            Set<String> currentBatchPeselSet = new HashSet<>();
 
             while ((line = reader.readLine()) != null && processedLines.get() < batchSize) {
                 data = line.split(",");
                 pesel = data[3];
 
-                if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) == null) {
+                if (!currentBatchPeselSet.contains(pesel)) {
+                    if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) != null) {
+                        throw new DuplicateResourceException("Duplicate PESEL found: " + pesel);
+                    }
                     batchData.add(data);
+                    currentBatchPeselSet.add(pesel);
                     processedLines.getAndIncrement();
 
                     if (batchData.size() >= batchSize) {
                         bulkInsert(batchData);
                         batchData.clear();
+                        currentBatchPeselSet.clear();
                     }
                 }
             }
+
             if (!batchData.isEmpty()) {
                 bulkInsert(batchData);
                 batchData.clear();
