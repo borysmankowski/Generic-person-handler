@@ -61,6 +61,7 @@ public class PersonService {
         Page<Person> result = personRepository.findAll(specification, pageable);
         return result.map(personMapper::toDto);
     }
+
     @Transactional
     public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
         Person existingPerson = personRepository.findById(personId)

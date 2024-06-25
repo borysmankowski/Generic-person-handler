@@ -57,7 +57,7 @@ public class FileService {
     }
 
     public void processFile(Long fileImportId) {
-        final long batchSize = 2;
+        final long batchSize = 20000;
         FileInformation fileInformation = fileImportRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
         try {
