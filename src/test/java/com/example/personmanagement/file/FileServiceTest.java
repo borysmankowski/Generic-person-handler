@@ -14,12 +14,15 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -39,7 +42,7 @@ public class FileServiceTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    public void findFileToProcess() throws IOException {
+    public void findFileToProcessShouldFindSuccessfully() throws IOException {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
@@ -54,6 +57,23 @@ public class FileServiceTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    public void findFileToProcessShouldntFindFileShouldFail() {
+        // given
+        var filePath = Paths.get("files-to-import/generatedFileForTestings.csv");
+
+        // when
+        Exception exception = assertThrows(NoSuchFileException.class, () -> {
+            var inputStream = Files.newInputStream(filePath);
+            fileService.uploadFile(inputStream, "generatedFileForTesting.csv", Files.size(filePath));
+        });
+
+        // then
+        assertThat(exception).isInstanceOf(NoSuchFileException.class);
+    }
+
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     public void processFile() throws IOException {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
@@ -64,6 +84,7 @@ public class FileServiceTest {
 
         // when
         var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
+
 
         // then
         assertThat(statusBeforeProcessing.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
@@ -82,7 +103,36 @@ public class FileServiceTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    public void processFileWithDuplicatedPesel() throws IOException {
+    public void uploadingFilesToProcessShouldQueueWithPendingStatus() throws IOException {
+        // given
+        Path path = Paths.get("files-to-import/generatedFileForTesting.csv");
+
+        var inputStream1 = Files.newInputStream(path);
+        fileService.uploadFile(inputStream1, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId1 = fileService.findFileToProcess().orElseThrow();
+
+        var inputStream2 = Files.newInputStream(path);
+        fileService.uploadFile(inputStream2, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId2 = fileService.findFileToProcess().orElseThrow();
+
+        var inputStream3 = Files.newInputStream(path);
+        fileService.uploadFile(inputStream3, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId3 = fileService.findFileToProcess().orElseThrow();
+
+        // when
+        var statusBeforeProcessing1 = fileService.getFileImportStatus(fileToProcessId1);
+        var statusBeforeProcessing2 = fileService.getFileImportStatus(fileToProcessId2);
+        var statusBeforeProcessing3 = fileService.getFileImportStatus(fileToProcessId3);
+
+        // then
+        assertThat(statusBeforeProcessing1.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+        assertThat(statusBeforeProcessing2.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+        assertThat(statusBeforeProcessing3.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void processFileWithDuplicatedPeselExpectedRollback() throws IOException {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         var inputStream = Files.newInputStream(filePath);

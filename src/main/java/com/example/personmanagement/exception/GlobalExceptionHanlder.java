@@ -65,10 +65,18 @@ public class GlobalExceptionHanlder {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto(message));
     }
 
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ExceptionDto> handleDuplicateResourceException(DuplicateResourceException exception) {
-        log.error("Duplicated Resource exception", exception);
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionDto("Duplicated Resource!"));
+    @ExceptionHandler({DuplicateResourceException.class, ResourceVersionNotValidException.class})
+    public ResponseEntity<ExceptionDto> handleConflictExceptions(RuntimeException exception) {
+        if (exception instanceof DuplicateResourceException) {
+            log.error("Duplicated Resource exception", exception);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionDto("Duplicated Resource!"));
+        } else if (exception instanceof ResourceVersionNotValidException) {
+            log.error("Resource Version Not Valid exception", exception);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionDto("Person was modified during your update, please fetch the newest version and retry"));
+        } else {
+            log.error("Unhandled exception", exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ExceptionDto("An unexpected error occurred"));
+        }
     }
 
     @ExceptionHandler(InvalidStrategyTypeException.class)

@@ -16,5 +16,5 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 public class EmployeeDto extends PersonDto {
 
-    private int numberOfJobPositions;
+    private String currentJobPosition;
 }

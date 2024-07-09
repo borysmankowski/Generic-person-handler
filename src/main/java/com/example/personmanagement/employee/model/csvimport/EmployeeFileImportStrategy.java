@@ -5,7 +5,6 @@ import com.example.personmanagement.person.model.PersonFileImportStrategy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Component("employeeFileImportStrategy")
