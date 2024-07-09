@@ -1,6 +1,8 @@
 package com.example.personmanagement.person;
 
+import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
+import com.example.personmanagement.exception.ResourceVersionNotValidException;
 import com.example.personmanagement.mapper.PersonMapper;
 import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.Person;
@@ -43,7 +45,7 @@ public class PersonService {
         PersonCreationStrategy creationStrategy = creationStrategies.get(key);
 
         if (creationStrategy == null) {
-            throw new ResourceNotFoundException("Missing strategy type: " + key);
+            throw new InvalidStrategyTypeException("Missing strategy type: " + key);
         }
         Person newPerson = creationStrategy.create(command);
         personValidator.validate(newPerson);
@@ -76,7 +78,7 @@ public class PersonService {
             Person updatedPerson = updateStrategy.update(existingPerson, command);
             personDto = personMapper.toDto(personRepository.save(updatedPerson));
         } catch (OptimisticLockException exception) {
-            throw new IllegalStateException("Person was modified during your update, please fetch the newest version and retry");
+            throw new ResourceVersionNotValidException("Person was modified during your update, please fetch the newest version and retry");
         }
         return personDto;
     }

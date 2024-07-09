@@ -3,6 +3,7 @@ package com.example.personmanagement.mapper;
 import com.example.personmanagement.employee.model.CreateEmployeeCommand;
 import com.example.personmanagement.employee.model.Employee;
 import com.example.personmanagement.employee.model.EmployeeDto;
+import com.example.personmanagement.employee.position.JobPosition;
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.Person;
@@ -10,7 +11,6 @@ import com.example.personmanagement.person.model.PersonDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.Set;
 
 @Component
 public class EmployeeMapper implements PersonTypeMapper {
@@ -23,6 +23,10 @@ public class EmployeeMapper implements PersonTypeMapper {
     @Override
     public PersonDto toDto(Person person) {
         if (person instanceof Employee employee) {
+            Optional<String> currentJobPosition = Optional.ofNullable(employee.getJobPositions())
+                    .flatMap(jobPositions -> jobPositions.stream()
+                            .filter(jobPosition -> jobPosition.getEndDate() == null)
+                            .map(JobPosition::getPositionName).findFirst());
 
             return EmployeeDto.builder()
                     .id(person.getId())
@@ -32,9 +36,7 @@ public class EmployeeMapper implements PersonTypeMapper {
                     .height(person.getHeight())
                     .weight(person.getWeight())
                     .emailAddress(person.getEmailAddress())
-                    .numberOfJobPositions(Optional.ofNullable(employee.getJobPositions())
-                            .map(Set::size)
-                            .orElse(0))
+                    .currentJobPosition(currentJobPosition.orElse(null))
                     .build();
         }
         throw new InvalidStrategyTypeException("Unsupported type!");

@@ -1,10 +1,7 @@
-package com.example.personmanagement.employee;
+package com.example.personmanagement.employee.position;
 
+import com.example.personmanagement.employee.EmployeeRepository;
 import com.example.personmanagement.employee.model.Employee;
-import com.example.personmanagement.employee.position.CreatePositionCommand;
-import com.example.personmanagement.employee.position.JobPosition;
-import com.example.personmanagement.employee.position.JobPositionRepository;
-import com.example.personmanagement.employee.position.PositionDto;
 import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.mapper.PositionMapper;
@@ -17,7 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class EmployeeService {
+public class JobService {
 
     private final EmployeeRepository employeeRepository;
 
