@@ -1,5 +1,6 @@
 package com.example.personmanagement.file;
 
+import com.example.personmanagement.mapper.FileImportRowMapper;
 import com.example.personmanagement.person.PersonRepository;
 import com.example.personmanagement.person.PersonService;
 import com.example.personmanagement.person.model.PersonDto;
@@ -8,7 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -33,6 +37,9 @@ public class FileServiceTest {
 
     @Autowired
     private FileImportRepository fileImportRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private PersonRepository personRepository;
@@ -108,21 +115,21 @@ public class FileServiceTest {
         Path path = Paths.get("files-to-import/generatedFileForTesting.csv");
 
         var inputStream1 = Files.newInputStream(path);
-        fileService.uploadFile(inputStream1, "generatedFileForTesting.csv", Files.size(path));
-        var fileToProcessId1 = fileService.findFileToProcess().orElseThrow();
+        var fileName = fileService.uploadFile(inputStream1, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId1 = findByFilename(fileName.getFileName()).orElseThrow();
 
         var inputStream2 = Files.newInputStream(path);
-        fileService.uploadFile(inputStream2, "generatedFileForTesting.csv", Files.size(path));
-        var fileToProcessId2 = fileService.findFileToProcess().orElseThrow();
+        var fileName1 = fileService.uploadFile(inputStream2, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId2 = findByFilename(fileName1.getFileName()).orElseThrow();
 
         var inputStream3 = Files.newInputStream(path);
-        fileService.uploadFile(inputStream3, "generatedFileForTesting.csv", Files.size(path));
-        var fileToProcessId3 = fileService.findFileToProcess().orElseThrow();
+        var fileName2 = fileService.uploadFile(inputStream3, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId3 = findByFilename(fileName2.getFileName()).orElseThrow();
 
         // when
-        var statusBeforeProcessing1 = fileService.getFileImportStatus(fileToProcessId1);
-        var statusBeforeProcessing2 = fileService.getFileImportStatus(fileToProcessId2);
-        var statusBeforeProcessing3 = fileService.getFileImportStatus(fileToProcessId3);
+        var statusBeforeProcessing1 = fileService.getFileImportStatus(fileToProcessId1.getId());
+        var statusBeforeProcessing2 = fileService.getFileImportStatus(fileToProcessId2.getId());
+        var statusBeforeProcessing3 = fileService.getFileImportStatus(fileToProcessId3.getId());
 
         // then
         assertThat(statusBeforeProcessing1.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
@@ -168,6 +175,16 @@ public class FileServiceTest {
 
         var result = personService.searchPersons(searchCriteriaList, Pageable.unpaged());
         return Objects.requireNonNull(result).getContent().stream().findFirst();
+    }
+
+    private Optional<FileInformation> findByFilename(String filename) throws DataAccessException {
+        String sql = "SELECT * FROM file_import WHERE file_path = ?";
+        try {
+            FileInformation fileInformation = jdbcTemplate.queryForObject(sql, new Object[]{filename}, new FileImportRowMapper());
+            return Optional.ofNullable(fileInformation);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @BeforeEach
