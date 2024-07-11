@@ -1,6 +1,7 @@
 package com.example.personmanagement.employee;
 
 import com.example.personmanagement.employee.position.CreatePositionCommand;
+import com.example.personmanagement.employee.position.JobService;
 import com.example.personmanagement.employee.position.PositionDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/employees")
 public class EmployeeController {
 
-    private final EmployeeService employeeService;
+    private final JobService jobService;
 
     @PostMapping("/{employeeId}/positions")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<PositionDto> addJobPositionToPerson(@PathVariable Long employeeId, @RequestBody @Valid CreatePositionCommand command) {
-        return ResponseEntity.status(HttpStatus.OK).body(employeeService.addJobPosition(employeeId, command));
+        return ResponseEntity.status(HttpStatus.OK).body(jobService.addJobPosition(employeeId, command));
     }
 }

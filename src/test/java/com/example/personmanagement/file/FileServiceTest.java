@@ -1,5 +1,6 @@
 package com.example.personmanagement.file;
 
+import com.example.personmanagement.mapper.FileImportRowMapper;
 import com.example.personmanagement.person.PersonRepository;
 import com.example.personmanagement.person.PersonService;
 import com.example.personmanagement.person.model.PersonDto;
@@ -8,18 +9,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -32,6 +39,9 @@ public class FileServiceTest {
     private FileImportRepository fileImportRepository;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private PersonRepository personRepository;
 
     @Autowired
@@ -39,7 +49,7 @@ public class FileServiceTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    public void findFileToProcess() throws IOException {
+    public void findFileToProcessShouldFindSuccessfully() throws IOException {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
@@ -54,6 +64,23 @@ public class FileServiceTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    public void findFileToProcessShouldntFindFileShouldFail() {
+        // given
+        var filePath = Paths.get("files-to-import/generatedFileForTestings.csv");
+
+        // when
+        Exception exception = assertThrows(NoSuchFileException.class, () -> {
+            var inputStream = Files.newInputStream(filePath);
+            fileService.uploadFile(inputStream, "generatedFileForTesting.csv", Files.size(filePath));
+        });
+
+        // then
+        assertThat(exception).isInstanceOf(NoSuchFileException.class);
+    }
+
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     public void processFile() throws IOException {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
@@ -64,6 +91,7 @@ public class FileServiceTest {
 
         // when
         var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
+
 
         // then
         assertThat(statusBeforeProcessing.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
@@ -82,7 +110,36 @@ public class FileServiceTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    public void processFileWithDuplicatedPesel() throws IOException {
+    public void uploadingFilesToProcessShouldQueueWithPendingStatus() throws IOException {
+        // given
+        Path path = Paths.get("files-to-import/generatedFileForTesting.csv");
+
+        var inputStream1 = Files.newInputStream(path);
+        var fileName = fileService.uploadFile(inputStream1, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId1 = findByFilename(fileName.getFileName()).orElseThrow();
+
+        var inputStream2 = Files.newInputStream(path);
+        var fileName1 = fileService.uploadFile(inputStream2, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId2 = findByFilename(fileName1.getFileName()).orElseThrow();
+
+        var inputStream3 = Files.newInputStream(path);
+        var fileName2 = fileService.uploadFile(inputStream3, "generatedFileForTesting.csv", Files.size(path));
+        var fileToProcessId3 = findByFilename(fileName2.getFileName()).orElseThrow();
+
+        // when
+        var statusBeforeProcessing1 = fileService.getFileImportStatus(fileToProcessId1.getId());
+        var statusBeforeProcessing2 = fileService.getFileImportStatus(fileToProcessId2.getId());
+        var statusBeforeProcessing3 = fileService.getFileImportStatus(fileToProcessId3.getId());
+
+        // then
+        assertThat(statusBeforeProcessing1.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+        assertThat(statusBeforeProcessing2.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+        assertThat(statusBeforeProcessing3.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void processFileWithDuplicatedPeselExpectedRollback() throws IOException {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         var inputStream = Files.newInputStream(filePath);
@@ -118,6 +175,16 @@ public class FileServiceTest {
 
         var result = personService.searchPersons(searchCriteriaList, Pageable.unpaged());
         return Objects.requireNonNull(result).getContent().stream().findFirst();
+    }
+
+    private Optional<FileInformation> findByFilename(String filename) throws DataAccessException {
+        String sql = "SELECT * FROM file_import WHERE file_path = ?";
+        try {
+            FileInformation fileInformation = jdbcTemplate.queryForObject(sql, new Object[]{filename}, new FileImportRowMapper());
+            return Optional.ofNullable(fileInformation);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @BeforeEach
