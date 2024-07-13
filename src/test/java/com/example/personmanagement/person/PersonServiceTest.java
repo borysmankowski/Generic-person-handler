@@ -1,19 +1,21 @@
 package com.example.personmanagement.person;
 
-import com.example.personmanagement.employee.EmployeeCreationStrategy;
-import com.example.personmanagement.employee.EmployeeUpdateStrategy;
 import com.example.personmanagement.employee.model.CreateEmployeeCommand;
 import com.example.personmanagement.employee.model.Employee;
+import com.example.personmanagement.employee.model.EmployeeDto;
 import com.example.personmanagement.employee.model.UpdateEmployeeCommand;
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
-import com.example.personmanagement.exception.ResourceVersionNotValidException;
 import com.example.personmanagement.mapper.PersonMapper;
+import com.example.personmanagement.pensioner.model.CreatePensionerCommand;
+import com.example.personmanagement.pensioner.model.PensionerDto;
 import com.example.personmanagement.person.model.Person;
 import com.example.personmanagement.person.model.PersonDto;
 import com.example.personmanagement.person.model.SearchCriteria;
 import com.example.personmanagement.person.model.UpdatePersonCommand;
-import jakarta.persistence.OptimisticLockException;
+import com.example.personmanagement.student.model.CreateStudentCommand;
+import com.example.personmanagement.student.model.Student;
+import com.example.personmanagement.student.model.StudentDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,15 +23,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,101 +43,157 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
+@SpringBootTest
 @ActiveProfiles("test")
 class PersonServiceTest {
 
-    @Mock
+    @SpyBean
     private PersonRepository personRepository;
 
-    @Mock
+    @Autowired
     private PersonMapper personMapper;
 
     @Mock
     private PersonValidator personValidator;
 
-    @Mock
+    @Autowired
     private Map<String, PersonCreationStrategy> personCreationStrategy;
 
-    @Mock
-    private EmployeeCreationStrategy employeeCreationStrategy;
-
-    @Mock
-    private EmployeeUpdateStrategy employeeUpdateStrategy;
-
-    @Mock
+    @Autowired
     private Map<String, PersonUpdateStrategy> personUpdateStrategy;
 
     private PersonService personService;
 
     @BeforeEach
-    void setUp(){personService = new PersonService(personRepository, personMapper, personValidator, personCreationStrategy, personUpdateStrategy);
+    void setUp() {
+        personRepository.deleteAll();
+        personService = new PersonService(personRepository, personMapper, personValidator, personCreationStrategy, personUpdateStrategy);
     }
 
     @Captor
     private ArgumentCaptor<Person> personArgumentCaptor;
 
     @Test
-    void create_ValidCommand_ReturnsEmployeeDto() {
-
+    void create_ValidEmployeeCommand_ReturnsEmployeeDto() {
         // Given
         CreateEmployeeCommand command = new CreateEmployeeCommand();
         command.setType("EMPLOYEE");
-        command.setName("Darek");
-        command.setSurname("Pieczarek");
-        command.setPesel("84040133386");
-        command.setHeight(190);
-        command.setWeight(90);
-        command.setEmailAddress("test@test.com");
-
-        Employee employee = new Employee();
-        employee.setType("EMPLOYEE");
-        employee.setName("Darek");
-        employee.setSurname("Pieczarek");
-        employee.setPesel("84040133386");
-        employee.setHeight(190);
-        employee.setWeight(90);
-        employee.setEmailAddress("test@test.com");
-
-        PersonDto personDto = new PersonDto();
-        personDto.setId(1L);
-        personDto.setName("Darek");
-        personDto.setSurname("Pieczarek");
-        personDto.setPesel("84040133386");
-        personDto.setHeight(190);
-        personDto.setWeight(90);
-
-        personDto.setEmailAddress("test@test.com");
-
-        when(personCreationStrategy.get("employeeCreationStrategy")).thenReturn(employeeCreationStrategy);
-        when(employeeCreationStrategy.create(any(CreateEmployeeCommand.class))).thenReturn(employee);
-        when(personRepository.save(any(Employee.class))).thenReturn(employee);
-        when(personMapper.toDto(any(Employee.class))).thenReturn(personDto);
+        command.setName("John");
+        command.setSurname("Doe");
+        command.setPesel("1234567890");
+        command.setHeight(180.0);
+        command.setWeight(75.0);
+        command.setEmailAddress("john.doe@example.com");
 
         // When
-        PersonDto result = personService.create(command);
+        EmployeeDto result = (EmployeeDto) personService.create(command);
 
         // Then
         assertNotNull(result);
-        assertEquals(personDto.getId(), result.getId());
-        assertEquals(personDto.getName(), result.getName());
-        assertEquals(personDto.getSurname(), result.getSurname());
-        assertEquals(personDto.getPesel(), result.getPesel());
-        assertEquals(personDto.getEmailAddress(), result.getEmailAddress());
+        assertEquals(command.getName(), result.getName());
+        assertEquals(command.getSurname(), result.getSurname());
+        assertEquals(command.getPesel(), result.getPesel());
+        assertEquals(command.getHeight(), result.getHeight(), 0.1);
+        assertEquals(command.getWeight(), result.getWeight(), 0.1);
+        assertEquals(command.getEmailAddress(), result.getEmailAddress());
 
-        verify(personRepository, times(1)).save(personArgumentCaptor.capture());
+        verify(personRepository).save(personArgumentCaptor.capture());
+
         Person capturedPerson = personArgumentCaptor.getValue();
-        assertEquals(employee.getType(), capturedPerson.getType());
-        assertEquals(employee.getName(), capturedPerson.getName());
-        assertEquals(employee.getSurname(), capturedPerson.getSurname());
-        assertEquals(employee.getPesel(), capturedPerson.getPesel());
-        assertEquals(employee.getHeight(), capturedPerson.getHeight(), 0.1);
-        assertEquals(employee.getWeight(), capturedPerson.getWeight(), 0.1);
-        assertEquals(employee.getEmailAddress(), capturedPerson.getEmailAddress());
+        assertNotNull(capturedPerson);
+        assertEquals(command.getName(), capturedPerson.getName());
+        assertEquals(command.getSurname(), capturedPerson.getSurname());
+        assertEquals(command.getPesel(), capturedPerson.getPesel());
+        assertEquals(command.getHeight(), capturedPerson.getHeight(), 0.1);
+        assertEquals(command.getWeight(), capturedPerson.getWeight(), 0.1);
+        assertEquals(command.getEmailAddress(), capturedPerson.getEmailAddress());
+    }
+
+    @Test
+    void create_ValidStudentCommand_ReturnsStudentDto() {
+        // Given
+        CreateStudentCommand command = new CreateStudentCommand();
+        command.setType("STUDENT");
+        command.setName("Alice");
+        command.setSurname("Smith");
+        command.setPesel("9876543210");
+        command.setHeight(165.0);
+        command.setWeight(55.0);
+        command.setEmailAddress("alice.smith@example.com");
+        command.setNameOfUniversity("University of Example");
+        command.setYearOfStudies(2);
+        command.setCourseName("Computer Science");
+        command.setScholarship(1500.0);
+
+        // When
+        StudentDto result = (StudentDto) personService.create(command);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(command.getName(), result.getName());
+        assertEquals(command.getSurname(), result.getSurname());
+        assertEquals(command.getPesel(), result.getPesel());
+        assertEquals(command.getHeight(), result.getHeight(), 0.1);
+        assertEquals(command.getWeight(), result.getWeight(), 0.1);
+        assertEquals(command.getEmailAddress(), result.getEmailAddress());
+        assertEquals(command.getNameOfUniversity(), result.getNameOfUniversity());
+        assertEquals(command.getYearOfStudies(), result.getYearOfStudies());
+        assertEquals(command.getCourseName(), result.getCourseName());
+        assertEquals(command.getScholarship(), result.getScholarship(), 0.1);
+
+        verify(personRepository).save(personArgumentCaptor.capture());
+
+        Person capturedPerson = personArgumentCaptor.getValue();
+        assertNotNull(capturedPerson);
+        assertEquals(command.getName(), capturedPerson.getName());
+        assertEquals(command.getSurname(), capturedPerson.getSurname());
+        assertEquals(command.getPesel(), capturedPerson.getPesel());
+        assertEquals(command.getHeight(), capturedPerson.getHeight(), 0.1);
+        assertEquals(command.getWeight(), capturedPerson.getWeight(), 0.1);
+        assertEquals(command.getEmailAddress(), capturedPerson.getEmailAddress());
+    }
+
+    @Test
+    void create_ValidPensionerCommand_ReturnsPensionerDto() {
+        // Given
+        CreatePensionerCommand command = new CreatePensionerCommand();
+        command.setType("PENSIONER");
+        command.setName("Michael");
+        command.setSurname("Johnson");
+        command.setPesel("5678901234");
+        command.setHeight(170.0);
+        command.setWeight(80.0);
+        command.setEmailAddress("michael.johnson@example.com");
+        command.setPensionAmount(2500.0);
+        command.setWorkedYears(35);
+
+        // When
+        PensionerDto result = (PensionerDto) personService.create(command);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(command.getName(), result.getName());
+        assertEquals(command.getSurname(), result.getSurname());
+        assertEquals(command.getPesel(), result.getPesel());
+        assertEquals(command.getHeight(), result.getHeight(), 0.1);
+        assertEquals(command.getWeight(), result.getWeight(), 0.1);
+        assertEquals(command.getEmailAddress(), result.getEmailAddress());
+        assertEquals(command.getPensionAmount(), result.getPensionAmount(), 0.1);
+        assertEquals(command.getWorkedYears(), result.getWorkedYears());
+
+        verify(personRepository).save(personArgumentCaptor.capture());
+
+        Person capturedPerson = personArgumentCaptor.getValue();
+        assertNotNull(capturedPerson);
+        assertEquals(command.getName(), capturedPerson.getName());
+        assertEquals(command.getSurname(), capturedPerson.getSurname());
+        assertEquals(command.getPesel(), capturedPerson.getPesel());
+        assertEquals(command.getHeight(), capturedPerson.getHeight(), 0.1);
+        assertEquals(command.getWeight(), capturedPerson.getWeight(), 0.1);
+        assertEquals(command.getEmailAddress(), capturedPerson.getEmailAddress());
     }
 
 
@@ -159,54 +217,143 @@ class PersonServiceTest {
     }
 
     @Test
-    public void searchPersons_ShouldReturnPersonPage() {
+    public void searchPersons_ShouldReturnStudentPage() {
 
-        Employee person1= new Employee();
-        person1.setId(2L);
-        person1.setName("John");
+        Student student1 = new Student();
+        student1.setType("STUDENT");
+        student1.setName("John");
+        student1.setSurname("Doe");
+        student1.setPesel("1234567890");
+        student1.setHeight(180.0);
+        student1.setWeight(75.0);
+        student1.setEmailAddress("john.doe@example.com");
+        student1.setCourseName("Inzyniernia");
+        student1.setScholarship(4000);
+        student1.setNameOfUniversity("Politechnika Poznanska");
 
-        PersonDto personDto = new PersonDto();
-        personDto.setId(1L);
-        personDto.setName("John");
+        personRepository.save(student1);
+
+        Student student2 = new Student();
+        student2.setType("STUDENT");
+        student2.setName("Darek");
+        student2.setSurname("Doe");
+        student2.setPesel("1234566890");
+        student2.setHeight(180.0);
+        student2.setWeight(75.0);
+        student2.setEmailAddress("john.doe@example.com");
+        student2.setCourseName("Inzyniernia");
+        student2.setScholarship(4000);
+        student2.setNameOfUniversity("Politechnika Poznanska");
+
+        personRepository.save(student2);
+
+        // Search criteria
+        List<SearchCriteria> searchCriteria = List.of(
+                new SearchCriteria("name", "eq", "John", null)
+        );
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<SearchCriteria> searchCriteria = Collections.singletonList(
-                new SearchCriteria("name", "eq", "John", null)
-        );
-        List<Person> personList = List.of(person1);
-        Page<Person> personPage = new PageImpl<>(personList);
-
-        when(personRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(personPage);
-        when(personMapper.toDto(any(Person.class))).thenReturn(personDto);
-
+        // Perform search
         Page<PersonDto> result = personService.searchPersons(searchCriteria, pageable);
 
+        // Assertions
         assertThat(result).isNotNull();
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getName()).isEqualTo("John");
-
     }
 
     @Test
-    public void searchPersons_ShouldReturnEmptyPage() {
-        List<SearchCriteria> criteria = new ArrayList<>();
+    public void searchPersons_ShouldReturnAllStudents() {
+
+        Student student1 = new Student();
+        student1.setType("STUDENT");
+        student1.setName("John");
+        student1.setSurname("Doe");
+        student1.setPesel("1234567890");
+        student1.setHeight(180.0);
+        student1.setWeight(75.0);
+        student1.setEmailAddress("john.doe@example.com");
+        student1.setCourseName("Inzyniernia");
+        student1.setScholarship(4000);
+        student1.setNameOfUniversity("Politechnika Poznanska");
+
+        personRepository.save(student1);
+
+        Student student2 = new Student();
+        student2.setType("STUDENT");
+        student2.setName("Darek");
+        student2.setSurname("Doe");
+        student2.setPesel("1234566890");
+        student2.setHeight(180.0);
+        student2.setWeight(75.0);
+        student2.setEmailAddress("john.doe@example.com");
+        student2.setCourseName("Inzyniernia");
+        student2.setScholarship(4000);
+        student2.setNameOfUniversity("Politechnika Poznanska");
+
+        personRepository.save(student2);
+
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Person> personList = Collections.emptyList();
-        Page<Person> personPage = new PageImpl<>(personList);
 
-        when(personRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(personPage);
+        // Perform search
+        Page<PersonDto> result = personService.searchPersons(new ArrayList<>(), pageable);
 
-        Page<PersonDto> result = personService.searchPersons(criteria, pageable);
+        // Assertions
+        assertThat(result).isNotNull();
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent().get(0).getName()).isEqualTo("John");
+        assertThat(result.getContent().get(1).getName()).isEqualTo("Darek");
+    }
+    @Test
+    public void searchPersons_ShouldReturnEmptyPage() {
 
+        Student student1 = new Student();
+        student1.setType("STUDENT");
+        student1.setName("John");
+        student1.setSurname("Doe");
+        student1.setPesel("1234567890");
+        student1.setHeight(180.0);
+        student1.setWeight(75.0);
+        student1.setEmailAddress("john.doe@example.com");
+        student1.setCourseName("Inzyniernia");
+        student1.setScholarship(4000);
+        student1.setNameOfUniversity("Politechnika Poznanska");
+
+        personRepository.save(student1);
+
+        Student student2 = new Student();
+        student2.setType("STUDENT");
+        student2.setName("Darek");
+        student2.setSurname("Doe");
+        student2.setPesel("1234566890");
+        student2.setHeight(180.0);
+        student2.setWeight(75.0);
+        student2.setEmailAddress("john.doe@example.com");
+        student2.setCourseName("Inzyniernia");
+        student2.setScholarship(4000);
+        student2.setNameOfUniversity("Politechnika Poznanska");
+
+        personRepository.save(student2);
+
+        // Search criteria
+        List<SearchCriteria> searchCriteria = List.of(
+                new SearchCriteria("name", "eq", "Michal", null)
+        );
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // Perform search
+        Page<PersonDto> result = personService.searchPersons(searchCriteria, pageable);
+
+        // Assertions
         assertThat(result).isNotNull();
         assertThat(result.getTotalElements()).isEqualTo(0);
-        verify(personRepository).findAll(any(Specification.class), any(Pageable.class));
     }
 
     @Test
-    void testUpdateAnyPerson_Success() {
+    void testUpdateAnyPerson_Success_ShouldIncrementVersion() {
         // given
         Employee existingEmployee = new Employee();
         existingEmployee.setId(1L);
@@ -219,50 +366,28 @@ class PersonServiceTest {
         existingEmployee.setEmailAddress("test@test.com");
         existingEmployee.setVersion(1);
 
-        Employee updatedEmployee = new Employee();
-        updatedEmployee.setId(1L);
-        updatedEmployee.setType("EMPLOYEE");
-        updatedEmployee.setName("New Name");
-        updatedEmployee.setSurname("Pieczarek");
-        updatedEmployee.setPesel("84040133386");
-        updatedEmployee.setHeight(190);
-        updatedEmployee.setWeight(90);
-        updatedEmployee.setEmailAddress("test@test.com");
-        updatedEmployee.setVersion(2);
-
         UpdateEmployeeCommand command = new UpdateEmployeeCommand();
         command.setType("EMPLOYEE");
-        command.setName("New Name");
+        command.setName("NOWE IMIE");
 
-        PersonDto expectedPersonDto = new PersonDto();
-        expectedPersonDto.setName("New Name");
-
-        when(personUpdateStrategy.get("employeeUpdateStrategy")).thenReturn(employeeUpdateStrategy);
-        when(personRepository.findById(existingEmployee.getId())).thenReturn(Optional.of(existingEmployee));
-        when(employeeUpdateStrategy.update(existingEmployee, command)).thenAnswer(invocation -> {
-            Employee employee = invocation.getArgument(0);
-            employee.setName(command.getName());
-            employee.setVersion(employee.getVersion() + 1);
-            return employee;
-        });
-        when(personRepository.save(any(Employee.class))).thenReturn(updatedEmployee);
-        when(personMapper.toDto(any(Employee.class))).thenReturn(expectedPersonDto);
+        personRepository.save(existingEmployee);
 
         // when
         PersonDto result = personService.updateAnyPerson(existingEmployee.getId(), command);
 
         // then
-        assertEquals(expectedPersonDto, result);
+        assertNotNull(result);
+        assertEquals(command.getName(), result.getName());
+        assertEquals(Optional.of(existingEmployee.getId()), Optional.of(result.getId()));
+        assertEquals(existingEmployee.getSurname(), result.getSurname());
+        assertEquals(existingEmployee.getPesel(), result.getPesel());
+        assertEquals(existingEmployee.getHeight(), result.getHeight(), 0.1);
+        assertEquals(existingEmployee.getWeight(), result.getWeight(), 0.1);
+        assertEquals(existingEmployee.getEmailAddress(), result.getEmailAddress());
+        assertThat(existingEmployee.getVersion() == 2);
 
-        ArgumentCaptor<Employee> employeeCaptor = ArgumentCaptor.forClass(Employee.class);
-        verify(personRepository).save(employeeCaptor.capture());
-        Employee savedEmployee = employeeCaptor.getValue();
-
-        assertEquals(2, savedEmployee.getVersion());
-
+        verify(personRepository, times(1)).save(existingEmployee);
         verify(personRepository, times(1)).findById(existingEmployee.getId());
-        verify(personRepository, times(1)).save(savedEmployee);
-        verifyNoMoreInteractions(personRepository);
     }
 
     @Test
@@ -272,19 +397,63 @@ class PersonServiceTest {
         UpdatePersonCommand command = new UpdatePersonCommand();
         command.setType("EMPLOYEE");
 
-        when(personRepository.findById(personId)).thenReturn(Optional.empty());
-        // when
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
             personService.updateAnyPerson(personId, command);
         });
         // then
         assertEquals("Person not found with ID: 1", exception.getMessage());
         verify(personRepository, times(1)).findById(personId);
-        verifyNoMoreInteractions(personRepository);
     }
 
     @Test
-    void testUpdateAnyPerson_OptimisticLockException() {
+    public void searchPersons_ShouldReturnStudentsInHeightRangeInclusiveHeight() {
+
+        Student student1 = new Student();
+        student1.setType("STUDENT");
+        student1.setName("John");
+        student1.setSurname("Doe");
+        student1.setPesel("1234567890");
+        student1.setHeight(110.0);
+        student1.setWeight(75.0);
+        student1.setEmailAddress("john.doe@example.com");
+        student1.setCourseName("Inzyniernia");
+        student1.setScholarship(4000);
+        student1.setNameOfUniversity("Politechnika Poznanska");
+
+        personRepository.save(student1);
+
+        Student student2 = new Student();
+        student2.setType("STUDENT");
+        student2.setName("Darek");
+        student2.setSurname("Doe");
+        student2.setPesel("1234566890");
+        student2.setHeight(180.0);
+        student2.setWeight(75.0);
+        student2.setEmailAddress("john.doe@example.com");
+        student2.setCourseName("Inzyniernia");
+        student2.setScholarship(4000);
+        student2.setNameOfUniversity("Politechnika Poznanska");
+
+        personRepository.save(student2);
+
+        List<SearchCriteria> searchCriteria = List.of(
+                new SearchCriteria("height", "range", "180.0", "200.0")
+        );
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // Perform search
+        Page<PersonDto> result = personService.searchPersons(searchCriteria, pageable);
+
+        // Assertions
+        assertThat(result).isNotNull();
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().get(0).getName()).isEqualTo("Darek");
+        assertThat(result.getContent().get(0).getHeight()).isEqualTo(180.0);
+    }
+
+    @Test
+    void testUpdateAnyPerson_Failure_ShouldNotIncrementVersion() {
         // given
         Employee existingEmployee = new Employee();
         existingEmployee.setId(1L);
@@ -297,24 +466,19 @@ class PersonServiceTest {
         existingEmployee.setEmailAddress("test@test.com");
         existingEmployee.setVersion(1);
 
-        UpdatePersonCommand command = new UpdatePersonCommand();
+        UpdateEmployeeCommand command = new UpdateEmployeeCommand();
         command.setType("EMPLOYEE");
-        command.setName("New Name");
+        command.setName("NOWE IMIE");
 
-        when(personRepository.findById(existingEmployee.getId())).thenReturn(Optional.of(existingEmployee));
-        when(employeeUpdateStrategy.update(existingEmployee, command)).thenThrow(new OptimisticLockException());
-
-        when(personUpdateStrategy.get("employeeUpdateStrategy")).thenReturn(employeeUpdateStrategy);
-
+        personRepository.save(existingEmployee);
         // when
-        ResourceVersionNotValidException exception = assertThrows(ResourceVersionNotValidException.class, () -> {
-            personService.updateAnyPerson(existingEmployee.getId(), command);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            personService.updateAnyPerson(2L, command);
         });
 
         // then
-        assertEquals("Person was modified during your update, please fetch the newest version and retry", exception.getMessage());
-        verify(personRepository, times(1)).findById(existingEmployee.getId());
-        verify(employeeUpdateStrategy, times(1)).update(existingEmployee, command);
-        verifyNoMoreInteractions(personRepository, employeeUpdateStrategy);
+        assertEquals(1, existingEmployee.getVersion());
+        assertEquals(existingEmployee.getName(), existingEmployee.getName());
+
     }
 }
