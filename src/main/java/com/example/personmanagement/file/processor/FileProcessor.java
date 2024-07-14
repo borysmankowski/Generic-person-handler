@@ -25,15 +25,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FileProcessor {
 
-    public record Result(long lastProcessedRow, boolean isFinished) {
-    }
-
     private final Map<String, PersonFileImportStrategy> fileImportStrategyMap;
-
     private final FileStorage fileStorage;
-
     private final JdbcTemplate jdbcTemplate;
-
 
     @Transactional
     public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException, DuplicateResourceException {
@@ -91,5 +85,8 @@ public class FileProcessor {
                 throw new ResourceNotFoundException("Unknown type: " + strategyKey);
             }
         });
+    }
+
+    public record Result(long lastProcessedRow, boolean isFinished) {
     }
 }

@@ -11,6 +11,7 @@ import com.example.personmanagement.pensioner.model.CreatePensionerCommand;
 import com.example.personmanagement.pensioner.model.PensionerDto;
 import com.example.personmanagement.person.model.Person;
 import com.example.personmanagement.person.model.PersonDto;
+import com.example.personmanagement.person.model.PersonStrategyFacade;
 import com.example.personmanagement.person.model.SearchCriteria;
 import com.example.personmanagement.person.model.UpdatePersonCommand;
 import com.example.personmanagement.student.model.CreateStudentCommand;
@@ -66,15 +67,15 @@ class PersonServiceTest {
     private Map<String, PersonUpdateStrategy> personUpdateStrategy;
 
     private PersonService personService;
+    @Captor
+    private ArgumentCaptor<Person> personArgumentCaptor;
 
     @BeforeEach
     void setUp() {
         personRepository.deleteAll();
-        personService = new PersonService(personRepository, personMapper, personValidator, personCreationStrategy, personUpdateStrategy);
+        PersonStrategyFacade personStrategyFacade = new PersonStrategyFacade(personCreationStrategy, personUpdateStrategy);
+        personService = new PersonService(personRepository, personMapper, personValidator, personStrategyFacade);
     }
-
-    @Captor
-    private ArgumentCaptor<Person> personArgumentCaptor;
 
     @Test
     void create_ValidEmployeeCommand_ReturnsEmployeeDto() {
@@ -306,6 +307,7 @@ class PersonServiceTest {
         assertThat(result.getContent().get(0).getName()).isEqualTo("John");
         assertThat(result.getContent().get(1).getName()).isEqualTo("Darek");
     }
+
     @Test
     public void searchPersons_ShouldReturnEmptyPage() {
 
@@ -364,11 +366,12 @@ class PersonServiceTest {
         existingEmployee.setHeight(190);
         existingEmployee.setWeight(90);
         existingEmployee.setEmailAddress("test@test.com");
-        existingEmployee.setVersion(1);
+        existingEmployee.setVersion(0);
 
         UpdateEmployeeCommand command = new UpdateEmployeeCommand();
         command.setType("EMPLOYEE");
         command.setName("NOWE IMIE");
+        command.setVersion("v1");
 
         personRepository.save(existingEmployee);
 
@@ -464,11 +467,12 @@ class PersonServiceTest {
         existingEmployee.setHeight(190);
         existingEmployee.setWeight(90);
         existingEmployee.setEmailAddress("test@test.com");
-        existingEmployee.setVersion(1);
+        existingEmployee.setVersion(0);
 
         UpdateEmployeeCommand command = new UpdateEmployeeCommand();
         command.setType("EMPLOYEE");
         command.setName("NOWE IMIE");
+        command.setVersion("v2");
 
         personRepository.save(existingEmployee);
         // when
@@ -477,7 +481,7 @@ class PersonServiceTest {
         });
 
         // then
-        assertEquals(1, existingEmployee.getVersion());
+        assertEquals(0, existingEmployee.getVersion());
         assertEquals(existingEmployee.getName(), existingEmployee.getName());
 
     }
