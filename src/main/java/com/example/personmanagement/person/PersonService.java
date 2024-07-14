@@ -1,6 +1,5 @@
 package com.example.personmanagement.person;
 
-import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.exception.ResourceVersionNotValidException;
 import com.example.personmanagement.mapper.PersonMapper;
@@ -8,6 +7,7 @@ import com.example.personmanagement.person.model.CreatePersonCommand;
 import com.example.personmanagement.person.model.Person;
 import com.example.personmanagement.person.model.PersonDto;
 import com.example.personmanagement.person.model.PersonSpecification;
+import com.example.personmanagement.person.model.PersonStrategyFacade;
 import com.example.personmanagement.person.model.SearchCriteria;
 import com.example.personmanagement.person.model.UpdatePersonCommand;
 import jakarta.persistence.OptimisticLockException;
@@ -20,13 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class PersonService {
-
 
     private final PersonRepository personRepository;
 
@@ -34,19 +32,10 @@ public class PersonService {
 
     private final PersonValidator personValidator;
 
-    private final Map<String, PersonCreationStrategy> creationStrategies;
-
-    private final Map<String, PersonUpdateStrategy> updateStrategies;
-
+    private final PersonStrategyFacade personStrategyFacade;
 
     public PersonDto create(CreatePersonCommand command) {
-        String type = command.getType();
-        String key = type.toLowerCase() + "CreationStrategy";
-        PersonCreationStrategy creationStrategy = creationStrategies.get(key);
-
-        if (creationStrategy == null) {
-            throw new InvalidStrategyTypeException("Missing strategy type: " + key);
-        }
+        PersonCreationStrategy creationStrategy = personStrategyFacade.getCreationStrategy(command.getType());
         Person newPerson = creationStrategy.create(command);
         personValidator.validate(newPerson);
         return personMapper.toDto(personRepository.save(newPerson));
@@ -69,9 +58,13 @@ public class PersonService {
         Person existingPerson = personRepository.findById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
 
-        String type = command.getType();
-        String key = type.toLowerCase() + "UpdateStrategy";
-        PersonUpdateStrategy updateStrategy = updateStrategies.get(key);
+        int commandVersion = Integer.parseInt(command.getVersion().substring(1)) - 1;
+
+        if (existingPerson.getVersion() != commandVersion) {
+            throw new ResourceVersionNotValidException("Person was modified during your update, please fetch the newest version and retry");
+        }
+
+        PersonUpdateStrategy updateStrategy = personStrategyFacade.getUpdateStrategy(command.getType());
         PersonDto personDto;
 
         try {

@@ -19,4 +19,5 @@ public class UpdatePersonCommand {
     private double weight;
     @Email
     private String emailAddress;
+    private String version;
 }
