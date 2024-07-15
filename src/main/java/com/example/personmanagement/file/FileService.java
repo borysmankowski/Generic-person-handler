@@ -7,12 +7,14 @@ import com.example.personmanagement.file.processor.FileProcessor;
 import com.example.personmanagement.file.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.integration.jdbc.lock.DefaultLockRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.locks.Lock;
 
 @Service
 @RequiredArgsConstructor
@@ -20,12 +22,14 @@ import java.util.Optional;
 public class FileService {
 
     private final FileImportRepository fileImportRepository;
-
     private final FileProcessor fileProcessor;
-
     private final FileStorage fileStorage;
-
     private final FileImporter fileImporter;
+    private final DefaultLockRepository lockRepository;
+    private final LockConfiguration lockConfiguration;
+
+    private static final String LOCK_KEY = "fileProcessLock";
+
 
     public FileUploadResponse uploadFile(InputStream inputStream, String originalFilename, long byteSize) {
         if (byteSize <= 0) {
@@ -43,11 +47,27 @@ public class FileService {
 
             fileImporter.insert(fileInformation);
 
+            triggerFileProcessing();
+
             FileUploadResponse response = new FileUploadResponse("File uploaded successfully. File name: " + uniqueFilename, uniqueFilename);
             return response;
         } catch (IOException e) {
             log.error("Failed to upload the file", e);
             return new FileUploadResponse("Failed to upload the file.", originalFilename);
+        }
+    }
+
+    public void triggerFileProcessing() {
+        Lock lock = lockConfiguration.jdbcLockRegistry(lockRepository).obtain(LOCK_KEY);
+        if (lock.tryLock()) {
+            try {
+                Optional<Long> optionalId = findFileToProcess();
+                optionalId.ifPresent(this::processFile);
+            } finally {
+                lock.unlock();
+            }
+        } else {
+            throw new IllegalStateException("Unable to obtain lock for file processing");
         }
     }
 
