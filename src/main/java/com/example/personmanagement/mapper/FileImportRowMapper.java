@@ -1,7 +1,7 @@
 package com.example.personmanagement.mapper;
 
-import com.example.personmanagement.file.FileInformation;
-import com.example.personmanagement.file.FileStatus;
+import com.example.personmanagement.model.file.FileInformation;
+import com.example.personmanagement.model.file.FileStatus;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;

@@ -3,9 +3,9 @@ package com.example.personmanagement.file.processor;
 
 import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
-import com.example.personmanagement.file.FileInformation;
-import com.example.personmanagement.file.FileInformationRepository;
-import com.example.personmanagement.file.FileStatus;
+import com.example.personmanagement.model.file.FileInformation;
+import com.example.personmanagement.repository.FileInformationRepository;
+import com.example.personmanagement.model.file.FileStatus;
 import com.example.personmanagement.utils.TransactionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class FileQueueProcessor {
     }
 
     public void processFileQueue(Long fileImportId) {
-        final long batchSize = 20000;
+        final long batchSize = 2;
         FileInformation fileInformation = fileInformationRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
 

@@ -1,13 +1,13 @@
 package com.example.personmanagement.mapper;
 
-import com.example.personmanagement.employee.model.CreateEmployeeCommand;
-import com.example.personmanagement.employee.model.Employee;
-import com.example.personmanagement.employee.model.EmployeeDto;
-import com.example.personmanagement.employee.position.JobPosition;
+import com.example.personmanagement.model.employee.CreateEmployeeCommand;
+import com.example.personmanagement.model.employee.Employee;
+import com.example.personmanagement.model.employee.EmployeeDto;
+import com.example.personmanagement.model.position.JobPosition;
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.person.model.CreatePersonCommand;
-import com.example.personmanagement.person.model.Person;
-import com.example.personmanagement.person.model.PersonDto;
+import com.example.personmanagement.model.person.CreatePersonCommand;
+import com.example.personmanagement.model.person.Person;
+import com.example.personmanagement.model.person.PersonDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
