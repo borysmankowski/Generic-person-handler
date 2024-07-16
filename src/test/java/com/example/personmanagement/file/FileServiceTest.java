@@ -1,5 +1,7 @@
 package com.example.personmanagement.file;
 
+import com.example.personmanagement.exception.DuplicateResourceException;
+import com.example.personmanagement.file.processor.FileQueueProcessor;
 import com.example.personmanagement.person.PersonRepository;
 import com.example.personmanagement.person.PersonService;
 import com.example.personmanagement.person.model.PersonDto;
@@ -38,13 +40,13 @@ public class FileServiceTest {
     private FileInformationRepository fileInformationRepository;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
     private PersonRepository personRepository;
 
     @Autowired
     private PersonService personService;
+
+    @Autowired
+    private FileQueueProcessor fileQueueProcessor;
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -55,7 +57,7 @@ public class FileServiceTest {
         fileService.uploadFile(inputStream, "generatedFileForTesting.csv", Files.size(filePath));
 
         // when
-        var maybeFileToProcess = fileService.findFileToProcess();
+        var maybeFileToProcess = fileQueueProcessor.findFileToProcess();
 
         // then
         assertThat(maybeFileToProcess).isNotEmpty();
@@ -80,13 +82,13 @@ public class FileServiceTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    public void processFile() throws IOException {
+    public void processFile() throws Exception {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         var inputStream = Files.newInputStream(filePath);
 
         fileService.uploadFile(inputStream, "generatedFileForTesting.csv", Files.size(filePath));
-        var fileToProcessId = fileService.findFileToProcess().orElseThrow();
+        var fileToProcessId = fileQueueProcessor.findFileToProcess().orElseThrow();
 
         // when
         var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
@@ -96,7 +98,7 @@ public class FileServiceTest {
         assertThat(statusBeforeProcessing.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
 
         // when
-        fileService.processFile(fileToProcessId);
+        fileQueueProcessor.processFileQueue(fileToProcessId);
 
         // then
         var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
@@ -131,19 +133,19 @@ public class FileServiceTest {
         var statusBeforeProcessing3 = fileService.getFileImportStatus(fileToProcessId3.get().getId());
 
         // then
-        assertThat(statusBeforeProcessing1.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
+        assertThat(statusBeforeProcessing1.getStatus().toString()).isEqualTo(FileStatus.IN_PROGRESS.toString());
         assertThat(statusBeforeProcessing2.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
         assertThat(statusBeforeProcessing3.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    public void processFileWithDuplicatedPeselExpectedRollback() throws IOException {
+    public void processFileWithDuplicatedPeselExpectedRollback() throws Exception {
         // given
         var filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         var inputStream = Files.newInputStream(filePath);
         fileService.uploadFile(inputStream, "generatedFileForTestingDuplicatedPesel.csv", Files.size(filePath));
-        var fileToProcessId = fileService.findFileToProcess().orElseThrow();
+        var fileToProcessId = fileQueueProcessor.findFileToProcess().orElseThrow();
 
         // when
         var statusBeforeProcessing = fileService.getFileImportStatus(fileToProcessId);
@@ -152,7 +154,7 @@ public class FileServiceTest {
         assertThat(statusBeforeProcessing.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
 
         // when
-        fileService.processFile(fileToProcessId);
+        assertThrows(DuplicateResourceException.class, () -> fileQueueProcessor.processFileQueue(fileToProcessId));
 
         // then
         var statusAfterProcessing = fileService.getFileImportStatus(fileToProcessId);
