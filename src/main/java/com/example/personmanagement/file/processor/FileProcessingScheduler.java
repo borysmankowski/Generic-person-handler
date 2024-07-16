@@ -21,7 +21,7 @@ public class FileProcessingScheduler {
     private final DefaultLockRepository lockRepository;
     private final LockConfiguration lockConfiguration;
 
-//    @Scheduled(cron = "${spring.tasks.scheduled.cron}")
+    @Scheduled(cron = "${spring.tasks.scheduled.cron}")
     public void processFile() throws InterruptedException {
         Lock lock = lockConfiguration.jdbcLockRegistry(lockRepository).obtain(LOCK_KEY);
         if (lock.tryLock()) {

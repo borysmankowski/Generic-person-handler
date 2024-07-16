@@ -1,6 +1,5 @@
 package com.example.personmanagement.file;
 
-import com.example.personmanagement.mapper.FileImportRowMapper;
 import com.example.personmanagement.person.PersonRepository;
 import com.example.personmanagement.person.PersonService;
 import com.example.personmanagement.person.model.PersonDto;
@@ -36,7 +35,7 @@ public class FileServiceTest {
     private FileService fileService;
 
     @Autowired
-    private FileImportRepository fileImportRepository;
+    private FileInformationRepository fileInformationRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -110,7 +109,7 @@ public class FileServiceTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    public void uploadingFilesToProcessShouldQueueWithPendingStatus() throws IOException {
+    public void uploadingFilesToProcessShouldQueueWithPENDINGstatus() throws IOException {
         // given
         Path path = Paths.get("files-to-import/generatedFileForTesting.csv");
 
@@ -127,9 +126,9 @@ public class FileServiceTest {
         var fileToProcessId3 = findByFilename(fileName2.getFileName()).orElseThrow();
 
         // when
-        var statusBeforeProcessing1 = fileService.getFileImportStatus(fileToProcessId1.getId());
-        var statusBeforeProcessing2 = fileService.getFileImportStatus(fileToProcessId2.getId());
-        var statusBeforeProcessing3 = fileService.getFileImportStatus(fileToProcessId3.getId());
+        var statusBeforeProcessing1 = fileService.getFileImportStatus(fileToProcessId1.get().getId());
+        var statusBeforeProcessing2 = fileService.getFileImportStatus(fileToProcessId2.get().getId());
+        var statusBeforeProcessing3 = fileService.getFileImportStatus(fileToProcessId3.get().getId());
 
         // then
         assertThat(statusBeforeProcessing1.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
@@ -177,10 +176,9 @@ public class FileServiceTest {
         return Objects.requireNonNull(result).getContent().stream().findFirst();
     }
 
-    private Optional<FileInformation> findByFilename(String filename) throws DataAccessException {
-        String sql = "SELECT * FROM file_import WHERE file_path = ?";
+    private Optional<Optional<FileInformation>> findByFilename(String filename) throws DataAccessException {
         try {
-            FileInformation fileInformation = jdbcTemplate.queryForObject(sql, new Object[]{filename}, new FileImportRowMapper());
+            Optional<FileInformation> fileInformation = fileInformationRepository.findByFilePath(filename);
             return Optional.ofNullable(fileInformation);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -190,6 +188,6 @@ public class FileServiceTest {
     @BeforeEach
     public void setUp() {
         personRepository.deleteAll();
-        fileImportRepository.deleteAll();
+        fileInformationRepository.deleteAll();
     }
 }

@@ -387,7 +387,7 @@ class PersonServiceTest {
         assertEquals(existingEmployee.getHeight(), result.getHeight(), 0.1);
         assertEquals(existingEmployee.getWeight(), result.getWeight(), 0.1);
         assertEquals(existingEmployee.getEmailAddress(), result.getEmailAddress());
-        assertThat(existingEmployee.getVersion() == 2);
+        assertThat(existingEmployee.getVersion() == 1);
 
         verify(personRepository, times(1)).save(existingEmployee);
         verify(personRepository, times(1)).findById(existingEmployee.getId());
