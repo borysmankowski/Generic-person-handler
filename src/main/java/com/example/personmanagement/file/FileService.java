@@ -1,12 +1,12 @@
 package com.example.personmanagement.file;
 
-import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
-import com.example.personmanagement.file.processor.FileImporter;
-import com.example.personmanagement.file.processor.FileProcessor;
+import com.example.personmanagement.file.processor.FileQueueAsyncProcessor;
 import com.example.personmanagement.file.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,10 +19,8 @@ import java.util.Optional;
 @Slf4j
 public class FileService {
 
-    private final FileProcessor fileProcessor;
-
     private final FileStorage fileStorage;
-
+    private final FileQueueAsyncProcessor fileQueueAsyncProcessor;
     private final FileInformationRepository fileInformationRepository;
 
     public FileUploadResponse uploadFile(InputStream inputStream, String originalFilename, long byteSize) {
@@ -40,55 +38,13 @@ public class FileService {
                     .build();
 
             fileInformationRepository.save(fileInformation);
+            fileQueueAsyncProcessor.processFileQueue();
 
             return new FileUploadResponse("File uploaded successfully. File name: " + uniqueFilename, uniqueFilename);
         } catch (IOException e) {
             log.error("Failed to upload the file", e);
             return new FileUploadResponse("Failed to upload the file.", originalFilename);
         }
-    }
-
-    public Optional<Long> findFileToProcess() {
-        return fileInformationRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
-                .map(FileInformation::getId);
-    }
-
-    public void processFile(Long fileImportId) {
-        final long batchSize = 20000;
-        FileInformation fileInformation = fileInformationRepository.findById(fileImportId)
-                .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
-        try {
-            if (fileInformation.getStartedAt() == null) {
-                fileInformation.setStartedAt(LocalDateTime.now());
-            }
-
-            boolean processing = true;
-
-            while (processing) {
-                Long batchStart = fileInformation.getLastProcessedRow();
-                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, batchStart, batchSize);
-                fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
-                fileInformation.setStatus(FileStatus.IN_PROGRESS);
-                processing = !batchResult.isFinished();
-                fileInformationRepository.save(fileInformation);
-            }
-
-            fileInformation.setFinishedAt(LocalDateTime.now());
-            fileInformation.setStatus(FileStatus.SUCCESS);
-
-        } catch (DuplicateResourceException e) {
-            log.error("Duplicate PESEL found when processing file {}", fileImportId, e);
-            fileInformation.setFinishedAt(LocalDateTime.now());
-            fileInformation.setStatus(FileStatus.FAILED);
-            fileInformationRepository.save(fileInformation);
-
-        } catch (Exception e) {
-            log.error("Error when processing file {}", fileImportId, e);
-            fileInformation.setFinishedAt(LocalDateTime.now());
-            fileInformation.setStatus(FileStatus.FAILED);
-            fileInformationRepository.save(fileInformation);
-        }
-        fileInformationRepository.save(fileInformation);
     }
 
     public FileImportStatusResponse getFileImportStatus(Long id) {
@@ -103,5 +59,10 @@ public class FileService {
                 fileInformation.getCreatedAt(),
                 fileInformation.getStartedAt(),
                 fileInformation.getLastProcessedRow());
+    }
+
+    @EventListener
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        fileQueueAsyncProcessor.processFileQueue();
     }
 }

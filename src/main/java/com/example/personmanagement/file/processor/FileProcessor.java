@@ -29,7 +29,6 @@ public class FileProcessor {
     private final FileStorage fileStorage;
     private final JdbcTemplate jdbcTemplate;
 
-    @Transactional
     public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
