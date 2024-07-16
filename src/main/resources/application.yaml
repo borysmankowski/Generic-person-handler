@@ -13,10 +13,6 @@ spring:
   sql:
     init:
       mode: always
-  tasks:
-    scheduled:
-      enabled: true
-      cron: "0 * * * * *"
   servlet:
     multipart:
       max-file-size: 5000MB

@@ -1,38 +1,38 @@
 package com.example.personmanagement.file.processor;
 
-import com.example.personmanagement.file.FileService;
 import com.example.personmanagement.file.LockConfiguration;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 
 @RequiredArgsConstructor
 @Component
-@ConditionalOnProperty(name = "spring.tasks.scheduled.enabled", havingValue = "true")
-public class FileProcessingScheduler {
-
+@Slf4j
+public class FileQueueAsyncProcessor {
     public static final String LOCK_KEY = "fileProcessLock";
-    private final FileService fileService;
+    private final FileQueueProcessor fileQueueProcessor;
     private final DefaultLockRepository lockRepository;
     private final LockConfiguration lockConfiguration;
 
-    @Scheduled(cron = "${spring.tasks.scheduled.cron}")
-    public void processFile() throws InterruptedException {
+    @Async
+    public void processFileQueue() {
         Lock lock = lockConfiguration.jdbcLockRegistry(lockRepository).obtain(LOCK_KEY);
         if (lock.tryLock()) {
             try {
-                Optional<Long> optionalId = fileService.findFileToProcess();
-                optionalId.ifPresent(fileService::processFile);
+                var fileId = fileQueueProcessor.findFileToProcess();
+                while (fileId.isPresent()) {
+                    fileId.ifPresent(fileQueueProcessor::processFileQueue);
+                    fileId = fileQueueProcessor.findFileToProcess();
+                }
             } finally {
                 lock.unlock();
             }
         } else {
-            throw new InterruptedException("The lock has been interrupted!");
+            log.info("Queue processing already in place");
         }
     }
 }

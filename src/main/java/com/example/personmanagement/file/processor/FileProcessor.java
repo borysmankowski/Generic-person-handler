@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,7 +28,6 @@ public class FileProcessor {
     private final FileStorage fileStorage;
     private final JdbcTemplate jdbcTemplate;
 
-    @Transactional
     public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
