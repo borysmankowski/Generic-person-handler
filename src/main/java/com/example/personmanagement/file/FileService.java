@@ -7,29 +7,23 @@ import com.example.personmanagement.file.processor.FileProcessor;
 import com.example.personmanagement.file.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.integration.jdbc.lock.DefaultLockRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FileService {
 
-    private final FileImportRepository fileImportRepository;
     private final FileProcessor fileProcessor;
+
     private final FileStorage fileStorage;
-    private final FileImporter fileImporter;
-    private final DefaultLockRepository lockRepository;
-    private final LockConfiguration lockConfiguration;
 
-    private static final String LOCK_KEY = "fileProcessLock";
-
+    private final FileInformationRepository fileInformationRepository;
 
     public FileUploadResponse uploadFile(InputStream inputStream, String originalFilename, long byteSize) {
         if (byteSize <= 0) {
@@ -45,47 +39,30 @@ public class FileService {
                     .createdAt(LocalDateTime.now())
                     .build();
 
-            fileImporter.insert(fileInformation);
+            fileInformationRepository.save(fileInformation);
 
-            triggerFileProcessing();
-
-            FileUploadResponse response = new FileUploadResponse("File uploaded successfully. File name: " + uniqueFilename, uniqueFilename);
-            return response;
+            return new FileUploadResponse("File uploaded successfully. File name: " + uniqueFilename, uniqueFilename);
         } catch (IOException e) {
             log.error("Failed to upload the file", e);
             return new FileUploadResponse("Failed to upload the file.", originalFilename);
         }
     }
 
-    public void triggerFileProcessing() {
-        Lock lock = lockConfiguration.jdbcLockRegistry(lockRepository).obtain(LOCK_KEY);
-        if (lock.tryLock()) {
-            try {
-                Optional<Long> optionalId = findFileToProcess();
-                optionalId.ifPresent(this::processFile);
-            } finally {
-                lock.unlock();
-            }
-        } else {
-            throw new IllegalStateException("Unable to obtain lock for file processing");
-        }
-    }
-
     public Optional<Long> findFileToProcess() {
-        return fileImportRepository.findFirstByStatusOrderByCreatedAtAsc();
-
+        return fileInformationRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
+                .map(FileInformation::getId);
     }
 
     public void processFile(Long fileImportId) {
         final long batchSize = 20000;
-        FileInformation fileInformation = fileImportRepository.findById(fileImportId)
+        FileInformation fileInformation = fileInformationRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
         try {
             if (fileInformation.getStartedAt() == null) {
                 fileInformation.setStartedAt(LocalDateTime.now());
             }
 
-            var processing = true;
+            boolean processing = true;
 
             while (processing) {
                 Long batchStart = fileInformation.getLastProcessedRow();
@@ -93,7 +70,7 @@ public class FileService {
                 fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
                 fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();
-                fileImporter.update(fileInformation);
+                fileInformationRepository.save(fileInformation);
             }
 
             fileInformation.setFinishedAt(LocalDateTime.now());
@@ -103,19 +80,19 @@ public class FileService {
             log.error("Duplicate PESEL found when processing file {}", fileImportId, e);
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.FAILED);
-            fileImporter.update(fileInformation);
+            fileInformationRepository.save(fileInformation);
 
         } catch (Exception e) {
             log.error("Error when processing file {}", fileImportId, e);
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.FAILED);
-            fileImporter.update(fileInformation);
+            fileInformationRepository.save(fileInformation);
         }
-        fileImporter.update(fileInformation);
+        fileInformationRepository.save(fileInformation);
     }
 
     public FileImportStatusResponse getFileImportStatus(Long id) {
-        Optional<FileInformation> fileImportOptional = fileImportRepository.findById(id);
+        Optional<FileInformation> fileImportOptional = fileInformationRepository.findById(id);
         return fileImportOptional.map(this::buildStatusResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("File import status not found!"));
     }
