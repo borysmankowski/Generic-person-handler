@@ -2,9 +2,9 @@ package com.example.personmanagement.file.processor;
 
 import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
-import com.example.personmanagement.file.FileInformation;
+import com.example.personmanagement.model.file.FileInformation;
 import com.example.personmanagement.file.storage.FileStorage;
-import com.example.personmanagement.person.model.PersonFileImportStrategy;
+import com.example.personmanagement.strategy.PersonFileImportStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;

@@ -1,10 +1,11 @@
 package com.example.personmanagement.employee;
 
 import com.devskiller.jfairy.Fairy;
-import com.example.personmanagement.employee.model.CreateEmployeeCommand;
-import com.example.personmanagement.employee.model.EmployeeDto;
-import com.example.personmanagement.employee.position.CreatePositionCommand;
-import com.example.personmanagement.person.PersonRepository;
+import com.example.personmanagement.model.employee.CreateEmployeeCommand;
+import com.example.personmanagement.model.employee.EmployeeDto;
+import com.example.personmanagement.model.position.CreatePositionCommand;
+import com.example.personmanagement.repository.EmployeeRepository;
+import com.example.personmanagement.repository.PersonRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

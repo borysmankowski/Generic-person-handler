@@ -1,9 +1,14 @@
 package com.example.personmanagement.employee.position;
 
-import com.example.personmanagement.employee.EmployeeRepository;
-import com.example.personmanagement.employee.model.Employee;
+import com.example.personmanagement.model.position.CreatePositionCommand;
+import com.example.personmanagement.model.position.JobPosition;
+import com.example.personmanagement.model.position.PositionDto;
+import com.example.personmanagement.repository.EmployeeRepository;
+import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
+import com.example.personmanagement.repository.JobPositionRepository;
+import com.example.personmanagement.service.JobService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

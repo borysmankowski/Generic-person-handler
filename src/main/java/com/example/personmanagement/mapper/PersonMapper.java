@@ -1,8 +1,8 @@
 package com.example.personmanagement.mapper;
 
-import com.example.personmanagement.person.model.CreatePersonCommand;
-import com.example.personmanagement.person.model.Person;
-import com.example.personmanagement.person.model.PersonDto;
+import com.example.personmanagement.model.person.CreatePersonCommand;
+import com.example.personmanagement.model.person.Person;
+import com.example.personmanagement.model.person.PersonDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

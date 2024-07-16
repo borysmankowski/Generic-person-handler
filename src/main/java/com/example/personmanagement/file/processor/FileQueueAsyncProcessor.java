@@ -1,6 +1,6 @@
 package com.example.personmanagement.file.processor;
 
-import com.example.personmanagement.file.LockConfiguration;
+import com.example.personmanagement.config.LockConfiguration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;

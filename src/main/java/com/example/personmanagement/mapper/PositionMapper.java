@@ -1,8 +1,8 @@
 package com.example.personmanagement.mapper;
 
-import com.example.personmanagement.employee.position.CreatePositionCommand;
-import com.example.personmanagement.employee.position.JobPosition;
-import com.example.personmanagement.employee.position.PositionDto;
+import com.example.personmanagement.model.position.CreatePositionCommand;
+import com.example.personmanagement.model.position.JobPosition;
+import com.example.personmanagement.model.position.PositionDto;
 
 public class PositionMapper {
 

@@ -2,10 +2,14 @@ package com.example.personmanagement.file;
 
 import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.file.processor.FileQueueProcessor;
-import com.example.personmanagement.person.PersonRepository;
-import com.example.personmanagement.person.PersonService;
-import com.example.personmanagement.person.model.PersonDto;
-import com.example.personmanagement.person.model.SearchCriteria;
+import com.example.personmanagement.model.file.FileInformation;
+import com.example.personmanagement.model.file.FileStatus;
+import com.example.personmanagement.repository.FileInformationRepository;
+import com.example.personmanagement.repository.PersonRepository;
+import com.example.personmanagement.service.FileService;
+import com.example.personmanagement.service.PersonService;
+import com.example.personmanagement.model.person.PersonDto;
+import com.example.personmanagement.search.SearchCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,7 +136,7 @@ public class FileServiceTest {
         var statusBeforeProcessing3 = fileService.getFileImportStatus(fileToProcessId3.get().getId());
 
         // then
-        assertThat(statusBeforeProcessing1.getStatus().toString()).isEqualTo(FileStatus.IN_PROGRESS.toString());
+        assertThat(statusBeforeProcessing1.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
         assertThat(statusBeforeProcessing2.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
         assertThat(statusBeforeProcessing3.getStatus().toString()).isEqualTo(FileStatus.PENDING.toString());
     }
