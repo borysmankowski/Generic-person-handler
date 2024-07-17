@@ -24,13 +24,4 @@ public class PersonMapper {
         throw new IllegalArgumentException("Unsupported type!");
     }
 
-    public Person fromDto(CreatePersonCommand command) {
-        for (PersonTypeMapper mapper : mappers) {
-            if (mapper.supports(command.getType())) {
-                return mapper.fromDto(command);
-            }
-        }
-        throw new IllegalArgumentException("Unsupported type!");
-    }
-
 }

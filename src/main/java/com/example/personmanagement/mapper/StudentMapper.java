@@ -35,25 +35,4 @@ public class StudentMapper implements PersonTypeMapper {
         }
         throw new InvalidStrategyTypeException("Unsupported type!");
     }
-
-    @Override
-    public Person fromDto(CreatePersonCommand command) {
-        if ("STUDENT".equals(command.getType())) {
-            CreateStudentCommand studentCommand = (CreateStudentCommand) command;
-            return Student.builder()
-                    .type(studentCommand.getType())
-                    .name(studentCommand.getName())
-                    .surname(studentCommand.getSurname())
-                    .pesel(studentCommand.getPesel())
-                    .weight(studentCommand.getWeight())
-                    .height(studentCommand.getHeight())
-                    .emailAddress(studentCommand.getEmailAddress())
-                    .nameOfUniversity(studentCommand.getNameOfUniversity())
-                    .yearOfStudies(studentCommand.getYearOfStudies())
-                    .courseName(studentCommand.getCourseName())
-                    .scholarship(studentCommand.getScholarship())
-                    .build();
-        }
-        throw new InvalidStrategyTypeException("Unsupported type!");
-    }
 }

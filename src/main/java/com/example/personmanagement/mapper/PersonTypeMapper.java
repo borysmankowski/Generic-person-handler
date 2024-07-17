@@ -8,6 +8,4 @@ public interface PersonTypeMapper {
     boolean supports(String entityType);
 
     PersonDto toDto(Person person);
-
-    Person fromDto(CreatePersonCommand command);
 }
