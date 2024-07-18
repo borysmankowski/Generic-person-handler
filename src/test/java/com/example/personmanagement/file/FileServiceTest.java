@@ -19,6 +19,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -51,6 +53,10 @@ public class FileServiceTest {
     @Autowired
     private FileQueueProcessor fileQueueProcessor;
 
+    @DynamicPropertySource
+    static void overrideProperties(DynamicPropertyRegistry registry) {
+        registry.add("file-queue-processor.batch-size", () -> 2);
+    }
     @Test
     @WithMockUser(roles = "ADMIN")
     public void findFileToProcessShouldFindSuccessfully() throws IOException {
@@ -167,7 +173,6 @@ public class FileServiceTest {
         assertThat(findByPesel("90122199526")).isEmpty();
         assertThat(findByPesel("51010932991")).isEmpty();
     }
-
 
     private Optional<PersonDto> findByPesel(String pesel) {
         SearchCriteria searchCriteria = new SearchCriteria();

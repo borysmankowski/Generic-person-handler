@@ -22,6 +22,8 @@ spring:
       initialize-schema: always
   upload:
     dir: "files-to-import"
+file-queue-processor:
+  batch-size: 20000
 server:
   port: 8080
   tomcat:

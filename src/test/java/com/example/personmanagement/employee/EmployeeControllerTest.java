@@ -133,7 +133,6 @@ class EmployeeControllerTest {
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
-
     private ResultActions postJobPosition(Long personId, CreatePositionCommand command) throws Exception {
         return mockMvc.perform(post("/api/employees/{personId}/positions", personId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -168,6 +167,4 @@ class EmployeeControllerTest {
         personRepository.deleteAll();
         employeeRepository.deleteAll();
     }
-
-
 }
