@@ -7,5 +7,4 @@ import java.util.Map;
 public interface UpdateCommandTypeRegistrar {
 
     void registerUpdateCommandTypes(Map<String, Class<? extends UpdatePersonCommand>> commandTypeMap);
-
 }

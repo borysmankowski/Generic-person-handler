@@ -28,14 +28,11 @@ public class JobPosition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String positionName;
     private LocalDate startDate;
     private LocalDate endDate;
     private double salary;
-
     @ManyToOne
     @JoinColumn(name = "employee_id")
     private Employee employee;
-
 }

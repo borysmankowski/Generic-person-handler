@@ -21,7 +21,6 @@ import java.util.List;
 public class JobService {
 
     private final EmployeeRepository employeeRepository;
-
     private final JobPositionRepository jobPositionRepository;
 
     @Transactional
@@ -41,6 +40,5 @@ public class JobService {
         JobPosition newPosition = PositionMapper.fromCreateCommand(command);
         newPosition.setEmployee(employee);
         return PositionMapper.toDto(jobPositionRepository.save(newPosition));
-
     }
 }

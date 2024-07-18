@@ -25,5 +25,4 @@ public class EmployeeCreationStrategy implements PersonCreationStrategy {
                 .emailAddress(employeeCommand.getEmailAddress())
                 .build();
     }
-
 }

@@ -20,7 +20,6 @@ public class PersonSpecification {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(criteriaBuilder.literal(true));
     }
 
-
     public static Specification<Person> addSpecification(Specification<Person> specification, SearchCriteria criteria) {
         switch (criteria.getOperation()) {
             case "eq" -> specification = specification.and(equalSpecification(criteria));
@@ -32,7 +31,6 @@ public class PersonSpecification {
         }
         return specification;
     }
-
 
     public static Specification<Person> employeeSalaryBetween(SearchCriteria criteria) {
         return (root, query, criteriaBuilder) -> {

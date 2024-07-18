@@ -10,5 +10,4 @@ import java.time.LocalDateTime;
 public class ExceptionDto {
     private final LocalDateTime timestamp = LocalDateTime.now();
     private final String message;
-
 }

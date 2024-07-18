@@ -16,7 +16,6 @@ import java.time.LocalDate;
 public class PositionDto {
 
     private Long id;
-
     private String positionName;
     private LocalDate startDate;
     private LocalDate endDate;

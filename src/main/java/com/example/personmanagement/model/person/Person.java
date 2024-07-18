@@ -39,5 +39,4 @@ public class Person {
     private String emailAddress;
     @Version
     private int version;
-
 }

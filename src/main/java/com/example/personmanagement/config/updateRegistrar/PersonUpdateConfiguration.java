@@ -13,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Configuration
 public class PersonUpdateConfiguration {
+
     @Bean
     public Module personUpdateDeserializers(List<UpdateCommandTypeRegistrar> registrars) {
         return new SimpleModule()

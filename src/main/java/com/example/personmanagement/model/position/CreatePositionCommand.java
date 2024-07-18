@@ -21,5 +21,4 @@ public class CreatePositionCommand {
     private LocalDate startDate;
     private LocalDate endDate;
     private double salary;
-
 }

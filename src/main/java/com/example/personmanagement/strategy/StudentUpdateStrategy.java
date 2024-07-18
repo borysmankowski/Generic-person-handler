@@ -47,7 +47,6 @@ public class StudentUpdateStrategy implements PersonUpdateStrategy {
             if (studentCommand.getScholarship() != 0.0) {
                 existingStudent.setScholarship(studentCommand.getScholarship());
             }
-
             return existingStudent;
         } else {
             throw new IllegalArgumentException("Existing person is not an instance of Student");

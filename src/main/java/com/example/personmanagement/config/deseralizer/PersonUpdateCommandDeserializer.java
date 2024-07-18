@@ -17,7 +17,6 @@ public class PersonUpdateCommandDeserializer extends JsonDeserializer<UpdatePers
 
     private final Map<String, Class<? extends UpdatePersonCommand>> commandTypeMap = new HashMap<>();
 
-
     public PersonUpdateCommandDeserializer(List<UpdateCommandTypeRegistrar> updateCommandTypeRegistrars) {
         updateCommandTypeRegistrars.forEach(commandTypeRegistrar -> commandTypeRegistrar.registerUpdateCommandTypes(commandTypeMap));
     }
@@ -35,5 +34,4 @@ public class PersonUpdateCommandDeserializer extends JsonDeserializer<UpdatePers
 
         return codec.treeToValue(node, commandClass);
     }
-
 }
