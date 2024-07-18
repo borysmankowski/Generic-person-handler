@@ -10,5 +10,4 @@ public class InvalidStrategyTypeException extends RuntimeException {
     public InvalidStrategyTypeException(String message) {
         super(message);
     }
-
 }

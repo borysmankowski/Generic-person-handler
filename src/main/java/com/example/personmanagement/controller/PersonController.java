@@ -58,6 +58,5 @@ public class PersonController {
     public ResponseEntity<PersonDto> updatePersonDetails(@PathVariable Long personId, @RequestBody @Valid UpdatePersonCommand command) {
         PersonDto personDto = personService.updateAnyPerson(personId, command);
         return ResponseEntity.ok(personDto);
-
     }
 }

@@ -8,9 +8,6 @@ import java.io.Serial;
 @ResponseStatus(value = HttpStatus.CONFLICT)
 public class DuplicateResourceException extends RuntimeException {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
-
     public DuplicateResourceException(String message) {
         super(message);
     }

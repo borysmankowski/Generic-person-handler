@@ -21,5 +21,4 @@ public class PersonMapper {
         }
         throw new IllegalArgumentException("Unsupported type!");
     }
-
 }

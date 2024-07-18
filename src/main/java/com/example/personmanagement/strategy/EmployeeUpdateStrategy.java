@@ -34,7 +34,6 @@ public class EmployeeUpdateStrategy implements PersonUpdateStrategy {
             if (employeeCommand.getEmailAddress() != null) {
                 existingEmployee.setEmailAddress(employeeCommand.getEmailAddress());
             }
-
             return existingEmployee;
         } else {
             throw new IllegalArgumentException("Existing person is not an instance of Employee");

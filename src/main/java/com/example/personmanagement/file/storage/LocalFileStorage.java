@@ -35,5 +35,4 @@ public class LocalFileStorage implements FileStorage {
         Path filePath = Path.of(UPLOAD_DIR, fileName);
         return new BufferedReader(new InputStreamReader(new FileInputStream(String.valueOf(filePath))));
     }
-
 }

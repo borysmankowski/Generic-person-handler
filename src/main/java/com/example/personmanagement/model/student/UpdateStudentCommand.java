@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class UpdateStudentCommand extends UpdatePersonCommand {
+
     @NotBlank(message = "Name of the University cannot be empty")
     private String nameOfUniversity;
     private int yearOfStudies;

@@ -39,7 +39,6 @@ public class WebSecurityConfig {
                         mvcMatcherBuilder.pattern(UPLOAD_URL_PATTERN)
                 ));
 
-
         http.authorizeHttpRequests(auth ->
                 auth
                         .requestMatchers(mvcMatcherBuilder.pattern(PERSON_URL_PATTERN)).permitAll()
@@ -49,7 +48,6 @@ public class WebSecurityConfig {
 
 
         );
-
 
         http.httpBasic(Customizer.withDefaults());
 
@@ -81,6 +79,4 @@ public class WebSecurityConfig {
 
         return new InMemoryUserDetailsManager(List.of(employee, admin, importer));
     }
-
-
 }

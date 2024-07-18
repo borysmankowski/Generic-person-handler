@@ -8,7 +8,6 @@ import java.util.Map;
 
 @Component
 public class StudentCreateCreateCommandTypeRegistrar implements CreateCommandTypeRegistrar {
-
     @Override
     public void registerCreateCommandTypes(Map<String, Class<? extends CreatePersonCommand>> commandTypeMap) {
         commandTypeMap.put("STUDENT", CreateStudentCommand.class);

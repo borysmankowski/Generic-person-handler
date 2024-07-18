@@ -31,11 +31,8 @@ import java.util.List;
 public class PersonService {
 
     private final PersonRepository personRepository;
-
     private final PersonMapper personMapper;
-
     private final PersonValidator personValidator;
-
     private final PersonStrategyFacade personStrategyFacade;
 
     public PersonDto create(CreatePersonCommand command) {

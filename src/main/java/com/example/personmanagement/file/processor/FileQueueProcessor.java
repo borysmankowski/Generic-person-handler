@@ -53,7 +53,6 @@ public class FileQueueProcessor {
                 }
             });
 
-
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.SUCCESS);
 

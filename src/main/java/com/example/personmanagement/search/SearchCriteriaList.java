@@ -9,6 +9,6 @@ import java.util.List;
 @Getter
 @Setter
 public class SearchCriteriaList {
-    private List<SearchCriteria> searchCriteria = new ArrayList<>();
 
+    private List<SearchCriteria> searchCriteria = new ArrayList<>();
 }
