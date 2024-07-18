@@ -1,10 +1,8 @@
 package com.example.personmanagement.mapper;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.PersonDto;
-import com.example.personmanagement.model.student.CreateStudentCommand;
 import com.example.personmanagement.model.student.Student;
 import com.example.personmanagement.model.student.StudentDto;
 import org.springframework.stereotype.Component;
@@ -31,27 +29,6 @@ public class StudentMapper implements PersonTypeMapper {
                     .yearOfStudies(student.getYearOfStudies())
                     .courseName(student.getCourseName())
                     .scholarship(student.getScholarship())
-                    .build();
-        }
-        throw new InvalidStrategyTypeException("Unsupported type!");
-    }
-
-    @Override
-    public Person fromDto(CreatePersonCommand command) {
-        if ("STUDENT".equals(command.getType())) {
-            CreateStudentCommand studentCommand = (CreateStudentCommand) command;
-            return Student.builder()
-                    .type(studentCommand.getType())
-                    .name(studentCommand.getName())
-                    .surname(studentCommand.getSurname())
-                    .pesel(studentCommand.getPesel())
-                    .weight(studentCommand.getWeight())
-                    .height(studentCommand.getHeight())
-                    .emailAddress(studentCommand.getEmailAddress())
-                    .nameOfUniversity(studentCommand.getNameOfUniversity())
-                    .yearOfStudies(studentCommand.getYearOfStudies())
-                    .courseName(studentCommand.getCourseName())
-                    .scholarship(studentCommand.getScholarship())
                     .build();
         }
         throw new InvalidStrategyTypeException("Unsupported type!");

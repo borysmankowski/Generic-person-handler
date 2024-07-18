@@ -1,11 +1,10 @@
 package com.example.personmanagement.file.processor;
 
-
 import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.model.file.FileInformation;
-import com.example.personmanagement.repository.FileInformationRepository;
 import com.example.personmanagement.model.file.FileStatus;
+import com.example.personmanagement.repository.FileInformationRepository;
 import com.example.personmanagement.utils.TransactionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @RequiredArgsConstructor
 @Component
@@ -30,57 +28,49 @@ public class FileQueueProcessor {
     }
 
     public void processFileQueue(Long fileImportId) {
-        final long batchSize = 2;
+        final long batchSize = 20000;
         FileInformation fileInformation = fileInformationRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
-
         try {
             if (fileInformation.getStartedAt() == null) {
                 fileInformation.setStartedAt(LocalDateTime.now());
-                fileInformation.setStatus(FileStatus.IN_PROGRESS);
-                fileInformationRepository.save(fileInformation);
             }
 
-            AtomicBoolean processing = new AtomicBoolean(true);
-            while (processing.get()) {
-                try {
-                    transactionHandler.executeInTransaction(() -> {
-                        Long batchStart = fileInformation.getLastProcessedRow();
-                        FileProcessor.Result batchResult;
-                        try {
-                            batchResult = fileProcessor.processFile(fileInformation, batchStart, batchSize);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
-                        fileInformationRepository.save(fileInformation);
-
-                        if (batchResult.isFinished()) {
-                            fileInformation.setFinishedAt(LocalDateTime.now());
-                            fileInformation.setStatus(FileStatus.SUCCESS);
-                            fileInformationRepository.save(fileInformation);
-                            processing.set(false);
-                        }
-                    });
-                } catch (DuplicateResourceException e) {
-                    log.error("Duplicate PESEL found when processing file {}", fileImportId, e);
-                    fileInformation.setFinishedAt(LocalDateTime.now());
-                    fileInformation.setStatus(FileStatus.FAILED);
-                    fileInformationRepository.save(fileInformation);
-                    throw e;
-                } catch (Exception e) {
-                    log.error("Error when processing file {}", fileImportId, e);
-                    fileInformation.setFinishedAt(LocalDateTime.now());
-                    fileInformation.setStatus(FileStatus.FAILED);
-                    fileInformationRepository.save(fileInformation);
-                    throw new RuntimeException(e);
+            transactionHandler.executeInTransaction(() -> {
+                boolean processing = true;
+                while (processing) {
+                    Long batchStart = fileInformation.getLastProcessedRow();
+                    FileProcessor.Result batchResult;
+                    try {
+                        batchResult = fileProcessor.processFile(fileInformation, batchStart, batchSize);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
+                    fileInformation.setStatus(FileStatus.IN_PROGRESS);
+                    processing = !batchResult.isFinished();
+                    fileProcessor.saveProgress(fileInformation);
                 }
-            }
+            });
+
+
+            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setStatus(FileStatus.SUCCESS);
+
+        } catch (DuplicateResourceException e) {
+            log.error("Duplicate PESEL found when processing file {}", fileImportId, e);
+            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setStatus(FileStatus.FAILED);
+            fileProcessor.saveProgress(fileInformation);
+            throw e;
+
         } catch (Exception e) {
             log.error("Error when processing file {}", fileImportId, e);
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.FAILED);
-            fileInformationRepository.save(fileInformation);
+            fileProcessor.saveProgress(fileInformation);
+            throw new RuntimeException(e);
         }
+        fileProcessor.saveProgress(fileInformation);
     }
 }

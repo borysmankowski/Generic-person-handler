@@ -1,13 +1,11 @@
 package com.example.personmanagement.mapper;
 
-import com.example.personmanagement.model.employee.CreateEmployeeCommand;
+import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.model.employee.EmployeeDto;
-import com.example.personmanagement.model.position.JobPosition;
-import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.PersonDto;
+import com.example.personmanagement.model.position.JobPosition;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -41,22 +39,4 @@ public class EmployeeMapper implements PersonTypeMapper {
         }
         throw new InvalidStrategyTypeException("Unsupported type!");
     }
-
-    @Override
-    public Person fromDto(CreatePersonCommand command) {
-        if ("employee".equals(command.getType())) {
-            CreateEmployeeCommand employeeCommand = (CreateEmployeeCommand) command;
-            return Employee.builder()
-                    .type(employeeCommand.getType())
-                    .name(employeeCommand.getName())
-                    .surname(employeeCommand.getSurname())
-                    .pesel(employeeCommand.getPesel())
-                    .weight(employeeCommand.getWeight())
-                    .height(employeeCommand.getHeight())
-                    .emailAddress(employeeCommand.getEmailAddress())
-                    .build();
-        }
-        throw new InvalidStrategyTypeException("Unsupported type!");
-    }
-
 }
