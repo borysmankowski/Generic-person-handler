@@ -8,6 +8,7 @@ import com.example.personmanagement.repository.FileInformationRepository;
 import com.example.personmanagement.utils.TransactionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -21,6 +22,8 @@ public class FileQueueProcessor {
     private final FileInformationRepository fileInformationRepository;
     private final FileProcessor fileProcessor;
     private final TransactionHandler transactionHandler;
+    @Value("${file-queue-processor.batch-size}")
+    private long batchSize;
 
     public Optional<Long> findFileToProcess() {
         return fileInformationRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
@@ -28,7 +31,6 @@ public class FileQueueProcessor {
     }
 
     public void processFileQueue(Long fileImportId) {
-        final long batchSize = 20000;
         FileInformation fileInformation = fileInformationRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
         try {

@@ -1,7 +1,2 @@
 server:
   port: 8082
-
-spring:
-  tasks:
-    scheduled:
-      enabled: false
