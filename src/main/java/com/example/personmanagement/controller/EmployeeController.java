@@ -1,8 +1,8 @@
 package com.example.personmanagement.controller;
 
 import com.example.personmanagement.model.position.CreatePositionCommand;
-import com.example.personmanagement.service.JobService;
 import com.example.personmanagement.model.position.PositionDto;
+import com.example.personmanagement.service.JobService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

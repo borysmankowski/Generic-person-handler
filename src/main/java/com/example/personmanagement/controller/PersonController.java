@@ -1,10 +1,10 @@
 package com.example.personmanagement.controller;
 
-import com.example.personmanagement.service.PersonService;
 import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.PersonDto;
-import com.example.personmanagement.search.SearchCriteria;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
+import com.example.personmanagement.search.SearchCriteria;
+import com.example.personmanagement.service.PersonService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

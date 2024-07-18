@@ -1,8 +1,8 @@
 package com.example.personmanagement.search;
 
 import com.example.personmanagement.model.employee.Employee;
-import com.example.personmanagement.model.position.JobPosition;
 import com.example.personmanagement.model.person.Person;
+import com.example.personmanagement.model.position.JobPosition;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;

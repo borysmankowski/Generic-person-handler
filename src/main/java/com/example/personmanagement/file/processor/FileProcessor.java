@@ -2,13 +2,16 @@ package com.example.personmanagement.file.processor;
 
 import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
-import com.example.personmanagement.model.file.FileInformation;
 import com.example.personmanagement.file.storage.FileStorage;
+import com.example.personmanagement.model.file.FileInformation;
+import com.example.personmanagement.repository.FileInformationRepository;
 import com.example.personmanagement.strategy.PersonFileImportStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,6 +30,7 @@ public class FileProcessor {
     private final Map<String, PersonFileImportStrategy> fileImportStrategyMap;
     private final FileStorage fileStorage;
     private final JdbcTemplate jdbcTemplate;
+    private final FileInformationRepository fileInformationRepository;
 
     public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
@@ -83,6 +87,11 @@ public class FileProcessor {
                 throw new ResourceNotFoundException("Unknown type: " + strategyKey);
             }
         });
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveProgress(FileInformation fileInformation) {
+        fileInformationRepository.save(fileInformation);
     }
 
     public record Result(long lastProcessedRow, boolean isFinished) {
