@@ -6,7 +6,6 @@ import com.example.personmanagement.model.position.JobPosition;
 import com.example.personmanagement.model.position.PositionDto;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,10 +47,10 @@ class PositionMapperTest {
     @Test
     void fromCreateCommand() {
         CreatePositionCommand command = new CreatePositionCommand();
-                command.setPositionName("Manager");
-                command.setSalary(3000);
-                command.setStartDate(LocalDate.of(2021, 6, 1));
-                command.setEndDate(LocalDate.of(2022, 6, 1));
+        command.setPositionName("Manager");
+        command.setSalary(3000);
+        command.setStartDate(LocalDate.of(2021, 6, 1));
+        command.setEndDate(LocalDate.of(2022, 6, 1));
 
         JobPosition jobPosition = PositionMapper.fromCreateCommand(command);
 
@@ -74,4 +73,5 @@ class PositionMapperTest {
         assertNull(jobPosition.getStartDate());
         assertNull(jobPosition.getEndDate());
     }
+}
 }

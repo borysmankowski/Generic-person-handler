@@ -1,14 +1,14 @@
 package com.example.personmanagement.service;
 
-import com.example.personmanagement.repository.EmployeeRepository;
-import com.example.personmanagement.model.employee.Employee;
-import com.example.personmanagement.model.position.CreatePositionCommand;
-import com.example.personmanagement.model.position.JobPosition;
-import com.example.personmanagement.repository.JobPositionRepository;
-import com.example.personmanagement.model.position.PositionDto;
 import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.mapper.PositionMapper;
+import com.example.personmanagement.model.employee.Employee;
+import com.example.personmanagement.model.position.CreatePositionCommand;
+import com.example.personmanagement.model.position.JobPosition;
+import com.example.personmanagement.model.position.PositionDto;
+import com.example.personmanagement.repository.JobPositionRepository;
+import com.example.personmanagement.repository.PersonRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,15 +20,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JobService {
 
-    private final EmployeeRepository employeeRepository;
-
+    private final PersonRepository personRepository;
     private final JobPositionRepository jobPositionRepository;
 
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public PositionDto addJobPosition(Long employeeId, CreatePositionCommand command) {
 
-        Employee employee = employeeRepository.findById(employeeId)
+        Employee employee = (Employee) personRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employeeId));
 
         List<JobPosition> overlappingPositions = jobPositionRepository.findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
@@ -41,6 +40,5 @@ public class JobService {
         JobPosition newPosition = PositionMapper.fromCreateCommand(command);
         newPosition.setEmployee(employee);
         return PositionMapper.toDto(jobPositionRepository.save(newPosition));
-
     }
 }

@@ -1,6 +1,5 @@
 package com.example.personmanagement.mapper;
 
-import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.PersonDto;
 

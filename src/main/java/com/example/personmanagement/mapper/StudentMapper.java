@@ -1,10 +1,8 @@
 package com.example.personmanagement.mapper;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.PersonDto;
-import com.example.personmanagement.model.student.CreateStudentCommand;
 import com.example.personmanagement.model.student.Student;
 import com.example.personmanagement.model.student.StudentDto;
 import org.springframework.stereotype.Component;

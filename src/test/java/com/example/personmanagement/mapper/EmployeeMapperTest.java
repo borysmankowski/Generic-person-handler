@@ -4,17 +4,17 @@ import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.model.employee.EmployeeDto;
 import com.example.personmanagement.model.person.Person;
-import com.example.personmanagement.model.person.PersonDto;
 import com.example.personmanagement.model.position.JobPosition;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EmployeeMapperTest {
 

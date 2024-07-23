@@ -1,8 +1,8 @@
 package com.example.personmanagement.controller;
 
 import com.example.personmanagement.model.file.FileImportStatusResponse;
-import com.example.personmanagement.service.FileService;
 import com.example.personmanagement.model.file.FileUploadResponse;
+import com.example.personmanagement.service.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,8 +31,8 @@ public class FileController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'IMPORTER')")
-    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        FileUploadResponse uploadResponse = fileService.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
+    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) {
+        FileUploadResponse uploadResponse = fileService.uploadFile(file);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(uploadResponse);
     }
 }

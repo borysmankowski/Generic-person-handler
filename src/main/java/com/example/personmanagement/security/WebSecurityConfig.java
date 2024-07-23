@@ -19,9 +19,7 @@ import java.util.List;
 
 @Configuration
 @EnableGlobalMethodSecurity(
-        prePostEnabled = true,
-        securedEnabled = true,
-        jsr250Enabled = true)
+        prePostEnabled = true)
 public class WebSecurityConfig {
 
     private static final String PERSON_URL_PATTERN = "/api/people/**";
@@ -39,7 +37,6 @@ public class WebSecurityConfig {
                         mvcMatcherBuilder.pattern(UPLOAD_URL_PATTERN)
                 ));
 
-
         http.authorizeHttpRequests(auth ->
                 auth
                         .requestMatchers(mvcMatcherBuilder.pattern(PERSON_URL_PATTERN)).permitAll()
@@ -49,7 +46,6 @@ public class WebSecurityConfig {
 
 
         );
-
 
         http.httpBasic(Customizer.withDefaults());
 
@@ -81,6 +77,4 @@ public class WebSecurityConfig {
 
         return new InMemoryUserDetailsManager(List.of(employee, admin, importer));
     }
-
-
 }

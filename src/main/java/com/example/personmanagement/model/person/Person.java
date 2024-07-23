@@ -33,11 +33,11 @@ public class Person {
     private String type;
     private String name;
     private String surname;
+    @Column(unique = true)
     private String pesel;
     private double height;
     private double weight;
     private String emailAddress;
     @Version
     private int version;
-
 }

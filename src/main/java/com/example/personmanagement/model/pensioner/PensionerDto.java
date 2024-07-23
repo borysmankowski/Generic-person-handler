@@ -18,5 +18,4 @@ public class PensionerDto extends PersonDto {
 
     private double pensionAmount;
     private int workedYears;
-
 }

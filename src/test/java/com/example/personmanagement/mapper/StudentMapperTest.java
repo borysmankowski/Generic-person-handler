@@ -1,9 +1,7 @@
 package com.example.personmanagement.mapper;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
-import com.example.personmanagement.model.student.CreateStudentCommand;
 import com.example.personmanagement.model.student.Student;
 import com.example.personmanagement.model.student.StudentDto;
 import org.junit.jupiter.api.Test;
@@ -53,6 +51,7 @@ class StudentMapperTest {
         assertEquals("Computer Science", studentDto.getCourseName());
         assertEquals(500.0, studentDto.getScholarship());
     }
+
     @Test
     void toDto_withInvalidType() {
         Person person = new Person();

@@ -1,10 +1,10 @@
 package com.example.personmanagement.strategy;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.model.student.Student;
-import com.example.personmanagement.model.student.UpdateStudentCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
+import com.example.personmanagement.model.student.Student;
+import com.example.personmanagement.model.student.UpdateStudentCommand;
 import org.springframework.stereotype.Component;
 
 @Component("studentUpdateStrategy")
@@ -47,7 +47,6 @@ public class StudentUpdateStrategy implements PersonUpdateStrategy {
             if (studentCommand.getScholarship() != 0.0) {
                 existingStudent.setScholarship(studentCommand.getScholarship());
             }
-
             return existingStudent;
         } else {
             throw new IllegalArgumentException("Existing person is not an instance of Student");

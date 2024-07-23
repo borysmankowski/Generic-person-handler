@@ -1,8 +1,8 @@
 package com.example.personmanagement.strategy;
 
+import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.model.employee.CreateEmployeeCommand;
 import com.example.personmanagement.model.employee.Employee;
-import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
 import org.springframework.stereotype.Component;
@@ -25,5 +25,4 @@ public class EmployeeCreationStrategy implements PersonCreationStrategy {
                 .emailAddress(employeeCommand.getEmailAddress())
                 .build();
     }
-
 }

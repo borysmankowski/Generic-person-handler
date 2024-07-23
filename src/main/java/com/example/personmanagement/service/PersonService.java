@@ -3,17 +3,16 @@ package com.example.personmanagement.service;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.exception.ResourceVersionNotValidException;
 import com.example.personmanagement.mapper.PersonMapper;
-import com.example.personmanagement.strategy.PersonCreationStrategy;
-import com.example.personmanagement.repository.PersonRepository;
-import com.example.personmanagement.strategy.PersonUpdateStrategy;
-import com.example.personmanagement.utils.PersonValidator;
 import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.PersonDto;
-import com.example.personmanagement.search.PersonSpecification;
-import com.example.personmanagement.strategy.PersonStrategyFacade;
-import com.example.personmanagement.search.SearchCriteria;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
+import com.example.personmanagement.repository.PersonRepository;
+import com.example.personmanagement.search.PersonSpecification;
+import com.example.personmanagement.search.SearchCriteria;
+import com.example.personmanagement.strategy.PersonCreationStrategy;
+import com.example.personmanagement.strategy.PersonStrategyFacade;
+import com.example.personmanagement.strategy.PersonUpdateStrategy;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,17 +30,13 @@ import java.util.List;
 public class PersonService {
 
     private final PersonRepository personRepository;
-
     private final PersonMapper personMapper;
-
-    private final PersonValidator personValidator;
-
     private final PersonStrategyFacade personStrategyFacade;
+    private final PersonSpecification personSpecification;
 
     public PersonDto create(CreatePersonCommand command) {
         PersonCreationStrategy creationStrategy = personStrategyFacade.getCreationStrategy(command.getType());
         Person newPerson = creationStrategy.create(command);
-        personValidator.validate(newPerson);
         return personMapper.toDto(personRepository.save(newPerson));
     }
 
@@ -50,7 +45,7 @@ public class PersonService {
         Specification<Person> specification = PersonSpecification.any();
 
         for (SearchCriteria criteria : searchCriteria) {
-            specification = PersonSpecification.addSpecification(specification, criteria);
+            specification = personSpecification.addSpecification(specification, criteria);
         }
 
         Page<Person> result = personRepository.findAll(specification, pageable);

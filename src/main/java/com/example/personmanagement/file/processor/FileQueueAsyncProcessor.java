@@ -7,6 +7,7 @@ import org.springframework.integration.jdbc.lock.DefaultLockRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class FileQueueAsyncProcessor {
         Lock lock = lockConfiguration.jdbcLockRegistry(lockRepository).obtain(LOCK_KEY);
         if (lock.tryLock()) {
             try {
-                var fileId = fileQueueProcessor.findFileToProcess();
+                Optional<Long> fileId = fileQueueProcessor.findFileToProcess();
                 while (fileId.isPresent()) {
                     fileId.ifPresent(fileQueueProcessor::processFileQueue);
                     fileId = fileQueueProcessor.findFileToProcess();
