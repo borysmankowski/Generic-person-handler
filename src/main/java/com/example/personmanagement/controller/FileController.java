@@ -33,8 +33,8 @@ public class FileController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'IMPORTER')")
-    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        FileUploadResponse uploadResponse = fileService.uploadFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
+    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) {
+        FileUploadResponse uploadResponse = fileService.uploadFile(file);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(uploadResponse);
     }
 }

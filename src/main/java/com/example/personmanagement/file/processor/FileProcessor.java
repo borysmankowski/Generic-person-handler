@@ -54,9 +54,9 @@ public class FileProcessor {
                 data = line.split(",");
                 pesel = data[3];
 
-                if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) != null) {
-                    throw new DuplicateResourceException("Duplicate PESEL found: " + pesel);
-                }
+//                if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) != null) {
+//                    throw new DuplicateResourceException("Duplicate PESEL found: " + pesel);
+//                }
                 batchData.add(data);
                 processedLines.getAndIncrement();
 

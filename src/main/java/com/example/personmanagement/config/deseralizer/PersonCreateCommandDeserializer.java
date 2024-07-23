@@ -20,7 +20,7 @@ public class PersonCreateCommandDeserializer extends JsonDeserializer<CreatePers
 
     public PersonCreateCommandDeserializer(List<CreateCommandTypeRegistrar> createCommandTypeRegistrars) {
         createCommandTypeRegistrars.forEach(commandTypeRegistrar -> commandTypeRegistrar.registerCreateCommandTypes(commandTypeMap));
-    }
+    } // TODO: 23/07/2024 make them generic for update and create
 
     @Override
     public CreatePersonCommand deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {

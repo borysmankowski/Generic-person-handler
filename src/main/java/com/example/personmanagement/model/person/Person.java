@@ -33,6 +33,8 @@ public class Person {
     private String type;
     private String name;
     private String surname;
+//    @Column(unique = true)
+// TODO: 23/07/2024 uncomment
     private String pesel;
     private double height;
     private double weight;
