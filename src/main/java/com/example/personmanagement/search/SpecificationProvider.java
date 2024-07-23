@@ -6,5 +6,6 @@ import org.springframework.data.jpa.domain.Specification;
 public interface SpecificationProvider {
 
     boolean supports(SearchCriteria criteria);
+
     Specification<Person> getSpecification(SearchCriteria criteria);
 }

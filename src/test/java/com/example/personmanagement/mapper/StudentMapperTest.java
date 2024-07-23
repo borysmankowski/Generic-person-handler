@@ -51,6 +51,7 @@ class StudentMapperTest {
         assertEquals("Computer Science", studentDto.getCourseName());
         assertEquals(500.0, studentDto.getScholarship());
     }
+
     @Test
     void toDto_withInvalidType() {
         Person person = new Person();

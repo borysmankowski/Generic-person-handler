@@ -36,7 +36,6 @@ public class FileProcessor {
     public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
-        ConcurrentHashMap<String, Boolean> uniquePeselSet = new ConcurrentHashMap<>();
         long currentLine = 0;
 
         try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
@@ -46,17 +45,10 @@ public class FileProcessor {
             while (currentLine < batchStart && reader.readLine() != null) {
                 currentLine++;
             }
-
             String[] data;
-            String pesel;
 
             while ((line = reader.readLine()) != null && processedLines.get() < batchSize) {
                 data = line.split(",");
-                pesel = data[3];
-
-//                if (uniquePeselSet.putIfAbsent(pesel, Boolean.TRUE) != null) {
-//                    throw new DuplicateResourceException("Duplicate PESEL found: " + pesel);
-//                }
                 batchData.add(data);
                 processedLines.getAndIncrement();
 

@@ -1,4 +1,4 @@
-package com.example.personmanagement.employee.position;
+package com.example.personmanagement.service;
 
 import com.example.personmanagement.exception.JobOverlappingException;
 import com.example.personmanagement.exception.ResourceNotFoundException;

@@ -1,12 +1,6 @@
 package com.example.personmanagement.search;
 
-import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.model.person.Person;
-import com.example.personmanagement.model.position.JobPosition;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +19,18 @@ public class PersonSpecification {
 
     public static Specification<Person> any() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(criteriaBuilder.literal(true));
+    }
+
+    private static LocalDate parseDate(Object value) {
+        try {
+            return LocalDate.parse((String) value);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private static boolean isDate(Object value) {
+        return parseDate(value) != null;
     }
 
     public Specification<Person> addSpecification(Specification<Person> specification, SearchCriteria criteria) {
@@ -88,17 +94,5 @@ public class PersonSpecification {
                 }
             }
         };
-    }
-
-    private static LocalDate parseDate(Object value) {
-        try {
-            return LocalDate.parse((String) value);
-        } catch (DateTimeParseException e) {
-            return null;
-        }
-    }
-
-    private static boolean isDate(Object value) {
-        return parseDate(value) != null;
     }
 }

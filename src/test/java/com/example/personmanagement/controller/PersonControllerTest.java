@@ -1,4 +1,4 @@
-package com.example.personmanagement.person;
+package com.example.personmanagement.controller;
 
 import com.example.personmanagement.model.employee.CreateEmployeeCommand;
 import com.example.personmanagement.model.employee.EmployeeDto;
