@@ -9,6 +9,7 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update  # or your preferred value
+    show-sql: true
     defer-datasource-initialization: true
   sql:
     init:
