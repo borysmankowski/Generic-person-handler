@@ -19,9 +19,7 @@ import java.util.List;
 
 @Configuration
 @EnableGlobalMethodSecurity(
-        prePostEnabled = true,
-        securedEnabled = true,
-        jsr250Enabled = true)
+        prePostEnabled = true)
 public class WebSecurityConfig {
 
     private static final String PERSON_URL_PATTERN = "/api/people/**";

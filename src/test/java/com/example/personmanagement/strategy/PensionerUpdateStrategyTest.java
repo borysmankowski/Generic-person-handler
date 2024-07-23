@@ -7,7 +7,9 @@ import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PensionerUpdateStrategyTest {
 
@@ -46,13 +48,15 @@ class PensionerUpdateStrategyTest {
     void update_withInvalidCommandType_shouldThrowInvalidStrategyTypeException() {
         Person existingPerson = new Pensioner();
 
-        UpdatePersonCommand invalidCommand = new UpdatePersonCommand() {};
+        UpdatePersonCommand invalidCommand = new UpdatePersonCommand() {
+        };
         assertThrows(InvalidStrategyTypeException.class, () -> strategy.update(existingPerson, invalidCommand));
     }
 
     @Test
     void update_withInvalidExistingPersonType_shouldThrowIllegalArgumentException() {
-        Person existingPerson = new Person() {};
+        Person existingPerson = new Person() {
+        };
 
         UpdatePensionerCommand validCommand = new UpdatePensionerCommand();
         assertThrows(IllegalArgumentException.class, () -> strategy.update(existingPerson, validCommand));

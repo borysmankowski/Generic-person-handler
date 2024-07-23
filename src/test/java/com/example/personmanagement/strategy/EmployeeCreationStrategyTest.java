@@ -6,7 +6,9 @@ import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.model.person.CreatePersonCommand;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EmployeeCreationStrategyTest {
 

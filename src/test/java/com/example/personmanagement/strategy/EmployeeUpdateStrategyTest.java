@@ -7,7 +7,9 @@ import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EmployeeUpdateStrategyTest {
     private final EmployeeUpdateStrategy strategy = new EmployeeUpdateStrategy();

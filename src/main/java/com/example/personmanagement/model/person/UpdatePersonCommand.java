@@ -6,7 +6,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.pl.PESEL;
 
 @Data
-public class UpdatePersonCommand {
+public abstract class UpdatePersonCommand {
 
     private String type;
     @NotBlank(message = "Name cannot be blank")
