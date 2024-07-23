@@ -1,6 +1,8 @@
 package com.example.personmanagement.controller;
 
+import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.model.employee.CreateEmployeeCommand;
+import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.model.employee.EmployeeDto;
 import com.example.personmanagement.model.employee.UpdateEmployeeCommand;
 import com.example.personmanagement.model.pensioner.CreatePensionerCommand;
@@ -11,7 +13,7 @@ import com.example.personmanagement.search.SearchCriteria;
 import com.example.personmanagement.strategy.EmployeeCreationStrategy;
 import com.example.personmanagement.strategy.PersonCreationStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,9 +24,16 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -45,21 +54,6 @@ class PersonControllerTest {
     @Autowired
     private PersonRepository personRepository;
 
-    private static Person getPerson() {
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("surname");
-        createEmployeeCommand.setPesel("50071262432");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
-
-        PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
-
-        return creationStrategy.create(createEmployeeCommand);
-    }
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void createPerson() throws Exception {
@@ -78,6 +72,14 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.surname").value(newPerson.getSurname()))
                 .andExpect(jsonPath("$.emailAddress").value(newPerson.getEmailAddress()));
 
+    }
+
+    private List<String> fetchP6SpyLogs() throws IOException {
+
+        final String LOG_FILE_PATH = "spy.log";
+
+        return Files.lines(Paths.get(LOG_FILE_PATH))
+                .collect(Collectors.toList());
     }
 
     @Test
@@ -156,7 +158,7 @@ class PersonControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void UpdatePersonDetails() throws Exception {
+    void UpdatePersonDetails_ShouldIncrementVersion() throws Exception {
         UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
         updateEmployeeCommand.setType("EMPLOYEE");
         updateEmployeeCommand.setName("newName");
@@ -178,14 +180,122 @@ class PersonControllerTest {
 
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
+        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+
         mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(updateEmployeeCommand.getName()))
-                .andExpect(jsonPath("$.surname").value(updateEmployeeCommand.getSurname()))
-                .andExpect(jsonPath("$.emailAddress").value(updateEmployeeCommand.getEmailAddress()));
+                .andExpect(status().isOk());
+
+        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+
+        assertNotEquals(employeeBeforeUpdate.getVersion(), employeeAfterUpdate.getVersion());
+        assertEquals(1, employeeAfterUpdate.getVersion());
+
+        // Sprawdzenie czy dane zostały zaktualizowane
+        assertEquals(updateEmployeeCommand.getName(), employeeAfterUpdate.getName());
+        assertEquals(updateEmployeeCommand.getSurname(), employeeAfterUpdate.getSurname());
+        assertEquals(updateEmployeeCommand.getEmailAddress(), employeeAfterUpdate.getEmailAddress());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void UpdatePersonDetails_ShouldIncrementVersion_ShouldHave2Queries() throws Exception {
+
+        UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
+        updateEmployeeCommand.setType("EMPLOYEE");
+        updateEmployeeCommand.setName("newName");
+        updateEmployeeCommand.setSurname("newSurname");
+        updateEmployeeCommand.setPesel("00250714618");
+        updateEmployeeCommand.setHeight(180);
+        updateEmployeeCommand.setWeight(80);
+        updateEmployeeCommand.setEmailAddress("newemail@test.com");
+        updateEmployeeCommand.setVersion("v1");
+
+        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        createEmployeeCommand.setType("EMPLOYEE");
+        createEmployeeCommand.setName("name");
+        createEmployeeCommand.setSurname("Surname");
+        createEmployeeCommand.setPesel("00250714618");
+        createEmployeeCommand.setHeight(100);
+        createEmployeeCommand.setWeight(100);
+        createEmployeeCommand.setEmailAddress("email@email.com");
+
+        EmployeeDto employee = postEmployee(createEmployeeCommand);
+
+        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        List<String> logMessages = fetchP6SpyLogs();
+        List<String> selectQueries = logMessages.stream().filter(msg -> msg.startsWith("select")).toList();
+        List<String> updateQueries = logMessages.stream().filter(msg -> msg.startsWith("update")).toList();
+
+        assertEquals(1, selectQueries.size(), "Expected exactly one SELECT query");
+        assertEquals(1, updateQueries.size(), "Expected exactly one UPDATE query");
+
+        // Verify that the employee details were updated
+        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+
+        assertNotEquals(employeeBeforeUpdate.getVersion(), employeeAfterUpdate.getVersion());
+        assertEquals(1, employeeAfterUpdate.getVersion());
+
+        assertEquals(updateEmployeeCommand.getName(), employeeAfterUpdate.getName());
+        assertEquals(updateEmployeeCommand.getSurname(), employeeAfterUpdate.getSurname());
+        assertEquals(updateEmployeeCommand.getEmailAddress(), employeeAfterUpdate.getEmailAddress());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void UpdatePersonDetailsShouldFailDueToLostUpdate_VersionNotIncremented() throws Exception {
+        UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
+        updateEmployeeCommand.setType("EMPLOYEE");
+        updateEmployeeCommand.setName("newName");
+        updateEmployeeCommand.setSurname("newSurname");
+        updateEmployeeCommand.setPesel("00250714618");
+        updateEmployeeCommand.setHeight(180);
+        updateEmployeeCommand.setWeight(80);
+        updateEmployeeCommand.setEmailAddress("newemail@test.com");
+        updateEmployeeCommand.setVersion("v2");
+
+        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        createEmployeeCommand.setType("EMPLOYEE");
+        createEmployeeCommand.setName("name");
+        createEmployeeCommand.setSurname("Surname");
+        createEmployeeCommand.setPesel("00250714618");
+        createEmployeeCommand.setHeight(100);
+        createEmployeeCommand.setWeight(100);
+        createEmployeeCommand.setEmailAddress("email@email.com");
+
+        EmployeeDto employee = postEmployee(createEmployeeCommand);
+
+        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
+                .andDo(print())
+                .andExpect(status().isConflict());
+
+        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+
+        assertEquals(employeeBeforeUpdate.getVersion(), employeeAfterUpdate.getVersion());
+
+        // Sprawdzenie czy dane zostały zaktualizowane
+        assertNotEquals(updateEmployeeCommand.getName(), employeeAfterUpdate.getName());
+        assertNotEquals(updateEmployeeCommand.getSurname(), employeeAfterUpdate.getSurname());
+        assertNotEquals(updateEmployeeCommand.getEmailAddress(), employeeAfterUpdate.getEmailAddress());
     }
 
     @Test
@@ -282,30 +392,6 @@ class PersonControllerTest {
                         .content(objectMapper.writeValueAsString(pensioner2)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.timestamp").exists());
-    }
-
-    void postPensioner(CreatePensionerCommand pensioner) throws Exception {
-        mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(pensioner)))
-                .andExpect(status().isCreated());
-    }
-
-
-    void postStudent(CreateStudentCommand student) throws Exception {
-        mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(student)))
-                .andExpect(status().isCreated());
-    }
-
-    private EmployeeDto postEmployee(CreateEmployeeCommand requestBody) throws Exception {
-        var result = mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andReturn();
-        return objectMapper.readValue(result.getResponse().getContentAsString(), EmployeeDto.class);
     }
 
     @Test
@@ -455,7 +541,46 @@ class PersonControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @AfterEach
+    private static Person getPerson() {
+        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        createEmployeeCommand.setType("EMPLOYEE");
+        createEmployeeCommand.setName("name");
+        createEmployeeCommand.setSurname("surname");
+        createEmployeeCommand.setPesel("50071262432");
+        createEmployeeCommand.setHeight(100);
+        createEmployeeCommand.setWeight(100);
+        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
+
+        PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
+
+        return creationStrategy.create(createEmployeeCommand);
+    }
+
+    void postPensioner(CreatePensionerCommand pensioner) throws Exception {
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pensioner)))
+                .andExpect(status().isCreated());
+    }
+
+
+    void postStudent(CreateStudentCommand student) throws Exception {
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(student)))
+                .andExpect(status().isCreated());
+    }
+
+    private EmployeeDto postEmployee(CreateEmployeeCommand requestBody) throws Exception {
+        var result = mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andReturn();
+        return objectMapper.readValue(result.getResponse().getContentAsString(), EmployeeDto.class);
+    }
+
+    @BeforeEach
     public void setUp() {
         personRepository.deleteAll();
     }
