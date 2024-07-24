@@ -46,10 +46,12 @@ class FileServiceTest {
 
     @Mock
     private FileQueueAsyncProcessor fileQueueAsyncProcessor;
+
     @BeforeEach
     public void setUp() {
-        fileService = new FileService(fileStorage,fileQueueAsyncProcessor,fileInformationRepository);
+        fileService = new FileService(fileStorage, fileQueueAsyncProcessor, fileInformationRepository);
     }
+
     @Test
     void uploadFile_Success() throws Exception {
         // Arrange
