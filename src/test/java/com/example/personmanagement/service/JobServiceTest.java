@@ -8,7 +8,6 @@ import com.example.personmanagement.model.position.JobPosition;
 import com.example.personmanagement.model.position.PositionDto;
 import com.example.personmanagement.repository.JobPositionRepository;
 import com.example.personmanagement.repository.PersonRepository;
-import com.example.personmanagement.service.JobService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
