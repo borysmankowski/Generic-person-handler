@@ -65,8 +65,7 @@ public class PersonService {
         PersonDto personDto;
 
         try {
-            Person updatedPerson = updateStrategy.update(existingPerson, command);
-            personDto = personMapper.toDto(personRepository.save(updatedPerson));
+            personDto = personMapper.toDto(personRepository.save(updateStrategy.update(existingPerson, command)));
         } catch (OptimisticLockException exception) {
             throw new ResourceVersionNotValidException("Person was modified during your update, please fetch the newest version and retry");
         }

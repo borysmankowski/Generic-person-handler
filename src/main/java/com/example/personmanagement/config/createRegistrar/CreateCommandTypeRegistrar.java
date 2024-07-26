@@ -6,5 +6,4 @@ import java.util.Map;
 
 public interface CreateCommandTypeRegistrar {
     void registerCreateCommandTypes(Map<String, Class<? extends CreatePersonCommand>> commandTypeMap);
-
 }
