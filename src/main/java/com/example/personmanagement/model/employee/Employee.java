@@ -5,6 +5,9 @@ import com.example.personmanagement.model.position.JobPosition;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,9 +26,11 @@ import java.util.Set;
 @Entity
 @DiscriminatorValue("EMPLOYEE")
 @ToString(callSuper = true)
+@NamedEntityGraph(name = "Employee.jobPositions",
+        attributeNodes = @NamedAttributeNode("jobPositions"))
 public class Employee extends Person {
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true,fetch = FetchType.EAGER)
     private Set<JobPosition> jobPositions;
 
 }

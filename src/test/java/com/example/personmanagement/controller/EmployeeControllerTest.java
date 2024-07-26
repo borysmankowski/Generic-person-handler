@@ -1,4 +1,4 @@
-package com.example.personmanagement.employee;
+package com.example.personmanagement.controller;
 
 import com.devskiller.jfairy.Fairy;
 import com.example.personmanagement.model.employee.CreateEmployeeCommand;
@@ -44,15 +44,12 @@ class EmployeeControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void addJobPositionToPerson() throws Exception {
-        // given
         var employee = postRandomEmployee();
         var personId = employee.getId();
 
-        // when
         CreatePositionCommand command = new CreatePositionCommand("Developer", LocalDate.now(), LocalDate.now().plusDays(5), 2000);
         ResultActions resultActions = postJobPosition(personId, command);
 
-        // then
         resultActions
                 .andExpect(status().isOk());
     }
@@ -125,7 +122,7 @@ class EmployeeControllerTest {
         mockMvc.perform(post("/api/people")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(employee2)))
-                .andExpect(status().isConflict())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 

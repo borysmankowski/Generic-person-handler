@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface FileInformationRepository extends JpaRepository<FileInformation, Long> {
     Optional<FileInformation> findFirstByStatusOrderByCreatedAtAsc(FileStatus status);
 
-    Optional<FileInformation> findByFilePath(String filePath);
+//    boolean findByPesel(String number);
 }
