@@ -61,54 +61,6 @@ class PersonControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @Transactional
-    @AssertHibernateSQLCount(inserts = 1,selects = 1, updates = 1)
-    void updatePersonDetails_ShouldIncrementVersion_ShouldPerform2Queries() throws Exception {
-        UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
-        updateEmployeeCommand.setType("EMPLOYEE");
-        updateEmployeeCommand.setName("newName");
-        updateEmployeeCommand.setSurname("newSurname");
-        updateEmployeeCommand.setPesel("00250714618");
-        updateEmployeeCommand.setHeight(180);
-        updateEmployeeCommand.setWeight(80);
-        updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion("v1");
-
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("Surname");
-        createEmployeeCommand.setPesel("00250714618");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("email@email.com");
-
-        EmployeeDto employee = postEmployee(createEmployeeCommand);
-
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    private static Person getPerson() {
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("surname");
-        createEmployeeCommand.setPesel("50071262432");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
-
-        PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
-
-        return creationStrategy.create(createEmployeeCommand);
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
     void createPerson() throws Exception {
 
         Person newPerson = getPerson();
@@ -124,7 +76,6 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.name").value(newPerson.getName()))
                 .andExpect(jsonPath("$.surname").value(newPerson.getSurname()))
                 .andExpect(jsonPath("$.emailAddress").value(newPerson.getEmailAddress()));
-
     }
 
     @Test
@@ -243,6 +194,39 @@ class PersonControllerTest {
         assertEquals(updateEmployeeCommand.getName(), employeeAfterUpdate.getName());
         assertEquals(updateEmployeeCommand.getSurname(), employeeAfterUpdate.getSurname());
         assertEquals(updateEmployeeCommand.getEmailAddress(), employeeAfterUpdate.getEmailAddress());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @Transactional
+    @AssertHibernateSQLCount(inserts = 1,selects = 1, updates = 1)
+    void updatePersonDetails_ShouldIncrementVersion_ShouldPerform2Queries() throws Exception {
+        UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
+        updateEmployeeCommand.setType("EMPLOYEE");
+        updateEmployeeCommand.setName("newName");
+        updateEmployeeCommand.setSurname("newSurname");
+        updateEmployeeCommand.setPesel("00250714618");
+        updateEmployeeCommand.setHeight(180);
+        updateEmployeeCommand.setWeight(80);
+        updateEmployeeCommand.setEmailAddress("newemail@test.com");
+        updateEmployeeCommand.setVersion("v1");
+
+        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        createEmployeeCommand.setType("EMPLOYEE");
+        createEmployeeCommand.setName("name");
+        createEmployeeCommand.setSurname("Surname");
+        createEmployeeCommand.setPesel("00250714618");
+        createEmployeeCommand.setHeight(100);
+        createEmployeeCommand.setWeight(100);
+        createEmployeeCommand.setEmailAddress("email@email.com");
+
+        EmployeeDto employee = postEmployee(createEmployeeCommand);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -553,23 +537,23 @@ class PersonControllerTest {
         return objectMapper.readValue(result.getResponse().getContentAsString(), EmployeeDto.class);
     }
 
-    private Long createEmployeeAndGetId() throws Exception {
+    private static Person getPerson() {
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
         createEmployeeCommand.setType("EMPLOYEE");
         createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("Surname");
-        createEmployeeCommand.setPesel("00250714618");
+        createEmployeeCommand.setSurname("surname");
+        createEmployeeCommand.setPesel("50071262432");
         createEmployeeCommand.setHeight(100);
         createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("email@email.com");
+        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
 
-        EmployeeDto employee = postEmployee(createEmployeeCommand);
-        return employee.getId();
+        PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
+
+        return creationStrategy.create(createEmployeeCommand);
     }
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         personRepository.deleteAll();
-//        employeeId = createEmployeeAndGetId();
     }
 }

@@ -64,13 +64,13 @@ class PersonServiceTest {
     private PersonSpecification personSpecification;
 
     private PersonService personService;
-
-    @BeforeEach
-    void setUp(){personService = new PersonService(personRepository, personMapper, personStrategyFacade,personSpecification);
-    }
-
     @Captor
     private ArgumentCaptor<Person> personArgumentCaptor;
+
+    @BeforeEach
+    void setUp() {
+        personService = new PersonService(personRepository, personMapper, personStrategyFacade, personSpecification);
+    }
 
     @Test
     void create_ValidCommand_ReturnsEmployeeDto() {
