@@ -153,6 +153,102 @@ class PersonControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    void CreatePersonFailureBlankEmail() throws Exception {
+
+        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        createEmployeeCommand.setType("EMPLOYEE");
+        createEmployeeCommand.setName("name");
+        createEmployeeCommand.setSurname("Surname");
+        createEmployeeCommand.setPesel("77080165949");
+        createEmployeeCommand.setHeight(100);
+        createEmployeeCommand.setWeight(100);
+        createEmployeeCommand.setEmailAddress(" ");
+
+        String exceptionMsg = "must be a well-formed email address";
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createEmployeeCommand)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.message").value("validation errors"))
+                .andExpect(jsonPath("$.violations[0].field").value("emailAddress"))
+                .andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void givenStudentsWithSamePESEL_WhenCreateStudents_ThenShouldFail() throws Exception {
+        // given
+        String pesel = "99010264551";
+
+        CreateStudentCommand student1 = new CreateStudentCommand();
+        student1.setType("STUDENT");
+        student1.setName("John");
+        student1.setSurname("Doe");
+        student1.setEmailAddress("john@example.com");
+        student1.setPesel(pesel);
+        student1.setNameOfUniversity("University A");
+        student1.setYearOfStudies(2);
+        student1.setCourseName("Computer Science");
+        student1.setScholarship(1000.0);
+        postStudent(student1);
+
+        // when
+        CreateStudentCommand student2 = new CreateStudentCommand();
+        student2.setType("STUDENT");
+        student2.setName("Jane");
+        student2.setSurname("Doe");
+        student2.setEmailAddress("jane@example.com");
+        student2.setPesel(pesel);
+        student2.setNameOfUniversity("University B");
+        student2.setYearOfStudies(3);
+        student2.setCourseName("Electrical Engineering");
+        student2.setScholarship(1200.0);
+
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(student2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void givenPensionersWithSamePESEL_WhenCreatePensioners_ThenShouldFail() throws Exception {
+        // given
+        String pesel = "99010264551";
+
+        CreatePensionerCommand pensioner1 = new CreatePensionerCommand();
+        pensioner1.setType("PENSIONER");
+        pensioner1.setName("John");
+        pensioner1.setSurname("Doe");
+        pensioner1.setEmailAddress("john@example.com");
+        pensioner1.setPesel(pesel);
+        pensioner1.setPensionAmount(2000.0);
+        pensioner1.setWorkedYears(30);
+        postPensioner(pensioner1);
+
+        // when
+        CreatePensionerCommand pensioner2 = new CreatePensionerCommand();
+        pensioner2.setType("PENSIONER");
+        pensioner2.setName("Jane");
+        pensioner2.setSurname("Doe");
+        pensioner2.setEmailAddress("jane@example.com");
+        pensioner2.setPesel(pesel);
+        pensioner2.setPensionAmount(1800.0);
+        pensioner2.setWorkedYears(25);
+
+        mockMvc.perform(post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pensioner2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
     void UpdatePersonDetails_ShouldIncrementVersion() throws Exception {
         UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
         updateEmployeeCommand.setType("EMPLOYEE");
@@ -269,102 +365,6 @@ class PersonControllerTest {
         assertNotEquals(updateEmployeeCommand.getName(), employeeAfterUpdate.getName());
         assertNotEquals(updateEmployeeCommand.getSurname(), employeeAfterUpdate.getSurname());
         assertNotEquals(updateEmployeeCommand.getEmailAddress(), employeeAfterUpdate.getEmailAddress());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void CreatePersonFailureBlankEmail() throws Exception {
-
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("Surname");
-        createEmployeeCommand.setPesel("77080165949");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress(" ");
-
-        String exceptionMsg = "must be a well-formed email address";
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.message").value("validation errors"))
-                .andExpect(jsonPath("$.violations[0].field").value("emailAddress"))
-                .andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void givenStudentsWithSamePESEL_WhenCreateStudents_ThenShouldFail() throws Exception {
-        // given
-        String pesel = "99010264551";
-
-        CreateStudentCommand student1 = new CreateStudentCommand();
-        student1.setType("STUDENT");
-        student1.setName("John");
-        student1.setSurname("Doe");
-        student1.setEmailAddress("john@example.com");
-        student1.setPesel(pesel);
-        student1.setNameOfUniversity("University A");
-        student1.setYearOfStudies(2);
-        student1.setCourseName("Computer Science");
-        student1.setScholarship(1000.0);
-        postStudent(student1);
-
-        // when
-        CreateStudentCommand student2 = new CreateStudentCommand();
-        student2.setType("STUDENT");
-        student2.setName("Jane");
-        student2.setSurname("Doe");
-        student2.setEmailAddress("jane@example.com");
-        student2.setPesel(pesel);
-        student2.setNameOfUniversity("University B");
-        student2.setYearOfStudies(3);
-        student2.setCourseName("Electrical Engineering");
-        student2.setScholarship(1200.0);
-
-        mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(student2)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void givenPensionersWithSamePESEL_WhenCreatePensioners_ThenShouldFail() throws Exception {
-        // given
-        String pesel = "99010264551";
-
-        CreatePensionerCommand pensioner1 = new CreatePensionerCommand();
-        pensioner1.setType("PENSIONER");
-        pensioner1.setName("John");
-        pensioner1.setSurname("Doe");
-        pensioner1.setEmailAddress("john@example.com");
-        pensioner1.setPesel(pesel);
-        pensioner1.setPensionAmount(2000.0);
-        pensioner1.setWorkedYears(30);
-        postPensioner(pensioner1);
-
-        // when
-        CreatePensionerCommand pensioner2 = new CreatePensionerCommand();
-        pensioner2.setType("PENSIONER");
-        pensioner2.setName("Jane");
-        pensioner2.setSurname("Doe");
-        pensioner2.setEmailAddress("jane@example.com");
-        pensioner2.setPesel(pesel);
-        pensioner2.setPensionAmount(1800.0);
-        pensioner2.setWorkedYears(25);
-
-        mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(pensioner2)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists());
     }
 
     @Test
