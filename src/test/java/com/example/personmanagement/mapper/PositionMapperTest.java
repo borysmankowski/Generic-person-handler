@@ -74,4 +74,3 @@ class PositionMapperTest {
         assertNull(jobPosition.getEndDate());
     }
 }
-}
