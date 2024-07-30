@@ -27,7 +27,6 @@ public class SalarySpecificationProvider implements SpecificationProvider {
 
             if (minSalary > maxSalary) {
                 throw new SalaryNotValidException("Min salary cannot be greater than max salary");
-                // TODO: 23/07/2024 Zmienic exception na jakis normalny
             }
 
             Subquery<JobPosition> subquery = query.subquery(JobPosition.class);
