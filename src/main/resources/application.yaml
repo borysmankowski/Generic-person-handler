@@ -10,6 +10,11 @@ spring:
     hibernate:
       ddl-auto: update  # or your preferred value
     defer-datasource-initialization: true
+    properties:
+      hibernate.session_factory.statement_inspector: com.mickaelb.integration.hibernate.HibernateStatementInspector
+      hibernate.show_sql: true
+      hibernate.format_sql: true
+      hibernate.generate_statistics: true
   sql:
     init:
       mode: always
