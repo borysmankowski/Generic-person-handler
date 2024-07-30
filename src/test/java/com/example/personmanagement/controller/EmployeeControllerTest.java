@@ -1,4 +1,4 @@
-package com.example.personmanagement.employee;
+package com.example.personmanagement.controller;
 
 import com.devskiller.jfairy.Fairy;
 import com.example.personmanagement.model.employee.CreateEmployeeCommand;
