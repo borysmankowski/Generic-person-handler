@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mickaelb.api.AssertHibernateSQLCount;
 import com.mickaelb.integration.spring.HibernateAssertTestListener;
 import jakarta.transaction.Transactional;
-import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -59,10 +57,25 @@ class PersonControllerTest {
     @Autowired
     private PersonRepository personRepository;
 
+    private static Person getPerson() {
+        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        createEmployeeCommand.setType("EMPLOYEE");
+        createEmployeeCommand.setName("name");
+        createEmployeeCommand.setSurname("surname");
+        createEmployeeCommand.setPesel("50071262432");
+        createEmployeeCommand.setHeight(100);
+        createEmployeeCommand.setWeight(100);
+        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
+
+        PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
+
+        return creationStrategy.create(createEmployeeCommand);
+    }
+
     @Test
     @WithMockUser(roles = "ADMIN")
     @Transactional
-    @AssertHibernateSQLCount(inserts = 1,selects = 1, updates = 1)
+    @AssertHibernateSQLCount(inserts = 1, selects = 1, updates = 1)
     void updatePersonDetails_ShouldIncrementVersion_ShouldPerform2Queries() throws Exception {
         UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
         updateEmployeeCommand.setType("EMPLOYEE");
@@ -90,21 +103,6 @@ class PersonControllerTest {
                         .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
                 .andDo(print())
                 .andExpect(status().isOk());
-    }
-
-    private static Person getPerson() {
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("surname");
-        createEmployeeCommand.setPesel("50071262432");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
-
-        PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
-
-        return creationStrategy.create(createEmployeeCommand);
     }
 
     @Test
@@ -569,7 +567,7 @@ class PersonControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-      personRepository.deleteAll();
+        personRepository.deleteAll();
 //        employeeId = createEmployeeAndGetId();
     }
 }
