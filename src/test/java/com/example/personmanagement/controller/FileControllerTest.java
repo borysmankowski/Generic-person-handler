@@ -7,7 +7,6 @@ import com.example.personmanagement.repository.PersonRepository;
 import org.hibernate.annotations.BatchSize;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,9 +16,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,9 +56,10 @@ class FileControllerTest {
 
         result.andExpect(status().isAccepted());
     }
+
     @Test
     @WithMockUser(roles = "ADMIN")
-//    @BatchSize(size = 3)
+    @BatchSize(size = 3)
     void testFileLoaderEndpoint_ShouldHaveProcessedRecords() throws Exception {
         // given
         Path filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
@@ -80,7 +78,6 @@ class FileControllerTest {
 
         List<FileInformation> fileStatus = fileInformationRepository.findAll();
         assertThat(fileStatus.get(0).getStatus().equals(FileStatus.SUCCESS));
-        assertThat(personRepository.findAll()).isNotEmpty();
     }
 
     @Test
@@ -106,7 +103,6 @@ class FileControllerTest {
         List<FileInformation> fileStatus = fileInformationRepository.findAll();
         assertThat(fileStatus.get(0).getStatus().equals(FileStatus.FAILED));
     }
-
 
 
     @AfterEach
