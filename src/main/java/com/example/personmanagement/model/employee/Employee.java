@@ -30,7 +30,7 @@ import java.util.Set;
         attributeNodes = @NamedAttributeNode("jobPositions"))
 public class Employee extends Person {
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<JobPosition> jobPositions;
 
 }

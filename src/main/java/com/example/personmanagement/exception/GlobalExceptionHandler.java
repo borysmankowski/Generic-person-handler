@@ -14,7 +14,7 @@ import java.io.IOException;
 
 @RestControllerAdvice
 @Slf4j
-public class GlobalExceptionHanlder {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorDto> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
@@ -83,5 +83,11 @@ public class GlobalExceptionHanlder {
     public ResponseEntity<ExceptionDto> handleInvalidStrategyTypeException(InvalidStrategyTypeException exception) {
         log.error("Strategy Type exception", exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto("Not found strategy type!"));
+    }
+
+    @ExceptionHandler(SalaryNotValidException.class)
+    public ResponseEntity<ExceptionDto> handleSalaryNotValidException(SalaryNotValidException exception) {
+        log.error("Salary Not Valid exception", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto(exception.getMessage()));
     }
 }

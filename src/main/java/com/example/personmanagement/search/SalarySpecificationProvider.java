@@ -1,5 +1,6 @@
 package com.example.personmanagement.search;
 
+import com.example.personmanagement.exception.SalaryNotValidException;
 import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.position.JobPosition;
@@ -25,7 +26,7 @@ public class SalarySpecificationProvider implements SpecificationProvider {
             Double maxSalary = Double.parseDouble(criteria.getSecondValue().toString());
 
             if (minSalary > maxSalary) {
-                throw new IllegalArgumentException("Min salary cannot be greater than max salary");
+                throw new SalaryNotValidException("Min salary cannot be greater than max salary");
                 // TODO: 23/07/2024 Zmienic exception na jakis normalny
             }
 
