@@ -2,6 +2,7 @@ package com.example.personmanagement.controller;
 
 import com.example.personmanagement.model.file.FileInformation;
 import com.example.personmanagement.model.file.FileStatus;
+import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.repository.FileInformationRepository;
 import com.example.personmanagement.repository.PersonRepository;
 import org.hibernate.annotations.BatchSize;
@@ -21,8 +22,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -62,10 +66,11 @@ class FileControllerTest {
     @BatchSize(size = 3)
     void testFileLoaderEndpoint_ShouldHaveProcessedRecords() throws Exception {
         // given
+        String uniqueFileName = "testFile-" + UUID.randomUUID() + ".csv";
         Path filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         MockMultipartFile file = new MockMultipartFile(
                 "file",
-                "testFile.csv",
+                uniqueFileName,
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.readAllBytes(filePath)
         );
@@ -74,12 +79,22 @@ class FileControllerTest {
                 .file(file));
 
         result.andExpect(status().isAccepted());
-        Thread.sleep(10 * 1000);
-        assertThat(fileInformationRepository.findAll()).isNotEmpty();
 
-        List<FileInformation> fileStatus = fileInformationRepository.findAll();
-        assertThat(fileStatus.get(0).getStatus()).isEqualTo(FileStatus.SUCCESS);
-        assertThat(personRepository.findAll()).isNotEmpty();
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            List<FileInformation> fileInformationList = fileInformationRepository.findAll();
+            assertThat(fileInformationList).anyMatch(fileInfo -> fileInfo.getFilePath().contains(uniqueFileName));
+        });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            List<FileInformation> fileStatus = fileInformationRepository.findAll();
+            assertThat(fileStatus.stream().filter(fileInfo -> fileInfo.getFilePath().contains(uniqueFileName))
+                    .findFirst().orElseThrow().getStatus()).isEqualTo(FileStatus.SUCCESS);
+        });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            List<Person> persons = personRepository.findAll();
+            assertThat(persons).isNotEmpty();
+        });
     }
 
     @Test
@@ -87,10 +102,11 @@ class FileControllerTest {
     @BatchSize(size = 1)
     void testFileLoaderEndpoint_ShouldRollbackDueToDuplicates() throws Exception {
         // given
+        String uniqueFileName = "testFile-" + UUID.randomUUID().toString() + ".csv";
         Path filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         MockMultipartFile file = new MockMultipartFile(
                 "file",
-                "testFile.csv",
+                uniqueFileName,
                 MediaType.TEXT_PLAIN_VALUE,
                 Files.readAllBytes(filePath)
         );
@@ -99,12 +115,22 @@ class FileControllerTest {
                 .file(file));
 
         result.andExpect(status().isAccepted());
-        Thread.sleep(10 * 1000);
-        assertThat(fileInformationRepository.findAll()).isNotEmpty();
-        assertThat(personRepository.findAll()).isEmpty();
 
-        List<FileInformation> fileStatus = fileInformationRepository.findAll();
-        assertThat(fileStatus.get(0).getStatus().equals(FileStatus.FAILED));
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            List<FileInformation> fileInformationList = fileInformationRepository.findAll();
+            assertThat(fileInformationList).anyMatch(fileInfo -> fileInfo.getFilePath().contains(uniqueFileName));
+        });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            List<Person> persons = personRepository.findAll();
+            assertThat(persons).isEmpty();
+        });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            List<FileInformation> fileStatus = fileInformationRepository.findAll();
+            assertThat(fileStatus.stream().filter(fileInfo -> fileInfo.getFilePath().contains(uniqueFileName))
+                    .findFirst().orElseThrow().getStatus()).isEqualTo(FileStatus.FAILED);
+        });
     }
 
     @AfterEach
