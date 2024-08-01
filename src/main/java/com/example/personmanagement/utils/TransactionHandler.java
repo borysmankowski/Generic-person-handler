@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TransactionHandler {
-
     @Transactional(propagation = Propagation.REQUIRED)
     public void executeInTransaction(VoidSupplier supplier) {
         supplier.get();

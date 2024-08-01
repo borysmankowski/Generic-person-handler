@@ -21,5 +21,4 @@ public class PositionDto {
     private LocalDate endDate;
     private double salary;
     private long employeeId;
-
 }

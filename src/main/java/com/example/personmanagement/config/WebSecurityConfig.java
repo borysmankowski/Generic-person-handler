@@ -1,11 +1,11 @@
-package com.example.personmanagement.security;
+package com.example.personmanagement.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,10 +16,8 @@ import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.List;
-
 @Configuration
-@EnableGlobalMethodSecurity(
-        prePostEnabled = true)
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     private static final String PERSON_URL_PATTERN = "/api/people/**";
@@ -43,12 +41,8 @@ public class WebSecurityConfig {
                         .requestMatchers(mvcMatcherBuilder.pattern(EMPLOYEE_URL_PATTERN)).permitAll()
                         .requestMatchers(mvcMatcherBuilder.pattern(UPLOAD_URL_PATTERN)).permitAll()
                         .anyRequest().authenticated()
-
-
         );
-
         http.httpBasic(Customizer.withDefaults());
-
         return http.build();
     }
 

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 @Component("studentUpdateStrategy")
 public class StudentUpdateStrategy implements PersonUpdateStrategy {
-
     @Override
     public Person update(Person existingPerson, UpdatePersonCommand command) {
         if (!(command instanceof UpdateStudentCommand studentCommand)) {

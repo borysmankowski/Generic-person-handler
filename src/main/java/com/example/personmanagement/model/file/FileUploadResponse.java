@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class FileUploadResponse {
-
     private String message;
     private String fileName;
 }

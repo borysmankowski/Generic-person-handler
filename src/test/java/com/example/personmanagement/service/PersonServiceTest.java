@@ -75,7 +75,6 @@ class PersonServiceTest {
     @Test
     void create_ValidCommand_ReturnsEmployeeDto() {
 
-        // Given
         CreateEmployeeCommand command = new CreateEmployeeCommand();
         command.setType("EMPLOYEE");
         command.setName("Darek");
@@ -109,10 +108,8 @@ class PersonServiceTest {
         when(personRepository.save(any(Employee.class))).thenReturn(employee);
         when(personMapper.toDto(any(Employee.class))).thenReturn(personDto);
 
-        // When
         PersonDto result = personService.create(command);
 
-        // Then
         assertNotNull(result);
         assertEquals(personDto.getId(), result.getId());
         assertEquals(personDto.getName(), result.getName());
@@ -147,7 +144,7 @@ class PersonServiceTest {
 
     @Test
     public void searchPersons_ShouldReturnPersonPage() {
-        // Setup
+
         Person person1 = new Person();
         person1.setId(2L);
         person1.setName("John");
@@ -197,7 +194,7 @@ class PersonServiceTest {
 
     @Test
     void testUpdateAnyPerson_Success() {
-        // given
+
         Employee existingEmployee = new Employee();
         existingEmployee.setId(1L);
         existingEmployee.setType("EMPLOYEE");
@@ -223,7 +220,7 @@ class PersonServiceTest {
         UpdateEmployeeCommand command = new UpdateEmployeeCommand();
         command.setType("EMPLOYEE");
         command.setName("New Name");
-        command.setVersion("v2");
+        command.setVersion(2);
 
         PersonDto expectedPersonDto = new PersonDto();
         expectedPersonDto.setName("New Name");
@@ -258,7 +255,7 @@ class PersonServiceTest {
         UpdateEmployeeCommand command = new UpdateEmployeeCommand();
         command.setType("EMPLOYEE");
         command.setName("New Name");
-        command.setVersion("v2");
+        command.setVersion(2);
 
         when(personRepository.findById(existingEmployee.getId())).thenReturn(Optional.of(existingEmployee));
         when(personStrategyFacade.getUpdateStrategy("EMPLOYEE")).thenReturn(employeeUpdateStrategy);

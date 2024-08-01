@@ -9,7 +9,6 @@ import java.util.Map;
 
 @Component
 public class EmployeeCreateCommandTypeRegistrar implements CommandTypeRegistrar<CreatePersonCommand> {
-
     @Override
     public void registerCommandTypes(Map<String, Class<? extends CreatePersonCommand>> commandTypeMap) {
         commandTypeMap.put("EMPLOYEE", CreateEmployeeCommand.class);

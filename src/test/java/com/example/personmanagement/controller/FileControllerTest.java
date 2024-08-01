@@ -104,11 +104,9 @@ class FileControllerTest {
         assertThat(fileStatus.get(0).getStatus().equals(FileStatus.FAILED));
     }
 
-
     @AfterEach
     public void setUp() {
         fileInformationRepository.deleteAll();
         personRepository.deleteAll();
     }
-
 }

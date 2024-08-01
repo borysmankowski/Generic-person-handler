@@ -9,12 +9,10 @@ import javax.sql.DataSource;
 
 @Configuration
 public class LockConfiguration {
-
     @Bean
     public DefaultLockRepository defaultLockRepository(DataSource dataSource) {
         return new DefaultLockRepository(dataSource);
     }
-
     @Bean
     public JdbcLockRegistry jdbcLockRegistry(DefaultLockRepository defaultLockRepository) {
         return new JdbcLockRegistry(defaultLockRepository);

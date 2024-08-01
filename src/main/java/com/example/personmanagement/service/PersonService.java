@@ -57,7 +57,7 @@ public class PersonService {
         Person existingPerson = personRepository.findById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
 
-        int commandVersion = Integer.parseInt(command.getVersion().substring(1)) - 1;
+        int commandVersion = (command.getVersion()) - 1;
 
         if (existingPerson.getVersion() != commandVersion) {
             throw new ResourceVersionNotValidException("Person was modified during your update, please fetch the newest version and retry");

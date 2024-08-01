@@ -14,7 +14,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Configuration
 public class PersonCreateConfiguration {
-
     @Bean
     public Module personCreateDeserializers(List<CommandTypeRegistrar<CreatePersonCommand>> registrars) {
         return new SimpleModule()
