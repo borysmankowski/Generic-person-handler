@@ -74,7 +74,6 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.name").value(newPerson.getName()))
                 .andExpect(jsonPath("$.surname").value(newPerson.getSurname()))
                 .andExpect(jsonPath("$.emailAddress").value(newPerson.getEmailAddress()));
-
     }
 
     @Test
@@ -258,7 +257,7 @@ class PersonControllerTest {
         updateEmployeeCommand.setHeight(180);
         updateEmployeeCommand.setWeight(80);
         updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion("v1");
+        updateEmployeeCommand.setVersion(1);
 
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
         createEmployeeCommand.setType("EMPLOYEE");
@@ -304,7 +303,7 @@ class PersonControllerTest {
         updateEmployeeCommand.setHeight(180);
         updateEmployeeCommand.setWeight(80);
         updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion("v1");
+        updateEmployeeCommand.setVersion(1);
 
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
         createEmployeeCommand.setType("EMPLOYEE");
@@ -335,7 +334,7 @@ class PersonControllerTest {
         updateEmployeeCommand.setHeight(180);
         updateEmployeeCommand.setWeight(80);
         updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion("v2");
+        updateEmployeeCommand.setVersion(2);
 
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
         createEmployeeCommand.setType("EMPLOYEE");
@@ -550,7 +549,6 @@ class PersonControllerTest {
 
         return creationStrategy.create(createEmployeeCommand);
     }
-
 
     @BeforeEach
     void setUp() {

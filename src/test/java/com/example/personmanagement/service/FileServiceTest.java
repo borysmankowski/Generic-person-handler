@@ -54,7 +54,7 @@ class FileServiceTest {
 
     @Test
     void uploadFile_Success() throws Exception {
-        // Arrange
+
         String originalFilename = "testfile.txt";
         long byteSize = 123L;
         String uniqueFilename = "unique_testfile.txt";
@@ -66,10 +66,8 @@ class FileServiceTest {
         when(fileStorage.save(any(InputStream.class), eq(originalFilename), eq(byteSize)))
                 .thenReturn(uniqueFilename);
 
-        // Act
         FileUploadResponse response = fileService.uploadFile(multipartFile);
 
-        // Assert
         assertEquals("File uploaded successfully. File name: unique_testfile.txt", response.getMessage());
         assertEquals(uniqueFilename, response.getFileName());
         verify(fileInformationRepository).save(any(FileInformation.class));
@@ -78,7 +76,7 @@ class FileServiceTest {
 
     @Test
     void uploadFile_FileSizeZeroOrNegative() {
-        // Arrange
+
         String originalFilename = "testfile.txt";
         long byteSize = 0L;
 

@@ -28,6 +28,4 @@ public class PensionerCreationStrategy implements PersonCreationStrategy {
                 .workedYears(pensionerCommand.getWorkedYears())
                 .build();
     }
-
-
 }

@@ -40,7 +40,6 @@ class EmployeeControllerTest {
     @Autowired
     private PersonRepository personRepository;
 
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void addJobPositionToPerson() throws Exception {

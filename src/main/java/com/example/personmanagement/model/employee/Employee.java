@@ -32,5 +32,4 @@ public class Employee extends Person {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<JobPosition> jobPositions;
-
 }

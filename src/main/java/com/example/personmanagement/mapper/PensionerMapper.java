@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class PensionerMapper implements PersonTypeMapper {
 
-
     @Override
     public boolean supports(String entityType) {
         return "PENSIONER".equals(entityType);

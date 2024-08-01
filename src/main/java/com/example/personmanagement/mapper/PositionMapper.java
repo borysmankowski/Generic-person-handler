@@ -5,7 +5,6 @@ import com.example.personmanagement.model.position.JobPosition;
 import com.example.personmanagement.model.position.PositionDto;
 
 public class PositionMapper {
-
     public static PositionDto toDto(JobPosition jobPosition) {
         if (jobPosition == null) {
             return null;
