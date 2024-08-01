@@ -74,10 +74,12 @@ class FileControllerTest {
                 .file(file));
 
         result.andExpect(status().isAccepted());
+        Thread.sleep(10 * 1000);
         assertThat(fileInformationRepository.findAll()).isNotEmpty();
 
         List<FileInformation> fileStatus = fileInformationRepository.findAll();
-        assertThat(fileStatus.get(0).getStatus().equals(FileStatus.SUCCESS));
+        assertThat(fileStatus.get(0).getStatus()).isEqualTo(FileStatus.SUCCESS);
+        assertThat(personRepository.findAll()).isNotEmpty();
     }
 
     @Test
@@ -97,6 +99,7 @@ class FileControllerTest {
                 .file(file));
 
         result.andExpect(status().isAccepted());
+        Thread.sleep(10 * 1000);
         assertThat(fileInformationRepository.findAll()).isNotEmpty();
         assertThat(personRepository.findAll()).isEmpty();
 
