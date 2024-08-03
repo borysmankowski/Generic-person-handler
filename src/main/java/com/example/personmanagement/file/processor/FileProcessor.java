@@ -32,20 +32,15 @@ public class FileProcessor {
     private final JdbcTemplate jdbcTemplate;
     private final FileInformationRepository fileInformationRepository;
 
-    public Result processFile(FileInformation fileInformation, long batchStart, long batchSize) throws IOException, DuplicateResourceException {
+    public Result processFile(FileInformation fileInformation, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
-        long currentLine = 0;
 
         try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
             String line;
             reader.readLine();
 
-            while (currentLine < batchStart && reader.readLine() != null) {
-                currentLine++;
-            }
             String[] data;
-
             while ((line = reader.readLine()) != null && processedLines.get() < batchSize) {
                 data = line.split(",");
                 batchData.add(data);
@@ -64,7 +59,7 @@ public class FileProcessor {
         }
 
         boolean isFinished = processedLines.get() < batchSize;
-        return new Result(batchStart + processedLines.get(), isFinished);
+        return new Result(processedLines.get(), isFinished);
     }
 
     private void bulkInsert(List<String[]> batchData) {

@@ -102,7 +102,7 @@ class FileControllerTest {
     @BatchSize(size = 1)
     void testFileLoaderEndpoint_ShouldRollbackDueToDuplicates() throws Exception {
         // given
-        String uniqueFileName = "testFile-" + UUID.randomUUID().toString() + ".csv";
+        String uniqueFileName = "testFile-" + UUID.randomUUID() + ".csv";
         Path filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         MockMultipartFile file = new MockMultipartFile(
                 "file",

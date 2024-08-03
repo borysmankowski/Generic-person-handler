@@ -58,8 +58,8 @@ public class FileService {
     }
 
     public FileImportStatusResponse getFileImportStatus(Long id) {
-        Optional<FileInformation> fileImportOptional = fileInformationRepository.findById(id);
-        return fileImportOptional.map(this::buildStatusResponse)
+        return fileInformationRepository.findById(id)
+                .map(this::buildStatusResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("File import status not found!"));
     }
 
