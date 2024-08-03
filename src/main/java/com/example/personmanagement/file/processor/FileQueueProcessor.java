@@ -41,10 +41,9 @@ public class FileQueueProcessor {
             transactionHandler.executeInTransaction(() -> {
                 boolean processing = true;
                 while (processing) {
-                    Long batchStart = fileInformation.getLastProcessedRow();
                     FileProcessor.Result batchResult;
                     try {
-                        batchResult = fileProcessor.processFile(fileInformation, batchStart, batchSize);
+                        batchResult = fileProcessor.processFile(fileInformation, batchSize);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
