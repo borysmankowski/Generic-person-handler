@@ -13,6 +13,7 @@ public class StudentMapper implements PersonTypeMapper {
     public boolean supports(String entityType) {
         return "STUDENT".equals(entityType);
     }
+
     @Override
     public PersonDto toDto(Person person) {
         if (person instanceof Student student) {

@@ -16,6 +16,7 @@ import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.List;
+
 @Configuration
 @EnableMethodSecurity
 public class WebSecurityConfig {

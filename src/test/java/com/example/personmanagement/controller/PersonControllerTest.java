@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mickaelb.api.AssertHibernateSQLCount;
 import com.mickaelb.integration.spring.HibernateAssertTestListener;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -293,7 +293,7 @@ class PersonControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     @Transactional
-    @AssertHibernateSQLCount(inserts = 1, selects = 1, updates = 1)
+    @AssertHibernateSQLCount(inserts = 1, selects = 1, updates = 1, deletes = 1)
     void updatePersonDetails_ShouldIncrementVersion_ShouldPerform2Queries() throws Exception {
         UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
         updateEmployeeCommand.setType("EMPLOYEE");
@@ -550,8 +550,8 @@ class PersonControllerTest {
         return creationStrategy.create(createEmployeeCommand);
     }
 
-    @BeforeEach
-    void setUp() {
+    @AfterEach
+    void tearDown() {
         personRepository.deleteAll();
     }
 }
