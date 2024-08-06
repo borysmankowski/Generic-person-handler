@@ -37,7 +37,7 @@ public class FileQueueProcessor {
                 .map(FileInformation::getId);
     }
 
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional
     public void processFileQueue(Long fileImportId) {
         FileInformation fileInformation = fileInformationRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
