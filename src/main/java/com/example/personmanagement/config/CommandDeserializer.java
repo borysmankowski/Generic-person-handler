@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 public class CommandDeserializer<T> extends JsonDeserializer<T> {
 
     private final Map<String, Class<? extends T>> commandTypeMap = new HashMap<>();

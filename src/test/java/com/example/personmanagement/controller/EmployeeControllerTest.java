@@ -155,7 +155,7 @@ class EmployeeControllerTest {
     }
 
     @AfterEach
-    public void setUp() {
+    public void tearDown() {
         personRepository.deleteAll();
     }
 }
