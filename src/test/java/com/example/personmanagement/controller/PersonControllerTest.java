@@ -216,7 +216,7 @@ class PersonControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void givenPensionersWithSamePESEL_WhenCreatePensioners_ThenShouldFail() throws Exception {
-        // given
+
         String pesel = "99010264551";
 
         CreatePensionerCommand pensioner1 = new CreatePensionerCommand();
@@ -229,7 +229,6 @@ class PersonControllerTest {
         pensioner1.setWorkedYears(30);
         postPensioner(pensioner1);
 
-        // when
         CreatePensionerCommand pensioner2 = new CreatePensionerCommand();
         pensioner2.setType("PENSIONER");
         pensioner2.setName("Jane");
