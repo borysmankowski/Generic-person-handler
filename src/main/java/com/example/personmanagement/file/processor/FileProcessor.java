@@ -59,6 +59,7 @@ public class FileProcessor {
 
             if (!batchData.isEmpty()) {
                 bulkInsert(batchData);
+                batchData.clear();
             }
         }
 
