@@ -30,53 +30,52 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ExceptionDto("Resource not found!"));
     }
 
-    @ExceptionHandler({
-            DataIntegrityViolationException.class,
-            ConstraintViolationException.class,
-            IOException.class,
-            RollbackException.class,
-            IllegalArgumentException.class,
-            JobOverlappingException.class
-    })
-    public ResponseEntity<ExceptionDto> handleBadRequestExceptions(Exception exception) {
-        String message;
-        if (exception instanceof DataIntegrityViolationException) {
-            log.error("Data integrity violation", exception);
-            message = "Data integrity violation!";
-        } else if (exception instanceof ConstraintViolationException) {
-            log.error("Constraint Violation", exception);
-            message = "Constraint violation!";
-        } else if (exception instanceof IOException) {
-            log.error("IOException", exception);
-            message = "IOException!";
-        } else if (exception instanceof RollbackException) {
-            log.error("Rollback", exception);
-            message = "Rollback exception!";
-        } else if (exception instanceof IllegalArgumentException) {
-            log.error("Illegal argument!", exception);
-            message = "Illegal argument!";
-        } else if (exception instanceof JobOverlappingException) {
-            log.error("New job position overlaps with existing position", exception);
-            message = "New job position overlaps with existing position";
-        } else {
-            log.error("Unhandled exception", exception);
-            message = "Bad request!";
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto(message));
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ExceptionDto> handleDataIntegrityViolationException(DataIntegrityViolationException exception) {
+        log.error("Data integrity violation", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto("Data integrity violation!"));
     }
 
-    @ExceptionHandler({DuplicateResourceException.class, ResourceVersionNotValidException.class})
-    public ResponseEntity<ExceptionDto> handleConflictExceptions(RuntimeException exception) {
-        if (exception instanceof DuplicateResourceException) {
-            log.error("Duplicated Resource exception", exception);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionDto("Duplicated Resource!"));
-        } else if (exception instanceof ResourceVersionNotValidException) {
-            log.error("Resource Version Not Valid exception", exception);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionDto("Person was modified during your update, please fetch the newest version and retry"));
-        } else {
-            log.error("Unhandled exception", exception);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ExceptionDto("An unexpected error occurred"));
-        }
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ExceptionDto> handleConstraintViolationException(ConstraintViolationException exception) {
+        log.error("Constraint Violation", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto("Constraint violation!"));
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<ExceptionDto> handleIOException(IOException exception) {
+        log.error("IOException", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto("IOException!"));
+    }
+
+    @ExceptionHandler(RollbackException.class)
+    public ResponseEntity<ExceptionDto> handleRollbackException(RollbackException exception) {
+        log.error("Rollback", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto("Rollback exception!"));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ExceptionDto> handleIllegalArgumentException(IllegalArgumentException exception) {
+        log.error("Illegal argument!", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto("Illegal argument!"));
+    }
+
+    @ExceptionHandler(JobOverlappingException.class)
+    public ResponseEntity<ExceptionDto> handleJobOverlappingException(JobOverlappingException exception) {
+        log.error("New job position overlaps with existing position", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto("New job position overlaps with existing position"));
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ExceptionDto> handleDuplicateResourceException(DuplicateResourceException exception) {
+        log.error("Duplicated Resource exception", exception);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionDto("Duplicated Resource!"));
+    }
+
+    @ExceptionHandler(ResourceVersionNotValidException.class)
+    public ResponseEntity<ExceptionDto> handleResourceVersionNotValidException(ResourceVersionNotValidException exception) {
+        log.error("Resource Version Not Valid exception", exception);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionDto("Person was modified during your update, please fetch the newest version and retry"));
     }
 
     @ExceptionHandler(InvalidStrategyTypeException.class)
@@ -88,6 +87,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SalaryNotValidException.class)
     public ResponseEntity<ExceptionDto> handleSalaryNotValidException(SalaryNotValidException exception) {
         log.error("Salary Not Valid exception", exception);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto(exception.getMessage()));
+    }
+
+    @ExceptionHandler(FileImportException.class)
+    public ResponseEntity<ExceptionDto> handleFileImportException(FileImportException exception) {
+        log.error("File Import exception", exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ExceptionDto(exception.getMessage()));
     }
 }

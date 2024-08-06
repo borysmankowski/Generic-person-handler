@@ -2,9 +2,11 @@ package com.example.personmanagement.controller;
 
 import com.example.personmanagement.model.file.FileInformation;
 import com.example.personmanagement.model.file.FileStatus;
+import com.example.personmanagement.model.file.FileUploadResponse;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.repository.FileInformationRepository;
 import com.example.personmanagement.repository.PersonRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.annotations.BatchSize;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +45,9 @@ class FileControllerTest {
     @Autowired
     private PersonRepository personRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void testFileLoaderEndpoint() throws Exception {
@@ -56,16 +61,21 @@ class FileControllerTest {
         );
 
         var result = mockMvc.perform(MockMvcRequestBuilders.multipart("/api/file-imports")
-                .file(file));
+                        .file(file))
+                .andExpect(status().isAccepted())
+                .andReturn();
 
-        result.andExpect(status().isAccepted());
+        String responseContent = result.getResponse().getContentAsString();
+        FileUploadResponse uploadResponse = objectMapper.readValue(responseContent, FileUploadResponse.class);
+
+        assertThat(uploadResponse.getId()).isNotNull();
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     @BatchSize(size = 3)
     void testFileLoaderEndpoint_ShouldHaveProcessedRecords() throws Exception {
-        // given
+
         String uniqueFileName = "testFile-" + UUID.randomUUID() + ".csv";
         Path filePath = Paths.get("files-to-import/generatedFileForTesting.csv");
         MockMultipartFile file = new MockMultipartFile(
@@ -76,9 +86,12 @@ class FileControllerTest {
         );
 
         var result = mockMvc.perform(MockMvcRequestBuilders.multipart("/api/file-imports")
-                .file(file));
+                        .file(file))
+                .andExpect(status().isAccepted())
+                .andReturn();
 
-        result.andExpect(status().isAccepted());
+        String responseContent = result.getResponse().getContentAsString();
+        FileUploadResponse uploadResponse = objectMapper.readValue(responseContent, FileUploadResponse.class);
 
         await().atMost(10, SECONDS).untilAsserted(() -> {
             List<FileInformation> fileInformationList = fileInformationRepository.findAll();
@@ -93,7 +106,30 @@ class FileControllerTest {
 
         await().atMost(10, SECONDS).untilAsserted(() -> {
             List<Person> persons = personRepository.findAll();
-            assertThat(persons).isNotEmpty();
+            assertThat(persons).hasSize(3);
+
+            assertThat(persons).anySatisfy(person -> {
+                assertThat(person.getName()).isEqualTo("Malina");
+                assertThat(person.getSurname()).isEqualTo("Eno");
+                assertThat(person.getPesel()).isEqualTo("70081539775");
+            });
+
+            assertThat(persons).anySatisfy(person -> {
+                assertThat(person.getName()).isEqualTo("Merle");
+                assertThat(person.getSurname()).isEqualTo("Ilka");
+                assertThat(person.getPesel()).isEqualTo("90122199526");
+            });
+
+            assertThat(persons).anySatisfy(person -> {
+                assertThat(person.getName()).isEqualTo("Blondelle");
+                assertThat(person.getSurname()).isEqualTo("Eachern");
+                assertThat(person.getPesel()).isEqualTo("51010932991");
+            });
+        });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            FileInformation fileInformation = fileInformationRepository.findById(uploadResponse.getId()).orElseThrow();
+            assertThat(fileInformation.getFilePath()).contains(uniqueFileName);
         });
     }
 
@@ -101,7 +137,7 @@ class FileControllerTest {
     @WithMockUser(roles = "ADMIN")
     @BatchSize(size = 1)
     void testFileLoaderEndpoint_ShouldRollbackDueToDuplicates() throws Exception {
-        // given
+
         String uniqueFileName = "testFile-" + UUID.randomUUID() + ".csv";
         Path filePath = Paths.get("files-to-import/generatedFileForTestingDuplicatedPesel.csv");
         MockMultipartFile file = new MockMultipartFile(
@@ -112,9 +148,12 @@ class FileControllerTest {
         );
 
         var result = mockMvc.perform(MockMvcRequestBuilders.multipart("/api/file-imports")
-                .file(file));
+                        .file(file))
+                .andExpect(status().isAccepted())
+                .andReturn();
 
-        result.andExpect(status().isAccepted());
+        String responseContent = result.getResponse().getContentAsString();
+        FileUploadResponse uploadResponse = objectMapper.readValue(responseContent, FileUploadResponse.class);
 
         await().atMost(10, SECONDS).untilAsserted(() -> {
             List<FileInformation> fileInformationList = fileInformationRepository.findAll();
@@ -131,10 +170,78 @@ class FileControllerTest {
             assertThat(fileStatus.stream().filter(fileInfo -> fileInfo.getFilePath().contains(uniqueFileName))
                     .findFirst().orElseThrow().getStatus()).isEqualTo(FileStatus.FAILED);
         });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            FileInformation fileInformation = fileInformationRepository.findById(uploadResponse.getId()).orElseThrow();
+            assertThat(fileInformation.getFilePath()).contains(uniqueFileName);
+        });
+    }
+
+
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void testFileLoaderEndpoint_QueueImports() throws Exception {
+
+        String uniqueFileName1 = "testFile1-" + UUID.randomUUID() + ".csv";
+        String uniqueFileName2 = "testFile2-" + UUID.randomUUID() + ".csv";
+
+        Path filePath1 = Paths.get("files-to-import/generatedFileForTesting.csv");
+        Path filePath2 = Paths.get("files-to-import/generatedFileForTestingQueue.csv");
+
+        MockMultipartFile file1 = new MockMultipartFile(
+                "file",
+                uniqueFileName1,
+                MediaType.TEXT_PLAIN_VALUE,
+                Files.readAllBytes(filePath1)
+        );
+
+        MockMultipartFile file2 = new MockMultipartFile(
+                "file",
+                uniqueFileName2,
+                MediaType.TEXT_PLAIN_VALUE,
+                Files.readAllBytes(filePath2)
+        );
+
+        var result1 = mockMvc.perform(MockMvcRequestBuilders.multipart("/api/file-imports")
+                        .file(file1))
+                .andExpect(status().isAccepted())
+                .andReturn();
+
+        String responseContent1 = result1.getResponse().getContentAsString();
+        FileUploadResponse uploadResponse1 = objectMapper.readValue(responseContent1, FileUploadResponse.class);
+
+        var result2 = mockMvc.perform(MockMvcRequestBuilders.multipart("/api/file-imports")
+                        .file(file2))
+                .andExpect(status().isAccepted())
+                .andReturn();
+
+        String responseContent2 = result2.getResponse().getContentAsString();
+        FileUploadResponse uploadResponse2 = objectMapper.readValue(responseContent2, FileUploadResponse.class);
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            FileInformation fileInfo1 = fileInformationRepository.findById(uploadResponse1.getId()).orElseThrow();
+            assertThat(fileInfo1.getStatus()).isEqualTo(FileStatus.IN_PROGRESS);
+        });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            FileInformation fileInfo2 = fileInformationRepository.findById(uploadResponse2.getId()).orElseThrow();
+            assertThat(fileInfo2.getStatus()).isNotEqualTo(FileStatus.PENDING);
+        });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            FileInformation fileInfo1 = fileInformationRepository.findById(uploadResponse1.getId()).orElseThrow();
+            assertThat(fileInfo1.getStatus()).isEqualTo(FileStatus.SUCCESS);
+        });
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            FileInformation fileInfo2 = fileInformationRepository.findById(uploadResponse2.getId()).orElseThrow();
+            assertThat(fileInfo2.getStatus()).isEqualTo(FileStatus.SUCCESS);
+        });
     }
 
     @AfterEach
-    public void setUp() {
+    public void tearDown() {
         fileInformationRepository.deleteAll();
         personRepository.deleteAll();
     }
