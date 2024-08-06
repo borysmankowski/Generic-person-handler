@@ -1,5 +1,6 @@
 package com.example.personmanagement.service;
 
+import com.example.personmanagement.exception.FileImportException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.file.processor.FileQueueAsyncProcessor;
 import com.example.personmanagement.file.storage.FileStorage;
@@ -18,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +34,7 @@ public class FileService {
         long byteSize = file.getSize();
 
         if (byteSize <= 0) {
-            return new FileUploadResponse("Error occurred when uploading a file", originalFilename);
+            throw new FileImportException("Error occurred when uploading a file");
         }
 
         try (InputStream inputStream = file.getInputStream()) {
@@ -47,13 +47,14 @@ public class FileService {
                     .createdAt(LocalDateTime.now())
                     .build();
 
-            fileInformationRepository.save(fileInformation);
+            FileInformation savedFileInformation = fileInformationRepository.save(fileInformation);
+
             fileQueueAsyncProcessor.processFileQueue();
 
-            return new FileUploadResponse("File uploaded successfully. File name: " + uniqueFilename, uniqueFilename);
+            return new FileUploadResponse(savedFileInformation.getId(), "File uploaded successfully. File name: " + uniqueFilename, uniqueFilename);
         } catch (IOException e) {
             log.error("Failed to upload the file", e);
-            return new FileUploadResponse("Failed to upload the file.", originalFilename);
+            throw new FileImportException("Failed to upload the file.");
         }
     }
 

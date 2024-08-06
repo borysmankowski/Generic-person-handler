@@ -35,10 +35,15 @@ public class FileProcessor {
     public Result processFile(FileInformation fileInformation, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
+        long currentLine = fileInformation.getLastProcessedRow();
 
         try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
             String line;
             reader.readLine();
+
+            for (long i = 0; i < currentLine; i++) {
+                reader.readLine();
+            }
 
             String[] data;
             while ((line = reader.readLine()) != null && processedLines.get() < batchSize) {
@@ -54,12 +59,11 @@ public class FileProcessor {
 
             if (!batchData.isEmpty()) {
                 bulkInsert(batchData);
-                batchData.clear();
             }
         }
 
         boolean isFinished = processedLines.get() < batchSize;
-        return new Result(processedLines.get(), isFinished);
+        return new Result(currentLine + processedLines.get(), isFinished);
     }
 
     private void bulkInsert(List<String[]> batchData) {

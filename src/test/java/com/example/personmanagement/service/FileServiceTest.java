@@ -1,5 +1,6 @@
 package com.example.personmanagement.service;
 
+import com.example.personmanagement.exception.FileImportException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.file.processor.FileQueueAsyncProcessor;
 import com.example.personmanagement.file.storage.FileStorage;
@@ -59,6 +60,7 @@ class FileServiceTest {
         long byteSize = 123L;
         String uniqueFilename = "unique_testfile.txt";
         InputStream inputStream = new ByteArrayInputStream("test content".getBytes());
+        Long fileId = 1L;
 
         when(multipartFile.getOriginalFilename()).thenReturn(originalFilename);
         when(multipartFile.getSize()).thenReturn(byteSize);
@@ -66,10 +68,23 @@ class FileServiceTest {
         when(fileStorage.save(any(InputStream.class), eq(originalFilename), eq(byteSize)))
                 .thenReturn(uniqueFilename);
 
+        FileInformation savedFileInformation = FileInformation.builder()
+                .id(fileId)
+                .filePath(uniqueFilename)
+                .lastProcessedRow(0L)
+                .status(FileStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(fileInformationRepository.save(any(FileInformation.class)))
+                .thenReturn(savedFileInformation);
+
         FileUploadResponse response = fileService.uploadFile(multipartFile);
 
         assertEquals("File uploaded successfully. File name: unique_testfile.txt", response.getMessage());
         assertEquals(uniqueFilename, response.getFileName());
+        assertEquals(fileId, response.getId()); // New assertion for the id
+
         verify(fileInformationRepository).save(any(FileInformation.class));
         verify(fileQueueAsyncProcessor).processFileQueue();
     }
@@ -83,10 +98,12 @@ class FileServiceTest {
         when(multipartFile.getOriginalFilename()).thenReturn(originalFilename);
         when(multipartFile.getSize()).thenReturn(byteSize);
 
-        FileUploadResponse response = fileService.uploadFile(multipartFile);
+        FileImportException exception = assertThrows(FileImportException.class, () -> {
+            fileService.uploadFile(multipartFile);
+        });
 
-        assertEquals("Error occurred when uploading a file", response.getMessage());
-        assertEquals(originalFilename, response.getFileName());
+        assertEquals("Error occurred when uploading a file", exception.getMessage());
+
         verify(fileInformationRepository, never()).save(any(FileInformation.class));
         verify(fileQueueAsyncProcessor, never()).processFileQueue();
     }
@@ -102,12 +119,14 @@ class FileServiceTest {
         when(multipartFile.getSize()).thenReturn(byteSize);
         when(multipartFile.getInputStream()).thenReturn(inputStream);
         when(fileStorage.save(any(InputStream.class), eq(originalFilename), eq(byteSize)))
-                .thenThrow(new IOException("Storage failure"));
+                .thenThrow(new FileImportException("Failed to upload the file"));
 
-        FileUploadResponse response = fileService.uploadFile(multipartFile);
+        FileImportException exception = assertThrows(FileImportException.class, () -> {
+            fileService.uploadFile(multipartFile);
+        });
 
-        assertEquals("Failed to upload the file.", response.getMessage());
-        assertEquals(originalFilename, response.getFileName());
+        assertEquals("Failed to upload the file", exception.getMessage());
+
         verify(fileInformationRepository, never()).save(any(FileInformation.class));
         verify(fileQueueAsyncProcessor, never()).processFileQueue();
     }
