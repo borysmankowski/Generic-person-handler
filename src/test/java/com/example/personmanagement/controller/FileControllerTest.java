@@ -221,16 +221,6 @@ class FileControllerTest {
 
         await().atMost(10, SECONDS).untilAsserted(() -> {
             FileInformation fileInfo1 = fileInformationRepository.findById(uploadResponse1.getId()).orElseThrow();
-            assertThat(fileInfo1.getStatus()).isEqualTo(FileStatus.IN_PROGRESS);
-        });
-
-        await().atMost(10, SECONDS).untilAsserted(() -> {
-            FileInformation fileInfo2 = fileInformationRepository.findById(uploadResponse2.getId()).orElseThrow();
-            assertThat(fileInfo2.getStatus()).isNotEqualTo(FileStatus.PENDING);
-        });
-
-        await().atMost(10, SECONDS).untilAsserted(() -> {
-            FileInformation fileInfo1 = fileInformationRepository.findById(uploadResponse1.getId()).orElseThrow();
             assertThat(fileInfo1.getStatus()).isEqualTo(FileStatus.SUCCESS);
         });
 
@@ -238,6 +228,13 @@ class FileControllerTest {
             FileInformation fileInfo2 = fileInformationRepository.findById(uploadResponse2.getId()).orElseThrow();
             assertThat(fileInfo2.getStatus()).isEqualTo(FileStatus.SUCCESS);
         });
+
+        FileInformation fileInfo1 = fileInformationRepository.findById(uploadResponse1.getId()).orElseThrow();
+        FileInformation fileInfo2 = fileInformationRepository.findById(uploadResponse2.getId()).orElseThrow();
+
+        assertThat(fileInfo1.getCreatedAt()).isBefore(fileInfo2.getCreatedAt());
+
+        assertThat(fileInfo2.getStartedAt()).isAfter(fileInfo1.getFinishedAt());
     }
 
     @AfterEach
