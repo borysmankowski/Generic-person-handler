@@ -57,6 +57,21 @@ class PersonControllerTest {
     @Autowired
     private PersonRepository personRepository;
 
+    private static Person getPerson() {
+        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        createEmployeeCommand.setType("EMPLOYEE");
+        createEmployeeCommand.setName("name");
+        createEmployeeCommand.setSurname("surname");
+        createEmployeeCommand.setPesel("50071262432");
+        createEmployeeCommand.setHeight(100);
+        createEmployeeCommand.setWeight(100);
+        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
+
+        PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
+
+        return creationStrategy.create(createEmployeeCommand);
+    }
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void createPerson() throws Exception {
@@ -256,7 +271,7 @@ class PersonControllerTest {
         updateEmployeeCommand.setHeight(180);
         updateEmployeeCommand.setWeight(80);
         updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion(1);
+        updateEmployeeCommand.setVersion(0);
 
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
         createEmployeeCommand.setType("EMPLOYEE");
@@ -333,7 +348,7 @@ class PersonControllerTest {
         updateEmployeeCommand.setHeight(180);
         updateEmployeeCommand.setWeight(80);
         updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion(2);
+        updateEmployeeCommand.setVersion(1);
 
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
         createEmployeeCommand.setType("EMPLOYEE");
@@ -517,7 +532,6 @@ class PersonControllerTest {
                 .andExpect(status().isCreated());
     }
 
-
     void postStudent(CreateStudentCommand student) throws Exception {
         mockMvc.perform(post("/api/people")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -532,21 +546,6 @@ class PersonControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andReturn();
         return objectMapper.readValue(result.getResponse().getContentAsString(), EmployeeDto.class);
-    }
-
-    private static Person getPerson() {
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("surname");
-        createEmployeeCommand.setPesel("50071262432");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
-
-        PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
-
-        return creationStrategy.create(createEmployeeCommand);
     }
 
     @AfterEach

@@ -13,12 +13,12 @@ import com.example.personmanagement.search.SearchCriteria;
 import com.example.personmanagement.strategy.PersonCreationStrategy;
 import com.example.personmanagement.strategy.PersonStrategyFacade;
 import com.example.personmanagement.strategy.PersonUpdateStrategy;
-import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,24 +52,18 @@ public class PersonService {
         return result.map(personMapper::toDto);
     }
 
-    @Transactional
     public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
         Person existingPerson = personRepository.findById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
-
-        int commandVersion = (command.getVersion()) - 1;
-
-        if (existingPerson.getVersion() != commandVersion) {
-            throw new ResourceVersionNotValidException("Person was modified during your update, please fetch the newest version and retry");
-        }
 
         PersonUpdateStrategy updateStrategy = personStrategyFacade.getUpdateStrategy(command.getType());
         PersonDto personDto;
 
         try {
             Person updatedPerson = updateStrategy.update(existingPerson, command);
+            updatedPerson.setVersion(command.getVersion());
             personDto = personMapper.toDto(personRepository.save(updatedPerson));
-        } catch (OptimisticLockException exception) {
+        } catch (ObjectOptimisticLockingFailureException exception) {
             throw new ResourceVersionNotValidException("Person was modified during your update, please fetch the newest version and retry");
         }
         return personDto;
