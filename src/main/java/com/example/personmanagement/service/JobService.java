@@ -9,10 +9,10 @@ import com.example.personmanagement.model.position.JobPosition;
 import com.example.personmanagement.model.position.PositionDto;
 import com.example.personmanagement.repository.JobPositionRepository;
 import com.example.personmanagement.repository.PersonRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
