@@ -285,7 +285,7 @@ class PersonControllerTest {
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
         Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+                .orElseThrow();
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -294,7 +294,7 @@ class PersonControllerTest {
                 .andExpect(status().isOk());
 
         Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+                .orElseThrow();
 
         assertNotEquals(employeeBeforeUpdate.getVersion(), employeeAfterUpdate.getVersion());
         assertEquals(1, employeeAfterUpdate.getVersion());
@@ -362,7 +362,7 @@ class PersonControllerTest {
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
         Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+                .orElseThrow();
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -371,7 +371,7 @@ class PersonControllerTest {
                 .andExpect(status().isConflict());
 
         Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+                .orElseThrow();
 
         assertEquals(employeeBeforeUpdate.getVersion(), employeeAfterUpdate.getVersion());
 
