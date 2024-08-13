@@ -1,6 +1,7 @@
 package com.example.personmanagement.file.processor;
 
 import com.example.personmanagement.exception.ResourceNotFoundException;
+import com.example.personmanagement.file.storage.FileStorage;
 import com.example.personmanagement.model.file.FileInformation;
 import com.example.personmanagement.model.file.FileStatus;
 import com.example.personmanagement.repository.FileInformationRepository;
@@ -10,6 +11,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -20,14 +23,17 @@ public class FileQueueProcessor {
 
     private final FileInformationRepository fileInformationRepository;
     private final FileProcessor fileProcessor;
+
+    private final FileStorage fileStorage;
     private final long batchSize;
 
     public FileQueueProcessor(
             FileInformationRepository fileInformationRepository,
             FileProcessor fileProcessor,
-            @Value("${file-queue-processor.batch-size}") long batchSize) {
+            FileStorage fileStorage, @Value("${file-queue-processor.batch-size}") long batchSize) {
         this.fileInformationRepository = fileInformationRepository;
         this.fileProcessor = fileProcessor;
+        this.fileStorage = fileStorage;
         this.batchSize = batchSize;
     }
 
@@ -37,39 +43,45 @@ public class FileQueueProcessor {
     }
 
     @Transactional
-    public void processFileQueue(Long fileImportId) {
+    public void processFileQueue(Long fileImportId)  {
         FileInformation fileInformation = fileInformationRepository.findById(fileImportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
-        try {
-            if (fileInformation.getStartedAt() == null) {
-                fileInformation.setStartedAt(LocalDateTime.now());
-            }
 
-            boolean processing = true;
-            while (processing) {
-                FileProcessor.Result batchResult;
-                try {
-                    batchResult = fileProcessor.processFile(fileInformation, batchSize);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+            try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
+                if (fileInformation.getStartedAt() == null) {
+                    fileInformation.setStartedAt(LocalDateTime.now());
                 }
-                fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
-                fileInformation.setStatus(FileStatus.IN_PROGRESS);
-                processing = !batchResult.isFinished();
+
+                boolean processing = true;
+                while (processing) {
+                    FileProcessor.Result batchResult;
+                    try {
+                        batchResult = fileProcessor.processFile(reader, fileInformation, batchSize);
+                    } catch (IOException e) {
+                        log.error("Error when processing file {}", fileImportId, e);
+                        fileInformation.setFinishedAt(LocalDateTime.now());
+                        fileInformation.setStatus(FileStatus.FAILED);
+                        fileProcessor.saveProgress(fileInformation);
+                        throw new RuntimeException(e);
+                    }
+                    fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
+                    fileInformation.setStatus(FileStatus.IN_PROGRESS);
+                    processing = !batchResult.isFinished();
+                    fileProcessor.saveProgress(fileInformation);
+                }
+
+                fileInformation.setFinishedAt(LocalDateTime.now());
+                fileInformation.setStatus(FileStatus.SUCCESS);
+
+            } catch (DuplicateKeyException | FileNotFoundException e) {
+                log.error("Error when processing file {}", fileImportId, e);
+                fileInformation.setFinishedAt(LocalDateTime.now());
+                fileInformation.setStatus(FileStatus.FAILED);
                 fileProcessor.saveProgress(fileInformation);
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-
-            fileInformation.setFinishedAt(LocalDateTime.now());
-            fileInformation.setStatus(FileStatus.SUCCESS);
-
-        } catch (DuplicateKeyException e) {
-            log.error("Error when processing file {}", fileImportId, e);
-            fileInformation.setFinishedAt(LocalDateTime.now());
-            fileInformation.setStatus(FileStatus.FAILED);
-            fileProcessor.saveProgress(fileInformation);
-            throw new RuntimeException(e);
-        }
         fileProcessor.saveProgress(fileInformation);
+        }
     }
-
-}

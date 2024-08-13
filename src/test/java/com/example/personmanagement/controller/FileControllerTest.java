@@ -69,6 +69,7 @@ class FileControllerTest {
         FileUploadResponse uploadResponse = objectMapper.readValue(responseContent, FileUploadResponse.class);
 
         assertThat(uploadResponse.getId()).isNotNull();
+        assertThat(personRepository.findAll()).isNotEmpty();
     }
 
     @Test
@@ -232,8 +233,8 @@ class FileControllerTest {
         FileInformation fileInfo2 = fileInformationRepository.findById(uploadResponse2.getId()).orElseThrow();
 
         assertThat(fileInfo1.getCreatedAt()).isBefore(fileInfo2.getCreatedAt());
-
         assertThat(fileInfo2.getStartedAt()).isAfter(fileInfo1.getFinishedAt());
+        assertThat(personRepository.findAll()).isNotEmpty();
     }
 
     @AfterEach
