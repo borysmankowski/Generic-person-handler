@@ -42,10 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@TestExecutionListeners(
-        listeners = HibernateAssertTestListener.class,
-        mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS
-)
+@TestExecutionListeners(listeners = HibernateAssertTestListener.class, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 class PersonControllerTest {
 
     @Autowired
@@ -80,15 +77,7 @@ class PersonControllerTest {
 
         String jsonRequest = objectMapper.writeValueAsString(newPerson);
 
-        mockMvc.perform(
-                        post("/api/people")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(jsonRequest)
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value(newPerson.getName()))
-                .andExpect(jsonPath("$.surname").value(newPerson.getSurname()))
-                .andExpect(jsonPath("$.emailAddress").value(newPerson.getEmailAddress()));
+        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(jsonRequest)).andExpect(status().isCreated()).andExpect(jsonPath("$.name").value(newPerson.getName())).andExpect(jsonPath("$.surname").value(newPerson.getSurname())).andExpect(jsonPath("$.emailAddress").value(newPerson.getEmailAddress()));
     }
 
     @Test
@@ -106,15 +95,7 @@ class PersonControllerTest {
 
         String exceptionMsg = "Name cannot be blank";
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.message").value("validation errors"))
-                .andExpect(jsonPath("$.violations[0].field").value("name"))
-                .andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createEmployeeCommand))).andDo(print()).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.message").value("validation errors")).andExpect(jsonPath("$.violations[0].field").value("name")).andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
     }
 
     @Test
@@ -132,15 +113,7 @@ class PersonControllerTest {
 
         String exceptionMsg = "Surname cannot be blank";
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.message").value("validation errors"))
-                .andExpect(jsonPath("$.violations[0].field").value("surname"))
-                .andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createEmployeeCommand))).andDo(print()).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.message").value("validation errors")).andExpect(jsonPath("$.violations[0].field").value("surname")).andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
     }
 
     @Test
@@ -156,13 +129,7 @@ class PersonControllerTest {
         createEmployeeCommand.setWeight(100);
         createEmployeeCommand.setEmailAddress("email@email.com");
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().is4xxClientError())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.message").value("validation errors"));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createEmployeeCommand))).andDo(print()).andExpect(status().is4xxClientError()).andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.message").value("validation errors"));
     }
 
     @Test
@@ -180,15 +147,7 @@ class PersonControllerTest {
 
         String exceptionMsg = "must be a well-formed email address";
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.message").value("validation errors"))
-                .andExpect(jsonPath("$.violations[0].field").value("emailAddress"))
-                .andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createEmployeeCommand))).andDo(print()).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.message").value("validation errors")).andExpect(jsonPath("$.violations[0].field").value("emailAddress")).andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
     }
 
     @Test
@@ -221,11 +180,7 @@ class PersonControllerTest {
         student2.setCourseName("Electrical Engineering");
         student2.setScholarship(1200.0);
 
-        mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(student2)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists());
+        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(student2))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists());
     }
 
     @Test
@@ -253,11 +208,7 @@ class PersonControllerTest {
         pensioner2.setPensionAmount(1800.0);
         pensioner2.setWorkedYears(25);
 
-        mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(pensioner2)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.timestamp").exists());
+        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(pensioner2))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists());
     }
 
     @Test
@@ -284,17 +235,11 @@ class PersonControllerTest {
 
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
-        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().isOk());
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId()).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateEmployeeCommand))).andDo(print()).andExpect(status().isOk());
 
-        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
 
         assertNotEquals(employeeBeforeUpdate.getVersion(), employeeAfterUpdate.getVersion());
         assertEquals(1, employeeAfterUpdate.getVersion());
@@ -317,7 +262,7 @@ class PersonControllerTest {
         updateEmployeeCommand.setHeight(180);
         updateEmployeeCommand.setWeight(80);
         updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion(1);
+        updateEmployeeCommand.setVersion(0);
 
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
         createEmployeeCommand.setType("EMPLOYEE");
@@ -330,11 +275,7 @@ class PersonControllerTest {
 
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().isOk());
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId()).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateEmployeeCommand))).andDo(print()).andExpect(status().isOk());
     }
 
     @Test
@@ -361,17 +302,11 @@ class PersonControllerTest {
 
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
-        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status().isConflict());
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId()).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateEmployeeCommand))).andDo(print()).andExpect(status().isConflict());
 
-        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
 
         assertEquals(employeeBeforeUpdate.getVersion(), employeeAfterUpdate.getVersion());
 
@@ -387,11 +322,7 @@ class PersonControllerTest {
 
         String searchCriteriaJson = objectMapper.writeValueAsString(list);
 
-        mockMvc.perform(get("/api/people")
-                        .param("search-criteria", searchCriteriaJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 
     @Test
@@ -404,11 +335,7 @@ class PersonControllerTest {
         List<SearchCriteria> searchCriteriaList = List.of(searchCriteria);
         String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
 
-        mockMvc.perform(get("/api/people")
-                        .param("search-criteria", searchCriteriaJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 
     @Test
@@ -418,16 +345,11 @@ class PersonControllerTest {
         searchCriteria.setOperation("range");
         searchCriteria.setValue("100");
         searchCriteria.setSecondValue("200");
-        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
-        );
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria);
 
         String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
 
-        mockMvc.perform(get("/api/people")
-                        .param("search-criteria", searchCriteriaJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 
     @Test
@@ -437,16 +359,11 @@ class PersonControllerTest {
         searchCriteria.setOperation("range");
         searchCriteria.setValue("200");
         searchCriteria.setSecondValue("200");
-        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
-        );
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria);
 
         String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
 
-        mockMvc.perform(get("/api/people")
-                        .param("search-criteria", searchCriteriaJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 
     @Test
@@ -456,16 +373,11 @@ class PersonControllerTest {
         searchCriteria.setOperation("range");
         searchCriteria.setValue("200");
         searchCriteria.setSecondValue("100");
-        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
-        );
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria);
 
         String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
 
-        mockMvc.perform(get("/api/people")
-                        .param("search-criteria", searchCriteriaJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -475,16 +387,11 @@ class PersonControllerTest {
         searchCriteria.setOperation("salaryRange");
         searchCriteria.setValue("1000");
         searchCriteria.setSecondValue("2000");
-        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
-        );
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria);
 
         String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
 
-        mockMvc.perform(get("/api/people")
-                        .param("search-criteria", searchCriteriaJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 
     @Test
@@ -494,16 +401,11 @@ class PersonControllerTest {
         searchCriteria.setOperation("salaryRange");
         searchCriteria.setValue("2000");
         searchCriteria.setSecondValue("2000");
-        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
-        );
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria);
 
         String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
 
-        mockMvc.perform(get("/api/people")
-                        .param("search-criteria", searchCriteriaJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 
     @Test
@@ -513,38 +415,23 @@ class PersonControllerTest {
         searchCriteria.setOperation("salaryRange");
         searchCriteria.setValue("2000");
         searchCriteria.setSecondValue("1000");
-        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria
-        );
+        List<SearchCriteria> searchCriteriaList = List.of(searchCriteria);
 
         String searchCriteriaJson = objectMapper.writeValueAsString(searchCriteriaList);
 
-        mockMvc.perform(get("/api/people")
-                        .param("search-criteria", searchCriteriaJson)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
     }
 
     void postPensioner(CreatePensionerCommand pensioner) throws Exception {
-        mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(pensioner)))
-                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(pensioner))).andExpect(status().isCreated());
     }
 
     void postStudent(CreateStudentCommand student) throws Exception {
-        mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(student)))
-                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(student))).andExpect(status().isCreated());
     }
 
     private EmployeeDto postEmployee(CreateEmployeeCommand requestBody) throws Exception {
-        var result = mockMvc.perform(post("/api/people")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andReturn();
+        var result = mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(requestBody)).accept(MediaType.APPLICATION_JSON)).andReturn();
         return objectMapper.readValue(result.getResponse().getContentAsString(), EmployeeDto.class);
     }
 

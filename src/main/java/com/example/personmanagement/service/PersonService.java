@@ -52,6 +52,7 @@ public class PersonService {
         return result.map(personMapper::toDto);
     }
 
+    @Transactional
     public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
         Person existingPerson = personRepository.findById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
@@ -61,7 +62,6 @@ public class PersonService {
 
         try {
             Person updatedPerson = updateStrategy.update(existingPerson, command);
-            updatedPerson.setVersion(command.getVersion());
             personDto = personMapper.toDto(personRepository.save(updatedPerson));
         } catch (ObjectOptimisticLockingFailureException exception) {
             throw new ResourceVersionNotValidException("Person was modified during your update, please fetch the newest version and retry");

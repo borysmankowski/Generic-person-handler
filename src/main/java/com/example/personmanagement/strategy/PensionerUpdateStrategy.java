@@ -16,32 +16,19 @@ public class PensionerUpdateStrategy implements PersonUpdateStrategy {
         }
         if (existingPerson instanceof Pensioner existingPensioner) {
 
-            if (pensionerCommand.getName() != null) {
-                existingPensioner.setName(pensionerCommand.getName());
-            }
-            if (pensionerCommand.getSurname() != null) {
-                existingPensioner.setSurname(pensionerCommand.getSurname());
-            }
-            if (pensionerCommand.getPesel() != null) {
-                existingPensioner.setPesel(pensionerCommand.getPesel());
-            }
-            if (pensionerCommand.getHeight() != 0.0) {
-                existingPensioner.setHeight(pensionerCommand.getHeight());
-            }
-            if (pensionerCommand.getWeight() != 0.0) {
-                existingPensioner.setWeight(pensionerCommand.getWeight());
-            }
-            if (pensionerCommand.getEmailAddress() != null) {
-                existingPensioner.setEmailAddress(pensionerCommand.getEmailAddress());
-            }
-            if (pensionerCommand.getPensionAmount() != 0.0) {
-                existingPensioner.setPensionAmount(pensionerCommand.getPensionAmount());
-            }
-            if (pensionerCommand.getWorkedYears() != 0) {
-                existingPensioner.setWorkedYears(pensionerCommand.getWorkedYears());
-            }
-
-            return existingPensioner;
+            return Pensioner.builder()
+                    .id(existingPensioner.getId())
+                    .type(existingPensioner.getType())
+                    .name(pensionerCommand.getName() != null ? pensionerCommand.getName() : existingPensioner.getName())
+                    .surname(pensionerCommand.getSurname() != null ? pensionerCommand.getSurname() : existingPensioner.getSurname())
+                    .pesel(pensionerCommand.getPesel() != null ? pensionerCommand.getPesel() : existingPensioner.getPesel())
+                    .height(pensionerCommand.getHeight() != 0.0 ? pensionerCommand.getHeight() : existingPensioner.getHeight())
+                    .weight(pensionerCommand.getWeight() != 0.0 ? pensionerCommand.getWeight() : existingPensioner.getWeight())
+                    .emailAddress(pensionerCommand.getEmailAddress() != null ? pensionerCommand.getEmailAddress() : existingPensioner.getEmailAddress())
+                    .pensionAmount(pensionerCommand.getPensionAmount() != 0.0 ? pensionerCommand.getPensionAmount() : existingPensioner.getPensionAmount())
+                    .workedYears(pensionerCommand.getWorkedYears() != 0 ? pensionerCommand.getWorkedYears() : existingPensioner.getWorkedYears())
+                    .version(pensionerCommand.getVersion())
+                    .build();
         } else {
             throw new IllegalArgumentException("Existing person is not an instance of Pensioner");
         }
