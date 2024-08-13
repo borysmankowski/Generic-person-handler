@@ -52,6 +52,7 @@ public class PersonService {
         return result.map(personMapper::toDto);
     }
 
+    @Transactional
     public PersonDto updateAnyPerson(Long personId, UpdatePersonCommand command) {
         Person existingPerson = personRepository.findById(personId)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
