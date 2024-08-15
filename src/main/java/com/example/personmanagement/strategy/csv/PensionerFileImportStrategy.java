@@ -19,7 +19,7 @@ public class PensionerFileImportStrategy implements PersonFileImportStrategy {
                 throw new InvalidStrategyTypeException("Invalid data type for PensionerFileImportStrategy");
             }
 
-            sqlBuilder.append(String.format("('%s', '%s', '%s', '%s', %s, %s, '%s', %s, %d, %d)", data[0],  // type
+            sqlBuilder.append(String.format("('%s', '%s', '%s', '%s', %s, %s, '%s', %s, %d, %d)", data[0],
                     data[1],
                     data[2],
                     data[3],
