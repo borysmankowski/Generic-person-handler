@@ -41,12 +41,8 @@ public class FileProcessor {
             String line;
             reader.readLine();
 
-            for (long i = 0; i < currentLine; i++) {
-                reader.readLine();
-            }
-
             String[] data;
-            while ((line = reader.readLine()) != null && processedLines.get() < batchSize) {
+            while ((line = reader.readLine()) != null) {
                 data = line.split(",");
                 batchData.add(data);
                 processedLines.getAndIncrement();
