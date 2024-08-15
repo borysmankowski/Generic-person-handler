@@ -38,7 +38,6 @@ public class StudentFileImportStrategy implements PersonFileImportStrategy {
                 sqlBuilder.append(", ");
             }
         }
-
         jdbcTemplate.update(sqlBuilder.toString());
     }
 }

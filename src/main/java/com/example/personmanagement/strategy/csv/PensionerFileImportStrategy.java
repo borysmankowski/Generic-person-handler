@@ -35,7 +35,6 @@ public class PensionerFileImportStrategy implements PersonFileImportStrategy {
                 sqlBuilder.append(", ");
             }
         }
-
         jdbcTemplate.update(sqlBuilder.toString());
     }
 }
