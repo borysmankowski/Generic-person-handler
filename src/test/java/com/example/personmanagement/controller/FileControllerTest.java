@@ -69,8 +69,10 @@ class FileControllerTest {
         FileUploadResponse uploadResponse = objectMapper.readValue(responseContent, FileUploadResponse.class);
 
         assertThat(uploadResponse.getId()).isNotNull();
-        assertThat(personRepository.findAll()).isNotEmpty();
-    }
+
+        await().atMost(10, SECONDS).untilAsserted(() -> {
+            assertThat(personRepository.findAll()).isNotEmpty();
+        });    }
 
     @Test
     @WithMockUser(roles = "ADMIN")
