@@ -28,14 +28,16 @@ import java.util.stream.Collectors;
 public class FileProcessor {
 
     private final FileImportStrategyFacade fileImportStrategyFacade;
+    private final FileStorage fileStorage;
     private final JdbcTemplate jdbcTemplate;
     private final FileInformationRepository fileInformationRepository;
 
-    public Result processFile(BufferedReader reader,FileInformation fileInformation, long batchSize) throws IOException, DuplicateResourceException {
+    public Result processFile(FileInformation fileInformation, long batchSize) throws IOException, DuplicateResourceException {
         AtomicInteger processedLines = new AtomicInteger();
         List<String[]> batchData = new ArrayList<>();
         long currentLine = fileInformation.getLastProcessedRow();
 
+        try (BufferedReader reader = fileStorage.load(fileInformation.getFilePath())) {
             String line;
             reader.readLine();
 
@@ -55,6 +57,7 @@ public class FileProcessor {
                 bulkInsert(batchData);
                 batchData.clear();
             }
+        }
 
         boolean isFinished = processedLines.get() < batchSize;
         return new Result(currentLine + processedLines.get(), isFinished);
