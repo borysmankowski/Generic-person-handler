@@ -16,25 +16,18 @@ public class EmployeeUpdateStrategy implements PersonUpdateStrategy {
         }
         if (existingPerson instanceof Employee existingEmployee) {
 
-            if (employeeCommand.getName() != null) {
-                existingEmployee.setName(employeeCommand.getName());
-            }
-            if (employeeCommand.getSurname() != null) {
-                existingEmployee.setSurname(employeeCommand.getSurname());
-            }
-            if (employeeCommand.getPesel() != null) {
-                existingEmployee.setPesel(employeeCommand.getPesel());
-            }
-            if (employeeCommand.getHeight() != 0.0) {
-                existingEmployee.setHeight(employeeCommand.getHeight());
-            }
-            if (employeeCommand.getWeight() != 0.0) {
-                existingEmployee.setWeight(employeeCommand.getWeight());
-            }
-            if (employeeCommand.getEmailAddress() != null) {
-                existingEmployee.setEmailAddress(employeeCommand.getEmailAddress());
-            }
-            return existingEmployee;
+            return Employee.builder()
+                    .id(existingEmployee.getId())
+                    .type(employeeCommand.getType())
+                    .name(employeeCommand.getName() != null ? employeeCommand.getName() : existingEmployee.getName())
+                    .surname(employeeCommand.getSurname() != null ? employeeCommand.getSurname() : existingEmployee.getSurname())
+                    .pesel(employeeCommand.getPesel() != null ? employeeCommand.getPesel() : existingEmployee.getPesel())
+                    .height(employeeCommand.getHeight() != 0.0 ? employeeCommand.getHeight() : existingEmployee.getHeight())
+                    .weight(employeeCommand.getWeight() != 0.0 ? employeeCommand.getWeight() : existingEmployee.getWeight())
+                    .emailAddress(employeeCommand.getEmailAddress() != null ? employeeCommand.getEmailAddress() : existingEmployee.getEmailAddress())
+                    .version(employeeCommand.getVersion())
+                    .build();
+
         } else {
             throw new IllegalArgumentException("Existing person is not an instance of Employee");
         }

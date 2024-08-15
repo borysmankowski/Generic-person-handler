@@ -178,7 +178,6 @@ class FileControllerTest {
         });
     }
 
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void testFileLoaderEndpoint_QueueImports() throws Exception {

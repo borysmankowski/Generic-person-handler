@@ -13,7 +13,7 @@ import com.example.personmanagement.search.SearchCriteria;
 import com.example.personmanagement.strategy.PersonCreationStrategy;
 import com.example.personmanagement.strategy.PersonStrategyFacade;
 import com.example.personmanagement.strategy.PersonUpdateStrategy;
-import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,21 +26,13 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PersonService {
 
     private final PersonRepository personRepository;
     private final PersonMapper personMapper;
     private final PersonStrategyFacade personStrategyFacade;
     private final PersonSpecification personSpecification;
-    private final EntityManager entityManager;
-
-    public PersonService(PersonRepository personRepository, PersonMapper personMapper, PersonStrategyFacade personStrategyFacade, PersonSpecification personSpecification, EntityManager entityManager) {
-        this.personRepository = personRepository;
-        this.personMapper = personMapper;
-        this.personStrategyFacade = personStrategyFacade;
-        this.personSpecification = personSpecification;
-        this.entityManager = entityManager;
-    }
 
     public PersonDto create(CreatePersonCommand command) {
         PersonCreationStrategy creationStrategy = personStrategyFacade.getCreationStrategy(command.getType());
@@ -67,12 +59,10 @@ public class PersonService {
 
         PersonUpdateStrategy updateStrategy = personStrategyFacade.getUpdateStrategy(command.getType());
         PersonDto personDto;
+
         try {
             Person updatedPerson = updateStrategy.update(existingPerson, command);
-            updatedPerson.setVersion(command.getVersion());
-            Person mergedPerson = entityManager.merge(updatedPerson);
-            personDto = personMapper.toDto(personRepository.save(mergedPerson));
-
+            personDto = personMapper.toDto(personRepository.save(updatedPerson));
         } catch (ObjectOptimisticLockingFailureException exception) {
             throw new ResourceVersionNotValidException("Person was modified during your update, please fetch the newest version and retry");
         }

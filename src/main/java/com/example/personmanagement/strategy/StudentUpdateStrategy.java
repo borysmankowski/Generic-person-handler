@@ -16,37 +16,21 @@ public class StudentUpdateStrategy implements PersonUpdateStrategy {
         }
         if (existingPerson instanceof Student existingStudent) {
 
-            if (studentCommand.getName() != null) {
-                existingStudent.setName(studentCommand.getName());
-            }
-            if (studentCommand.getSurname() != null) {
-                existingStudent.setSurname(studentCommand.getSurname());
-            }
-            if (studentCommand.getPesel() != null) {
-                existingStudent.setPesel(studentCommand.getPesel());
-            }
-            if (studentCommand.getHeight() != 0.0) {
-                existingStudent.setHeight(studentCommand.getHeight());
-            }
-            if (studentCommand.getWeight() != 0.0) {
-                existingStudent.setWeight(studentCommand.getWeight());
-            }
-            if (studentCommand.getEmailAddress() != null) {
-                existingStudent.setEmailAddress(studentCommand.getEmailAddress());
-            }
-            if (studentCommand.getNameOfUniversity() != null) {
-                existingStudent.setNameOfUniversity(studentCommand.getNameOfUniversity());
-            }
-            if (studentCommand.getYearOfStudies() != 0) {
-                existingStudent.setYearOfStudies(studentCommand.getYearOfStudies());
-            }
-            if (studentCommand.getCourseName() != null) {
-                existingStudent.setCourseName(studentCommand.getCourseName());
-            }
-            if (studentCommand.getScholarship() != 0.0) {
-                existingStudent.setScholarship(studentCommand.getScholarship());
-            }
-            return existingStudent;
+            return Student.builder()
+                    .id(existingStudent.getId())
+                    .type(existingStudent.getType())
+                    .name(studentCommand.getName() != null ? studentCommand.getName() : existingStudent.getName())
+                    .surname(studentCommand.getSurname() != null ? studentCommand.getSurname() : existingStudent.getSurname())
+                    .pesel(studentCommand.getPesel() != null ? studentCommand.getPesel() : existingStudent.getPesel())
+                    .height(studentCommand.getHeight() != 0.0 ? studentCommand.getHeight() : existingStudent.getHeight())
+                    .weight(studentCommand.getWeight() != 0.0 ? studentCommand.getWeight() : existingStudent.getWeight())
+                    .emailAddress(studentCommand.getEmailAddress() != null ? studentCommand.getEmailAddress() : existingStudent.getEmailAddress())
+                    .nameOfUniversity(studentCommand.getNameOfUniversity() != null ? studentCommand.getNameOfUniversity() : existingStudent.getNameOfUniversity())
+                    .yearOfStudies(studentCommand.getYearOfStudies() != 0 ? studentCommand.getYearOfStudies() : existingStudent.getYearOfStudies())
+                    .courseName(studentCommand.getCourseName() != null ? studentCommand.getCourseName() : existingStudent.getCourseName())
+                    .scholarship(studentCommand.getScholarship() != 0.0 ? studentCommand.getScholarship() : existingStudent.getScholarship())
+                    .version(studentCommand.getVersion())
+                    .build();
         } else {
             throw new IllegalArgumentException("Existing person is not an instance of Student");
         }
