@@ -14,6 +14,9 @@ import com.example.personmanagement.search.SearchCriteria;
 import com.example.personmanagement.strategy.EmployeeCreationStrategy;
 import com.example.personmanagement.strategy.EmployeeUpdateStrategy;
 import com.example.personmanagement.strategy.PersonStrategyFacade;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +30,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,9 +70,12 @@ class PersonServiceTest {
     @Captor
     private ArgumentCaptor<Person> personArgumentCaptor;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     void setUp() {
-        personService = new PersonService(personRepository, personMapper, personStrategyFacade, personSpecification);
+        personService = new PersonService(personRepository, personMapper, personStrategyFacade, personSpecification, objectMapper);
     }
 
     @Test
@@ -143,23 +149,29 @@ class PersonServiceTest {
     }
 
     @Test
-    public void searchPersons_ShouldReturnPersonPage() {
+    public void searchPersons_ShouldReturnPersonPage() throws JsonProcessingException {
+
+        String searchCriteriaParam = "[{\"key\":\"name\",\"operation\":\"eq\",\"value\":\"John\",\"prefix\":\"null\"}]";
 
         Person person1 = new Person();
         person1.setId(2L);
         person1.setName("John");
 
         PersonDto personDto = new PersonDto();
-        personDto.setId(1L);
+        personDto.setId(2L);
         personDto.setName("John");
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<SearchCriteria> searchCriteria = Collections.singletonList(
-                new SearchCriteria("name", "eq", "John", null)
-        );
         List<Person> personList = List.of(person1);
         Page<Person> personPage = new PageImpl<>(personList);
+
+        List<SearchCriteria> searchCriteria = List.of(
+                new SearchCriteria("name", "eq", "John", null)
+        );
+
+        when(objectMapper.readValue(eq(searchCriteriaParam), any(TypeReference.class)))
+                .thenReturn(searchCriteria);
 
         Specification<Person> specification = Specification.where(null);
         when(personSpecification.addSpecification(any(Specification.class), any(SearchCriteria.class)))
@@ -167,8 +179,7 @@ class PersonServiceTest {
         when(personRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(personPage);
         when(personMapper.toDto(any(Person.class))).thenReturn(personDto);
 
-
-        Page<PersonDto> result = personService.searchPersons(searchCriteria, pageable);
+        Page<PersonDto> result = personService.searchPersons(searchCriteriaParam, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getTotalElements()).isEqualTo(1);
@@ -176,16 +187,20 @@ class PersonServiceTest {
     }
 
     @Test
-    public void searchPersons_ShouldReturnEmptyPage() {
-        List<SearchCriteria> criteria = new ArrayList<>();
+    public void searchPersons_ShouldReturnEmptyPages() throws JsonProcessingException {
+
+        String searchCriteriaParam = "[]";
 
         Pageable pageable = PageRequest.of(0, 10);
         List<Person> personList = Collections.emptyList();
         Page<Person> personPage = new PageImpl<>(personList);
 
+        when(objectMapper.readValue(eq(searchCriteriaParam), any(TypeReference.class)))
+                .thenReturn(Collections.emptyList());
+
         when(personRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(personPage);
 
-        Page<PersonDto> result = personService.searchPersons(criteria, pageable);
+        Page<PersonDto> result = personService.searchPersons(searchCriteriaParam, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getTotalElements()).isEqualTo(0);

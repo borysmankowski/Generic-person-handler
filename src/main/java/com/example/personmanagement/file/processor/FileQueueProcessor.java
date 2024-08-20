@@ -1,11 +1,12 @@
 package com.example.personmanagement.file.processor;
 
+import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
+import com.example.personmanagement.file.storage.FileBatchProcessingProperties;
 import com.example.personmanagement.model.file.FileInformation;
 import com.example.personmanagement.model.file.FileStatus;
 import com.example.personmanagement.repository.FileInformationRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,36 +21,30 @@ public class FileQueueProcessor {
 
     private final FileInformationRepository fileInformationRepository;
     private final FileProcessor fileProcessor;
-    private final long batchSize;
 
-    public FileQueueProcessor(
-            FileInformationRepository fileInformationRepository,
-            FileProcessor fileProcessor,
-            @Value("${file-queue-processor.batch-size}") long batchSize) {
+    private final FileBatchProcessingProperties fileBatchProcessingProperties;
+
+    public FileQueueProcessor(FileInformationRepository fileInformationRepository, FileProcessor fileProcessor, FileBatchProcessingProperties fileBatchProcessingProperties) {
         this.fileInformationRepository = fileInformationRepository;
         this.fileProcessor = fileProcessor;
-        this.batchSize = batchSize;
+        this.fileBatchProcessingProperties = fileBatchProcessingProperties;
     }
 
     public Optional<Long> findFileToProcess() {
-        return fileInformationRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING)
-                .map(FileInformation::getId);
+        return fileInformationRepository.findFirstByStatusOrderByCreatedAtAsc(FileStatus.PENDING).map(FileInformation::getId);
     }
 
     @Transactional
     public void processFileQueue(Long fileImportId) {
-        FileInformation fileInformation = fileInformationRepository.findById(fileImportId)
-                .orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
+        FileInformation fileInformation = fileInformationRepository.findById(fileImportId).orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
         try {
-            if (fileInformation.getStartedAt() == null) {
-                fileInformation.setStartedAt(LocalDateTime.now());
-            }
+            fileInformation.setStartedAt(LocalDateTime.now());
 
             boolean processing = true;
             while (processing) {
                 FileProcessor.Result batchResult;
                 try {
-                    batchResult = fileProcessor.processFile(fileInformation, batchSize);
+                    batchResult = fileProcessor.processFile(fileInformation, fileBatchProcessingProperties.getBatchSize());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -67,7 +62,7 @@ public class FileQueueProcessor {
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.FAILED);
             fileProcessor.saveProgress(fileInformation);
-            throw new RuntimeException(e);
+            throw new DuplicateResourceException("Duplicated resource!");
         }
         fileProcessor.saveProgress(fileInformation);
     }

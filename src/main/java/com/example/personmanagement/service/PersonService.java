@@ -13,6 +13,9 @@ import com.example.personmanagement.search.SearchCriteria;
 import com.example.personmanagement.strategy.PersonCreationStrategy;
 import com.example.personmanagement.strategy.PersonStrategyFacade;
 import com.example.personmanagement.strategy.PersonUpdateStrategy;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,6 +36,7 @@ public class PersonService {
     private final PersonMapper personMapper;
     private final PersonStrategyFacade personStrategyFacade;
     private final PersonSpecification personSpecification;
+    private final ObjectMapper objectMapper;
 
     public PersonDto create(CreatePersonCommand command) {
         PersonCreationStrategy creationStrategy = personStrategyFacade.getCreationStrategy(command.getType());
@@ -41,9 +45,11 @@ public class PersonService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PersonDto> searchPersons(List<SearchCriteria> searchCriteria, Pageable pageable) {
-        Specification<Person> specification = PersonSpecification.any();
+    public Page<PersonDto> searchPersons(String searchCriteriaParam, Pageable pageable) throws JsonProcessingException {
+        List<SearchCriteria> searchCriteria = objectMapper.readValue(searchCriteriaParam, new TypeReference<List<SearchCriteria>>() {
+        });
 
+        Specification<Person> specification = PersonSpecification.any();
         for (SearchCriteria criteria : searchCriteria) {
             specification = personSpecification.addSpecification(specification, criteria);
         }

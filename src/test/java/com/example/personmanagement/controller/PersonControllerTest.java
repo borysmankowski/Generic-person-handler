@@ -280,16 +280,16 @@ class PersonControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void UpdatePersonDetailsShouldFailDueToLostUpdate_VersionNotIncremented() throws Exception {
-        UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
-        updateEmployeeCommand.setType("EMPLOYEE");
-        updateEmployeeCommand.setName("newName");
-        updateEmployeeCommand.setSurname("newSurname");
-        updateEmployeeCommand.setPesel("00250714618");
-        updateEmployeeCommand.setHeight(180);
-        updateEmployeeCommand.setWeight(80);
-        updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion(1);
+    void UpdatePersonDetailsShouldFailDueToLostUpdate_HigherVersion_VersionNotIncremented() throws Exception {
+        UpdateEmployeeCommand updateEmployeeCommandVersionDifference = new UpdateEmployeeCommand();
+        updateEmployeeCommandVersionDifference.setType("EMPLOYEE");
+        updateEmployeeCommandVersionDifference.setName("newName");
+        updateEmployeeCommandVersionDifference.setSurname("newSurname");
+        updateEmployeeCommandVersionDifference.setPesel("00250714618");
+        updateEmployeeCommandVersionDifference.setHeight(180);
+        updateEmployeeCommandVersionDifference.setWeight(80);
+        updateEmployeeCommandVersionDifference.setEmailAddress("newemail@test.com");
+        updateEmployeeCommandVersionDifference.setVersion(100);
 
         CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
         createEmployeeCommand.setType("EMPLOYEE");
@@ -302,17 +302,21 @@ class PersonControllerTest {
 
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
-        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+        Employee employeeBeforeUpdate = (Employee) personRepository.findById(employee.getId()).orElseThrow(()
+                -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId()).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateEmployeeCommand))).andDo(print()).andExpect(status().isConflict());
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
+                        .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateEmployeeCommandVersionDifference)))
+                .andDo(print()).andExpect(status().isConflict());
 
-        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId()).orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
+        Employee employeeAfterUpdate = (Employee) personRepository.findById(employee.getId()).orElseThrow(()
+                -> new ResourceNotFoundException("Employee not found with ID: " + employee.getId()));
 
         assertEquals(employeeBeforeUpdate.getVersion(), employeeAfterUpdate.getVersion());
 
-        assertNotEquals(updateEmployeeCommand.getName(), employeeAfterUpdate.getName());
-        assertNotEquals(updateEmployeeCommand.getSurname(), employeeAfterUpdate.getSurname());
-        assertNotEquals(updateEmployeeCommand.getEmailAddress(), employeeAfterUpdate.getEmailAddress());
+        assertNotEquals(updateEmployeeCommandVersionDifference.getName(), employeeAfterUpdate.getName());
+        assertNotEquals(updateEmployeeCommandVersionDifference.getSurname(), employeeAfterUpdate.getSurname());
+        assertNotEquals(updateEmployeeCommandVersionDifference.getEmailAddress(), employeeAfterUpdate.getEmailAddress());
     }
 
     @Test
