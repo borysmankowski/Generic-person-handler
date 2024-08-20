@@ -1,8 +1,11 @@
 package com.example.personmanagement.file.storage;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.example.personmanagement.model.file.FileInformation;
+import com.example.personmanagement.repository.FileInformationRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -19,20 +22,31 @@ import java.nio.file.StandardCopyOption;
 @ConditionalOnProperty(prefix = "file-storage", name = "solution", havingValue = "local")
 public class LocalFileStorage implements FileStorage {
 
-    @Value("${spring.upload.dir}")
-    private String UPLOAD_DIR;
+    public final FileInformationRepository fileInformationRepository;
+    private final FileStorageProperties fileStorageProperties;
+
+    public LocalFileStorage(FileStorageProperties fileStorageProperties, FileInformationRepository fileInformationRepository) {
+        this.fileStorageProperties = fileStorageProperties;
+        this.fileInformationRepository = fileInformationRepository;
+    }
 
     @Override
     public String save(InputStream inputsStream, String originalFilename, long byteSize) throws IOException {
         String uniqueFilename = System.currentTimeMillis() + "_" + originalFilename;
-        Path filePath = Path.of(UPLOAD_DIR, uniqueFilename);
+        Path filePath = Path.of(fileStorageProperties.getDir(), uniqueFilename);
         Files.copy(inputsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         return uniqueFilename;
     }
 
     @Override
     public BufferedReader load(String fileName) throws FileNotFoundException {
-        Path filePath = Path.of(UPLOAD_DIR, fileName);
+        Path filePath = Path.of(fileStorageProperties.getDir(), fileName);
         return new BufferedReader(new InputStreamReader(new FileInputStream(String.valueOf(filePath))));
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveProgress(FileInformation fileInformation) {
+        fileInformationRepository.save(fileInformation);
     }
 }
