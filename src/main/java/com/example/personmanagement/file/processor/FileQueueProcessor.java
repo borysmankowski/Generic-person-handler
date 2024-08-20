@@ -3,6 +3,7 @@ package com.example.personmanagement.file.processor;
 import com.example.personmanagement.exception.DuplicateResourceException;
 import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.file.storage.FileBatchProcessingProperties;
+import com.example.personmanagement.file.storage.FileStorage;
 import com.example.personmanagement.model.file.FileInformation;
 import com.example.personmanagement.model.file.FileStatus;
 import com.example.personmanagement.repository.FileInformationRepository;
@@ -11,7 +12,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -21,13 +21,15 @@ public class FileQueueProcessor {
 
     private final FileInformationRepository fileInformationRepository;
     private final FileProcessor fileProcessor;
-
     private final FileBatchProcessingProperties fileBatchProcessingProperties;
 
-    public FileQueueProcessor(FileInformationRepository fileInformationRepository, FileProcessor fileProcessor, FileBatchProcessingProperties fileBatchProcessingProperties) {
+    private final FileStorage fileStorage;
+
+    public FileQueueProcessor(FileInformationRepository fileInformationRepository, FileProcessor fileProcessor, FileBatchProcessingProperties fileBatchProcessingProperties, FileStorage fileStorage) {
         this.fileInformationRepository = fileInformationRepository;
         this.fileProcessor = fileProcessor;
         this.fileBatchProcessingProperties = fileBatchProcessingProperties;
+        this.fileStorage = fileStorage;
     }
 
     public Optional<Long> findFileToProcess() {
@@ -43,15 +45,11 @@ public class FileQueueProcessor {
             boolean processing = true;
             while (processing) {
                 FileProcessor.Result batchResult;
-                try {
-                    batchResult = fileProcessor.processFile(fileInformation, fileBatchProcessingProperties.getBatchSize());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                batchResult = fileProcessor.processFile(fileInformation, fileBatchProcessingProperties.getBatchSize());
                 fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
                 fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();
-                fileProcessor.saveProgress(fileInformation);
+                fileStorage.saveProgress(fileInformation);
             }
 
             fileInformation.setFinishedAt(LocalDateTime.now());
@@ -61,10 +59,9 @@ public class FileQueueProcessor {
             log.error("Error when processing file {}", fileImportId, e);
             fileInformation.setFinishedAt(LocalDateTime.now());
             fileInformation.setStatus(FileStatus.FAILED);
-            fileProcessor.saveProgress(fileInformation);
+            fileStorage.saveProgress(fileInformation);
             throw new DuplicateResourceException("Duplicated resource!");
         }
-        fileProcessor.saveProgress(fileInformation);
+        fileStorage.saveProgress(fileInformation);
     }
-
 }

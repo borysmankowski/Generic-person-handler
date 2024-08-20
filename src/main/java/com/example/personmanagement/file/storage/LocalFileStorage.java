@@ -1,8 +1,11 @@
 package com.example.personmanagement.file.storage;
 
+import com.example.personmanagement.model.file.FileInformation;
 import com.example.personmanagement.repository.FileInformationRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -39,5 +42,11 @@ public class LocalFileStorage implements FileStorage {
     public BufferedReader load(String fileName) throws FileNotFoundException {
         Path filePath = Path.of(fileStorageProperties.getDir(), fileName);
         return new BufferedReader(new InputStreamReader(new FileInputStream(String.valueOf(filePath))));
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveProgress(FileInformation fileInformation) {
+        fileInformationRepository.save(fileInformation);
     }
 }
