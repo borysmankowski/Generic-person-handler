@@ -26,6 +26,8 @@ public class EmployeeMapper implements PersonTypeMapper {
                             .filter(jobPosition -> jobPosition.getEndDate() == null)
                             .map(JobPosition::getPositionName).findFirst());
 
+            int numberOfJobPositions = employee.getJobPositions() != null ? employee.getJobPositions().size() : 0;
+
             return EmployeeDto.builder()
                     .id(person.getId())
                     .name(person.getName())
@@ -35,6 +37,7 @@ public class EmployeeMapper implements PersonTypeMapper {
                     .weight(person.getWeight())
                     .emailAddress(person.getEmailAddress())
                     .currentJobPosition(currentJobPosition.orElse(null))
+                    .numberOfJobPositions(numberOfJobPositions)
                     .build();
         }
         throw new InvalidStrategyTypeException("Unsupported type!");
