@@ -2,10 +2,11 @@ package com.example.personmanagement.strategy;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.model.pensioner.Pensioner;
-import com.example.personmanagement.model.pensioner.UpdatePensionerCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,9 +28,13 @@ class PensionerUpdateStrategyTest {
         existingPensioner.setPensionAmount(1500.0);
         existingPensioner.setWorkedYears(30);
 
-        UpdatePensionerCommand command = new UpdatePensionerCommand();
+        UpdatePersonCommand command = new UpdatePersonCommand();
+        command.setType("PENSIONER");
         command.setName("Alice Updated");
-        command.setPensionAmount(1600.0);
+        HashMap<String, String> params1 = new HashMap<>();
+        params1.put("pensionAmount", "1600.0");
+
+        command.setPersonUniqueFields(params1);
 
         Pensioner updatedPensioner = (Pensioner) strategy.update(existingPensioner, command);
 
@@ -50,6 +55,21 @@ class PensionerUpdateStrategyTest {
 
         UpdatePersonCommand invalidCommand = new UpdatePersonCommand() {
         };
+
+        invalidCommand.setType("INVALID");
+        invalidCommand.setName("Alice");
+        invalidCommand.setSurname("Smith");
+        invalidCommand.setPesel("9876543210");
+        invalidCommand.setHeight(160);
+        invalidCommand.setWeight(65);
+        invalidCommand.setEmailAddress("alice.smith@example.com");
+
+        HashMap<String, String> params1 = new HashMap<>();
+        params1.put("pensionAmount", "1500");
+        params1.put("workedYears", "30");
+
+        invalidCommand.setPersonUniqueFields(params1);
+
         assertThrows(InvalidStrategyTypeException.class, () -> strategy.update(existingPerson, invalidCommand));
     }
 
@@ -58,7 +78,7 @@ class PensionerUpdateStrategyTest {
         Person existingPerson = new Person() {
         };
 
-        UpdatePensionerCommand validCommand = new UpdatePensionerCommand();
+        UpdatePersonCommand validCommand = new UpdatePersonCommand();
         assertThrows(IllegalArgumentException.class, () -> strategy.update(existingPerson, validCommand));
     }
 }

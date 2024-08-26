@@ -1,13 +1,11 @@
 package com.example.personmanagement.controller;
 
 import com.example.personmanagement.exception.ResourceNotFoundException;
-import com.example.personmanagement.model.employee.CreateEmployeeCommand;
 import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.model.employee.EmployeeDto;
-import com.example.personmanagement.model.employee.UpdateEmployeeCommand;
-import com.example.personmanagement.model.pensioner.CreatePensionerCommand;
+import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
-import com.example.personmanagement.model.student.CreateStudentCommand;
+import com.example.personmanagement.model.person.UpdatePersonCommand;
 import com.example.personmanagement.repository.PersonRepository;
 import com.example.personmanagement.search.SearchCriteria;
 import com.example.personmanagement.strategy.EmployeeCreationStrategy;
@@ -26,12 +24,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -55,18 +55,18 @@ class PersonControllerTest {
     private PersonRepository personRepository;
 
     private static Person getPerson() {
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("surname");
-        createEmployeeCommand.setPesel("50071262432");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("emailAddress@test.com");
+
+        CreatePersonCommand createPersonCommand = new CreatePersonCommand();
+        createPersonCommand.setType("EMPLOYEE");
+        createPersonCommand.setName("John");
+        createPersonCommand.setSurname("Doe");
+        createPersonCommand.setEmailAddress("john@example.com");
+        createPersonCommand.setPesel("50071262432");
+        createPersonCommand.setHeight(175.0);
+        createPersonCommand.setWeight(70.0);
 
         PersonCreationStrategy creationStrategy = new EmployeeCreationStrategy();
-
-        return creationStrategy.create(createEmployeeCommand);
+        return creationStrategy.create(createPersonCommand);
     }
 
     @Test
@@ -84,103 +84,157 @@ class PersonControllerTest {
     @WithMockUser(roles = "ADMIN")
     void CreatePersonFailureBlankName() throws Exception {
 
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName(" ");
-        createEmployeeCommand.setSurname("surname");
-        createEmployeeCommand.setPesel("77080165949");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("test@test.com");
+        CreatePersonCommand createPersonCommand = new CreatePersonCommand();
+        createPersonCommand.setType("EMPLOYEE");
+        createPersonCommand.setName(" ");
+        createPersonCommand.setSurname("Doe");
+        createPersonCommand.setEmailAddress("john@example.com");
+        createPersonCommand.setPesel("50071262432");
+        createPersonCommand.setHeight(175.0);
+        createPersonCommand.setWeight(70.0);
 
         String exceptionMsg = "Name cannot be blank";
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createEmployeeCommand))).andDo(print()).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.message").value("validation errors")).andExpect(jsonPath("$.violations[0].field").value("name")).andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createPersonCommand)))
+                .andDo(print()).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.message")
+                        .value("validation errors"))
+                .andExpect(jsonPath("$.violations[0].field")
+                        .value("name")).andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void CreatePersonFailureBlankSurname() throws Exception {
 
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname(" ");
-        createEmployeeCommand.setPesel("77080165949");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("test@test.com");
+        CreatePersonCommand createPersonCommand = new CreatePersonCommand();
+        createPersonCommand.setType("EMPLOYEE");
+        createPersonCommand.setName("John");
+        createPersonCommand.setSurname(" ");
+        createPersonCommand.setEmailAddress("john@example.com");
+        createPersonCommand.setPesel("50071262432");
+        createPersonCommand.setHeight(175.0);
+        createPersonCommand.setWeight(70.0);
 
         String exceptionMsg = "Surname cannot be blank";
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createEmployeeCommand))).andDo(print()).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.message").value("validation errors")).andExpect(jsonPath("$.violations[0].field").value("surname")).andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createPersonCommand)))
+                .andDo(print())
+                .andExpect(status()
+                        .isBadRequest())
+                .andExpect(jsonPath("$.timestamp")
+                        .exists())
+                .andExpect(jsonPath("$.message")
+                        .value("validation errors"))
+                .andExpect(jsonPath("$.violations[0].field")
+                        .value("surname"))
+                .andExpect(jsonPath("$.violations[0].message")
+                        .value(exceptionMsg));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void CreatePersonFailureBlankPesel() throws Exception {
 
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("Surname");
-        createEmployeeCommand.setPesel(" ");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("email@email.com");
+        CreatePersonCommand createPersonCommand = new CreatePersonCommand();
+        createPersonCommand.setType("EMPLOYEE");
+        createPersonCommand.setName("John");
+        createPersonCommand.setSurname("Doe");
+        createPersonCommand.setEmailAddress("john@example.com");
+        createPersonCommand.setPesel(" ");
+        createPersonCommand.setHeight(175.0);
+        createPersonCommand.setWeight(70.0);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createEmployeeCommand))).andDo(print()).andExpect(status().is4xxClientError()).andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.message").value("validation errors"));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createPersonCommand)))
+                .andDo(print()).andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.message")
+                        .value("validation errors"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void CreatePersonFailureBlankEmail() throws Exception {
 
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("Surname");
-        createEmployeeCommand.setPesel("77080165949");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress(" ");
+        CreatePersonCommand createPersonCommand = new CreatePersonCommand();
+        createPersonCommand.setType("EMPLOYEE");
+        createPersonCommand.setName("John");
+        createPersonCommand.setSurname("Doe");
+        createPersonCommand.setEmailAddress(" ");
+        createPersonCommand.setPesel("50071262432");
+        createPersonCommand.setHeight(175.0);
+        createPersonCommand.setWeight(70.0);
 
         String exceptionMsg = "must be a well-formed email address";
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(createEmployeeCommand))).andDo(print()).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.message").value("validation errors")).andExpect(jsonPath("$.violations[0].field").value("emailAddress")).andExpect(jsonPath("$.violations[0].message").value(exceptionMsg));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createPersonCommand)))
+                .andDo(print()).andExpect(status()
+                        .isBadRequest()).andExpect(jsonPath("$.timestamp")
+                        .exists()).andExpect(jsonPath("$.message")
+                        .value("validation errors")).andExpect(jsonPath("$.violations[0].field")
+                        .value("emailAddress"))
+                .andExpect(jsonPath("$.violations[0].message")
+                        .value(exceptionMsg));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void givenStudentsWithSamePESEL_WhenCreateStudents_ThenShouldFail() throws Exception {
-        // given
         String pesel = "99010264551";
 
-        CreateStudentCommand student1 = new CreateStudentCommand();
+        CreatePersonCommand student1 = new CreatePersonCommand();
         student1.setType("STUDENT");
+
         student1.setName("John");
         student1.setSurname("Doe");
         student1.setEmailAddress("john@example.com");
         student1.setPesel(pesel);
-        student1.setNameOfUniversity("University A");
-        student1.setYearOfStudies(2);
-        student1.setCourseName("Computer Science");
-        student1.setScholarship(1000.0);
+        student1.setHeight(175.0);
+        student1.setWeight(70.0);
+
+        HashMap<String, String> params2 = new HashMap<>();
+        params2.put("nameOfUniversity", "UniName");
+        params2.put("yearOfStudies", "2020");
+        params2.put("courseName", "CourseName");
+        params2.put("scholarship", "2000");
+
+        student1.setPersonUniqueFields(params2);
+
         postStudent(student1);
 
-        // when
-        CreateStudentCommand student2 = new CreateStudentCommand();
-        student2.setType("STUDENT");
-        student2.setName("Jane");
-        student2.setSurname("Doe");
-        student2.setEmailAddress("jane@example.com");
-        student2.setPesel(pesel);
-        student2.setNameOfUniversity("University B");
-        student2.setYearOfStudies(3);
-        student2.setCourseName("Electrical Engineering");
-        student2.setScholarship(1200.0);
+        CreatePersonCommand createPersonCommandClone = new CreatePersonCommand();
 
-        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(student2))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists());
+        createPersonCommandClone.setType("STUDENT");
+        createPersonCommandClone.setName("John");
+        createPersonCommandClone.setSurname("Doe");
+        createPersonCommandClone.setEmailAddress("john@example.com");
+        createPersonCommandClone.setPesel(pesel);
+        createPersonCommandClone.setHeight(175.0);
+        createPersonCommandClone.setWeight(70.0);
+
+        HashMap<String, String> params1 = new HashMap<>();
+        params1.put("nameOfUniversity", "UniName");
+        params1.put("yearOfStudies", "2020");
+        params1.put("courseName", "CourseName");
+        params1.put("scholarship", "2000");
+        createPersonCommandClone.setPersonUniqueFields(params1);
+
+
+        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createPersonCommandClone)))
+                .andExpect(status()
+                        .isBadRequest())
+                .andExpect(jsonPath("$.timestamp")
+                        .exists());
     }
 
     @Test
@@ -189,32 +243,48 @@ class PersonControllerTest {
 
         String pesel = "99010264551";
 
-        CreatePensionerCommand pensioner1 = new CreatePensionerCommand();
+        CreatePersonCommand pensioner1 = new CreatePersonCommand();
         pensioner1.setType("PENSIONER");
         pensioner1.setName("John");
         pensioner1.setSurname("Doe");
         pensioner1.setEmailAddress("john@example.com");
         pensioner1.setPesel(pesel);
-        pensioner1.setPensionAmount(2000.0);
-        pensioner1.setWorkedYears(30);
+        pensioner1.setHeight(175.0);
+        pensioner1.setWeight(70.0);
+
+        HashMap<String, String> params1 = new HashMap<>();
+        params1.put("pensionAmount", "2000.0");
+        params1.put("workedYears", "30");
+        pensioner1.setPersonUniqueFields(params1);
+
         postPensioner(pensioner1);
 
-        CreatePensionerCommand pensioner2 = new CreatePensionerCommand();
+        CreatePersonCommand pensioner2 = new CreatePersonCommand();
         pensioner2.setType("PENSIONER");
         pensioner2.setName("Jane");
         pensioner2.setSurname("Doe");
         pensioner2.setEmailAddress("jane@example.com");
         pensioner2.setPesel(pesel);
-        pensioner2.setPensionAmount(1800.0);
-        pensioner2.setWorkedYears(25);
+        pensioner2.setHeight(160.0);
+        pensioner2.setWeight(60.0);
 
-        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(pensioner2))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.timestamp").exists());
+        HashMap<String, String> params2 = new HashMap<>();
+        params2.put("pensionAmount", "1800.0");
+        params2.put("workedYears", "25");
+        pensioner2.setPersonUniqueFields(params2);
+
+
+        mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pensioner2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp")
+                        .exists());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void UpdatePersonDetails_ShouldIncrementVersion() throws Exception {
-        UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
+        UpdatePersonCommand updateEmployeeCommand = new UpdatePersonCommand();
         updateEmployeeCommand.setType("EMPLOYEE");
         updateEmployeeCommand.setName("newName");
         updateEmployeeCommand.setSurname("newSurname");
@@ -224,14 +294,14 @@ class PersonControllerTest {
         updateEmployeeCommand.setEmailAddress("newemail@test.com");
         updateEmployeeCommand.setVersion(0);
 
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        CreatePersonCommand createEmployeeCommand = new CreatePersonCommand();
         createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("Surname");
-        createEmployeeCommand.setPesel("00250714618");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("email@email.com");
+        createEmployeeCommand.setName("John");
+        createEmployeeCommand.setSurname("Doe");
+        createEmployeeCommand.setEmailAddress("john@example.com");
+        createEmployeeCommand.setPesel("50071262432");
+        createEmployeeCommand.setHeight(175.0);
+        createEmployeeCommand.setWeight(70.0);
 
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
@@ -254,7 +324,7 @@ class PersonControllerTest {
     @Transactional
     @AssertHibernateSQLCount(inserts = 1, selects = 1, updates = 1, deletes = 1)
     void updatePersonDetails_ShouldIncrementVersion_ShouldPerform2Queries() throws Exception {
-        UpdateEmployeeCommand updateEmployeeCommand = new UpdateEmployeeCommand();
+        UpdatePersonCommand updateEmployeeCommand = new UpdatePersonCommand();
         updateEmployeeCommand.setType("EMPLOYEE");
         updateEmployeeCommand.setName("newName");
         updateEmployeeCommand.setSurname("newSurname");
@@ -264,7 +334,7 @@ class PersonControllerTest {
         updateEmployeeCommand.setEmailAddress("newemail@test.com");
         updateEmployeeCommand.setVersion(0);
 
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        CreatePersonCommand createEmployeeCommand = new CreatePersonCommand();
         createEmployeeCommand.setType("EMPLOYEE");
         createEmployeeCommand.setName("name");
         createEmployeeCommand.setSurname("Surname");
@@ -281,7 +351,7 @@ class PersonControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void UpdatePersonDetailsShouldFailDueToLostUpdate_HigherVersion_VersionNotIncremented() throws Exception {
-        UpdateEmployeeCommand updateEmployeeCommandVersionDifference = new UpdateEmployeeCommand();
+        UpdatePersonCommand updateEmployeeCommandVersionDifference = new UpdatePersonCommand();
         updateEmployeeCommandVersionDifference.setType("EMPLOYEE");
         updateEmployeeCommandVersionDifference.setName("newName");
         updateEmployeeCommandVersionDifference.setSurname("newSurname");
@@ -291,7 +361,7 @@ class PersonControllerTest {
         updateEmployeeCommandVersionDifference.setEmailAddress("newemail@test.com");
         updateEmployeeCommandVersionDifference.setVersion(100);
 
-        CreateEmployeeCommand createEmployeeCommand = new CreateEmployeeCommand();
+        CreatePersonCommand createEmployeeCommand = new CreatePersonCommand();
         createEmployeeCommand.setType("EMPLOYEE");
         createEmployeeCommand.setName("name");
         createEmployeeCommand.setSurname("Surname");
@@ -426,16 +496,16 @@ class PersonControllerTest {
         mockMvc.perform(get("/api/people").param("search-criteria", searchCriteriaJson).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
     }
 
-    void postPensioner(CreatePensionerCommand pensioner) throws Exception {
+    void postPensioner(CreatePersonCommand pensioner) throws Exception {
         mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(pensioner))).andExpect(status().isCreated());
     }
 
-    void postStudent(CreateStudentCommand student) throws Exception {
+    void postStudent(CreatePersonCommand student) throws Exception {
         mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(student))).andExpect(status().isCreated());
     }
 
-    private EmployeeDto postEmployee(CreateEmployeeCommand requestBody) throws Exception {
-        var result = mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(requestBody)).accept(MediaType.APPLICATION_JSON)).andReturn();
+    private EmployeeDto postEmployee(CreatePersonCommand requestBody) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/people").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(requestBody)).accept(MediaType.APPLICATION_JSON)).andReturn();
         return objectMapper.readValue(result.getResponse().getContentAsString(), EmployeeDto.class);
     }
 

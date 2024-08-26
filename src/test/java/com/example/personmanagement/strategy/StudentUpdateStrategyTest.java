@@ -4,8 +4,9 @@ import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 import com.example.personmanagement.model.student.Student;
-import com.example.personmanagement.model.student.UpdateStudentCommand;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,20 +19,30 @@ class StudentUpdateStrategyTest {
     void update_withValidUpdateStudentCommand_shouldUpdateStudent() {
 
         Student existingStudent = new Student();
+        existingStudent.setType("STUDENT");
         existingStudent.setName("Emily");
         existingStudent.setSurname("Davis");
         existingStudent.setPesel("5678901234");
         existingStudent.setHeight(170);
         existingStudent.setWeight(55);
         existingStudent.setEmailAddress("emily.davis@example.com");
-        existingStudent.setNameOfUniversity("University of Example");
-        existingStudent.setYearOfStudies(2);
         existingStudent.setCourseName("Computer Science");
-        existingStudent.setScholarship(1200.0);
+        existingStudent.setNameOfUniversity("University of Example");
+        existingStudent.setScholarship(1200);
+        existingStudent.setYearOfStudies(3);
 
-        UpdateStudentCommand command = new UpdateStudentCommand();
+        HashMap<String, String> params1 = new HashMap<>();
+        params1.put("nameOfUniversity", "UniName");
+        params1.put("yearOfStudies", "2020");
+        params1.put("courseName", "CourseName");
+        params1.put("scholarship", "2000");
+
+        UpdatePersonCommand command = new UpdatePersonCommand();
+        command.setType("STUDENT");
         command.setName("Emily Updated");
-        command.setYearOfStudies(3);
+        HashMap<String, String> params2 = new HashMap<>();
+        params2.put("yearOfStudies", "2020");
+        command.setPersonUniqueFields(params2);
 
         Student updatedStudent = (Student) strategy.update(existingStudent, command);
 
@@ -43,18 +54,37 @@ class StudentUpdateStrategyTest {
         assertEquals(55, updatedStudent.getWeight());
         assertEquals("emily.davis@example.com", updatedStudent.getEmailAddress());
         assertEquals("University of Example", updatedStudent.getNameOfUniversity());
-        assertEquals(3, updatedStudent.getYearOfStudies());
+        assertEquals(2020, updatedStudent.getYearOfStudies());
         assertEquals("Computer Science", updatedStudent.getCourseName());
         assertEquals(1200.0, updatedStudent.getScholarship());
     }
 
     @Test
     void update_withInvalidCommandType_shouldThrowInvalidStrategyTypeException() {
+
+        String type = "INVALID";
+
         // Arrange
         Person existingPerson = new Student();
 
         UpdatePersonCommand invalidCommand = new UpdatePersonCommand() {
         };
+
+        invalidCommand.setType(type);
+        invalidCommand.setName("Emily");
+        invalidCommand.setSurname("Davis");
+        invalidCommand.setPesel("5678901234");
+        invalidCommand.setHeight(170);
+        invalidCommand.setWeight(55);
+        invalidCommand.setEmailAddress("emily.davis@example.com");
+
+        HashMap<String, String> params1 = new HashMap<>();
+        params1.put("nameOfUniversity", "University of Example");
+        params1.put("yearOfStudies", "2");
+        params1.put("courseName", "Computer Science");
+        params1.put("scholarship", "1200");
+        invalidCommand.setPersonUniqueFields(params1);
+
         assertThrows(InvalidStrategyTypeException.class, () -> strategy.update(existingPerson, invalidCommand));
     }
 
@@ -64,7 +94,7 @@ class StudentUpdateStrategyTest {
         Person existingPerson = new Person() {
         };
 
-        UpdateStudentCommand validCommand = new UpdateStudentCommand();
+        UpdatePersonCommand validCommand = new UpdatePersonCommand();
         assertThrows(IllegalArgumentException.class, () -> strategy.update(existingPerson, validCommand));
     }
 }

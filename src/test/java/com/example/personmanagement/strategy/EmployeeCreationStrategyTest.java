@@ -1,7 +1,6 @@
 package com.example.personmanagement.strategy;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.model.employee.CreateEmployeeCommand;
 import com.example.personmanagement.model.employee.Employee;
 import com.example.personmanagement.model.person.CreatePersonCommand;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,7 @@ class EmployeeCreationStrategyTest {
     @Test
     void create_withValidCreateEmployeeCommand_shouldReturnEmployee() {
 
-        CreateEmployeeCommand command = new CreateEmployeeCommand();
+        CreatePersonCommand command = new CreatePersonCommand();
         command.setType("EMPLOYEE");
         command.setName("John");
         command.setSurname("Doe");

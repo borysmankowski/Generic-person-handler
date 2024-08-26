@@ -1,8 +1,8 @@
 package com.example.personmanagement.controller;
 
 import com.devskiller.jfairy.Fairy;
-import com.example.personmanagement.model.employee.CreateEmployeeCommand;
 import com.example.personmanagement.model.employee.EmployeeDto;
+import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.position.CreatePositionCommand;
 import com.example.personmanagement.repository.PersonRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -102,21 +102,25 @@ class EmployeeControllerTest {
         // given
         String pesel = "59052491861";
 
-        CreateEmployeeCommand employee1 = new CreateEmployeeCommand();
+        CreatePersonCommand employee1 = new CreatePersonCommand();
         employee1.setType("EMPLOYEE");
         employee1.setName("John");
         employee1.setSurname("Doe");
         employee1.setEmailAddress("john@example.com");
         employee1.setPesel(pesel);
+        employee1.setHeight(175.0);
+        employee1.setWeight(70.0);
         postEmployee(employee1);
 
         // when
-        CreateEmployeeCommand employee2 = new CreateEmployeeCommand();
+        CreatePersonCommand employee2 = new CreatePersonCommand();
         employee2.setType("EMPLOYEE");
-        employee2.setName("Jane");
+        employee2.setName("John");
         employee2.setSurname("Doe");
-        employee2.setEmailAddress("jane@example.com");
+        employee2.setEmailAddress("john@example.com");
         employee2.setPesel(pesel);
+        employee2.setHeight(175.0);
+        employee2.setWeight(70.0);
 
         mockMvc.perform(post("/api/people")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -134,8 +138,9 @@ class EmployeeControllerTest {
 
     private EmployeeDto postRandomEmployee() throws Exception {
         var person = fairy.person();
-        var requestBody = new CreateEmployeeCommand();
+        var requestBody = new CreatePersonCommand();
         requestBody.setType("EMPLOYEE");
+
         requestBody.setName(person.getFirstName());
         requestBody.setSurname(person.getLastName());
         requestBody.setEmailAddress(person.getEmail());
@@ -145,7 +150,7 @@ class EmployeeControllerTest {
         return postEmployee(requestBody);
     }
 
-    private EmployeeDto postEmployee(CreateEmployeeCommand requestBody) throws Exception {
+    private EmployeeDto postEmployee(CreatePersonCommand requestBody) throws Exception {
         var result = mockMvc.perform(post("/api/people")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestBody))
