@@ -40,12 +40,10 @@ public class FileQueueProcessor {
     public void processFileQueue(Long fileImportId) {
         FileInformation fileInformation = fileInformationRepository.findById(fileImportId).orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
         try {
-            fileInformation.setStartedAt(LocalDateTime.now());
 
             boolean processing = true;
             while (processing) {
-                FileProcessor.Result batchResult;
-                batchResult = fileProcessor.processFile(fileInformation, fileBatchProcessingProperties.getBatchSize());
+                FileProcessor.Result batchResult = fileProcessor.processFile(fileInformation, fileBatchProcessingProperties.getBatchSize());
                 fileInformation.setLastProcessedRow(batchResult.lastProcessedRow());
                 fileInformation.setStatus(FileStatus.IN_PROGRESS);
                 processing = !batchResult.isFinished();

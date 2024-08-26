@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CurrentTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -30,6 +31,7 @@ public class FileInformation {
     @Enumerated(EnumType.STRING)
     private FileStatus status;
     private LocalDateTime createdAt;
+    @CurrentTimestamp
     private LocalDateTime startedAt;
     private LocalDateTime finishedAt;
 }

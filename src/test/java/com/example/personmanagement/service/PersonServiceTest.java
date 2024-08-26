@@ -3,11 +3,11 @@ package com.example.personmanagement.service;
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.exception.ResourceVersionNotValidException;
 import com.example.personmanagement.mapper.PersonMapper;
-import com.example.personmanagement.model.employee.CreateEmployeeCommand;
 import com.example.personmanagement.model.employee.Employee;
-import com.example.personmanagement.model.employee.UpdateEmployeeCommand;
+import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.PersonDto;
+import com.example.personmanagement.model.person.UpdatePersonCommand;
 import com.example.personmanagement.repository.PersonRepository;
 import com.example.personmanagement.search.PersonSpecification;
 import com.example.personmanagement.search.SearchCriteria;
@@ -81,7 +81,7 @@ class PersonServiceTest {
     @Test
     void create_ValidCommand_ReturnsEmployeeDto() {
 
-        CreateEmployeeCommand command = new CreateEmployeeCommand();
+        CreatePersonCommand command = new CreatePersonCommand();
         command.setType("EMPLOYEE");
         command.setName("Darek");
         command.setSurname("Pieczarek");
@@ -110,7 +110,7 @@ class PersonServiceTest {
         personDto.setEmailAddress("test@test.com");
 
         when(personStrategyFacade.getCreationStrategy("EMPLOYEE")).thenReturn(employeeCreationStrategy);
-        when(employeeCreationStrategy.create(any(CreateEmployeeCommand.class))).thenReturn(employee);
+        when(employeeCreationStrategy.create(any(CreatePersonCommand.class))).thenReturn(employee);
         when(personRepository.save(any(Employee.class))).thenReturn(employee);
         when(personMapper.toDto(any(Employee.class))).thenReturn(personDto);
 
@@ -137,7 +137,7 @@ class PersonServiceTest {
 
     @Test
     void create_InvalidStrategyType_ThrowsException() {
-        CreateEmployeeCommand command = new CreateEmployeeCommand();
+        CreatePersonCommand command = new CreatePersonCommand();
         command.setType("INVALID");
 
         when(personStrategyFacade.getCreationStrategy("INVALID")).thenThrow(new InvalidStrategyTypeException("Invalid strategy type"));
@@ -232,7 +232,7 @@ class PersonServiceTest {
         updatedEmployee.setEmailAddress("test@test.com");
         updatedEmployee.setVersion(2);
 
-        UpdateEmployeeCommand command = new UpdateEmployeeCommand();
+        UpdatePersonCommand command = new UpdatePersonCommand();
         command.setType("EMPLOYEE");
         command.setName("New Name");
         command.setVersion(2);
@@ -267,7 +267,7 @@ class PersonServiceTest {
         existingEmployee.setEmailAddress("test@test.com");
         existingEmployee.setVersion(1);
 
-        UpdateEmployeeCommand command = new UpdateEmployeeCommand();
+        UpdatePersonCommand command = new UpdatePersonCommand();
         command.setType("EMPLOYEE");
         command.setName("New Name");
         command.setVersion(2);

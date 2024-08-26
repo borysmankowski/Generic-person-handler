@@ -2,7 +2,6 @@ package com.example.personmanagement.strategy;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.model.pensioner.Pensioner;
-import com.example.personmanagement.model.pensioner.UpdatePensionerCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 import org.springframework.stereotype.Component;
@@ -11,26 +10,29 @@ import org.springframework.stereotype.Component;
 public class PensionerUpdateStrategy implements PersonUpdateStrategy {
     @Override
     public Person update(Person existingPerson, UpdatePersonCommand command) {
-        if (!(command instanceof UpdatePensionerCommand pensionerCommand)) {
-            throw new InvalidStrategyTypeException("Invalid command type for PensionerUpdateStrategy");
-        }
-        if (existingPerson instanceof Pensioner existingPensioner) {
 
-            return Pensioner.builder()
-                    .id(existingPensioner.getId())
-                    .type(existingPensioner.getType())
-                    .name(pensionerCommand.getName() != null ? pensionerCommand.getName() : existingPensioner.getName())
-                    .surname(pensionerCommand.getSurname() != null ? pensionerCommand.getSurname() : existingPensioner.getSurname())
-                    .pesel(pensionerCommand.getPesel() != null ? pensionerCommand.getPesel() : existingPensioner.getPesel())
-                    .height(pensionerCommand.getHeight() != 0.0 ? pensionerCommand.getHeight() : existingPensioner.getHeight())
-                    .weight(pensionerCommand.getWeight() != 0.0 ? pensionerCommand.getWeight() : existingPensioner.getWeight())
-                    .emailAddress(pensionerCommand.getEmailAddress() != null ? pensionerCommand.getEmailAddress() : existingPensioner.getEmailAddress())
-                    .pensionAmount(pensionerCommand.getPensionAmount() != 0.0 ? pensionerCommand.getPensionAmount() : existingPensioner.getPensionAmount())
-                    .workedYears(pensionerCommand.getWorkedYears() != 0 ? pensionerCommand.getWorkedYears() : existingPensioner.getWorkedYears())
-                    .version(pensionerCommand.getVersion())
-                    .build();
-        } else {
+        final String EXPECTED_TYPE = "PENSIONER";
+
+        if (!(existingPerson instanceof Pensioner existingPensioner)) {
             throw new IllegalArgumentException("Existing person is not an instance of Pensioner");
         }
+
+        if (command.getType() == null || !EXPECTED_TYPE.equals(command.getType())) {
+            throw new InvalidStrategyTypeException("Invalid type for PensionerUpdateStrategy: expected " + EXPECTED_TYPE + " but got " + command.getType());
+        }
+
+        return Pensioner.builder()
+                .id(existingPensioner.getId())
+                .type(existingPensioner.getType())
+                .name(command.getName() != null ? command.getName() : existingPensioner.getName())
+                .surname(command.getSurname() != null ? command.getSurname() : existingPensioner.getSurname())
+                .pesel(command.getPesel() != null ? command.getPesel() : existingPensioner.getPesel())
+                .height(command.getHeight() != 0.0 ? command.getHeight() : existingPensioner.getHeight())
+                .weight(command.getWeight() != 0.0 ? command.getWeight() : existingPensioner.getWeight())
+                .emailAddress(command.getEmailAddress() != null ? command.getEmailAddress() : existingPensioner.getEmailAddress())
+                .pensionAmount(Double.parseDouble(command.getPersonUniqueFields().getOrDefault("pensionAmount", String.valueOf(existingPensioner.getPensionAmount()))))
+                .workedYears(Integer.parseInt(command.getPersonUniqueFields().getOrDefault("workedYears", String.valueOf(existingPensioner.getWorkedYears()))))
+                .version(command.getVersion())
+                .build();
     }
 }

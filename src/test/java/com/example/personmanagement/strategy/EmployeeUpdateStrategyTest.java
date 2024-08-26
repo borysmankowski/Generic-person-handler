@@ -2,7 +2,6 @@ package com.example.personmanagement.strategy;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
 import com.example.personmanagement.model.employee.Employee;
-import com.example.personmanagement.model.employee.UpdateEmployeeCommand;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,8 @@ class EmployeeUpdateStrategyTest {
         existingEmployee.setWeight(75);
         existingEmployee.setEmailAddress("john.doe@example.com");
 
-        UpdateEmployeeCommand command = new UpdateEmployeeCommand();
+        UpdatePersonCommand command = new UpdatePersonCommand();
+        command.setType("EMPLOYEE");
         command.setName("Johnny");
         command.setHeight(185);
 
@@ -43,7 +43,7 @@ class EmployeeUpdateStrategyTest {
     @Test
     void update_withInvalidCommandType_shouldThrowInvalidStrategyTypeException() {
 
-        Person existingPerson = new Employee();
+        Person existingPerson = new Person();
         UpdatePersonCommand invalidCommand = new UpdatePersonCommand() {
 
         };
@@ -55,7 +55,7 @@ class EmployeeUpdateStrategyTest {
 
         Person existingPerson = new Person() {
         };
-        UpdateEmployeeCommand validCommand = new UpdateEmployeeCommand();
-        assertThrows(IllegalArgumentException.class, () -> strategy.update(existingPerson, validCommand));
+        UpdatePersonCommand validCommand = new UpdatePersonCommand();
+        assertThrows(InvalidStrategyTypeException.class, () -> strategy.update(existingPerson, validCommand));
     }
 }

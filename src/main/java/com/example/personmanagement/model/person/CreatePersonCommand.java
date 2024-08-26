@@ -5,8 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.hibernate.validator.constraints.pl.PESEL;
 
+import java.util.Map;
+
 @Data
-public abstract class CreatePersonCommand {
+public class CreatePersonCommand {
 
     private String type;
     @NotBlank(message = "Name cannot be blank")
@@ -20,4 +22,5 @@ public abstract class CreatePersonCommand {
     private double weight;
     @Email
     private String emailAddress;
+    private Map<String, String> personUniqueFields;
 }

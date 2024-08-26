@@ -1,7 +1,6 @@
 package com.example.personmanagement.strategy;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
-import com.example.personmanagement.model.pensioner.CreatePensionerCommand;
 import com.example.personmanagement.model.pensioner.Pensioner;
 import com.example.personmanagement.model.person.CreatePersonCommand;
 import com.example.personmanagement.model.person.Person;
@@ -10,22 +9,24 @@ import org.springframework.stereotype.Component;
 @Component("pensionerCreationStrategy")
 public class PensionerCreationStrategy implements PersonCreationStrategy {
 
+    private static final String EXPECTED_TYPE = "PENSIONER";
+
     @Override
     public Person create(CreatePersonCommand command) {
-        if (!(command instanceof CreatePensionerCommand pensionerCommand)) {
-            throw new InvalidStrategyTypeException("Invalid command type for PensionerCreationStrategy");
+        if (!EXPECTED_TYPE.equals(command.getType())) {
+            throw new InvalidStrategyTypeException("Invalid type for PensionerCreationStrategy: expected " + EXPECTED_TYPE + " but got " + command.getType());
         }
 
         return Pensioner.builder()
-                .type(pensionerCommand.getType())
-                .name(pensionerCommand.getName())
-                .surname(pensionerCommand.getSurname())
-                .pesel(pensionerCommand.getPesel())
-                .height(pensionerCommand.getHeight())
-                .weight(pensionerCommand.getWeight())
-                .emailAddress(pensionerCommand.getEmailAddress())
-                .pensionAmount(pensionerCommand.getPensionAmount())
-                .workedYears(pensionerCommand.getWorkedYears())
+                .type(command.getType())
+                .name(command.getName())
+                .surname(command.getSurname())
+                .pesel(command.getPesel())
+                .height(command.getHeight())
+                .weight(command.getWeight())
+                .emailAddress(command.getEmailAddress())
+                .pensionAmount(Double.parseDouble(command.getPersonUniqueFields().get("pensionAmount")))
+                .workedYears(Integer.parseInt(command.getPersonUniqueFields().get("workedYears")))
                 .build();
     }
 }
