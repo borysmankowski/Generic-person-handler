@@ -30,6 +30,7 @@ public class EmployeeUpdateStrategy implements PersonUpdateStrategy {
                 .height(command.getHeight() != 0.0 ? command.getHeight() : existingEmployee.getHeight())
                 .weight(command.getWeight() != 0.0 ? command.getWeight() : existingEmployee.getWeight())
                 .emailAddress(command.getEmailAddress() != null ? command.getEmailAddress() : existingEmployee.getEmailAddress())
+                .jobPositions(existingEmployee.getJobPositions())
                 .version(command.getVersion())
                 .build();
     }

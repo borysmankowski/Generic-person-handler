@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.Optional;
 
 public interface PersonRepository extends JpaRepository<Person, Long>, JpaSpecificationExecutor<Person> {
-    @EntityGraph(value = "Employee.jobPositions", type = EntityGraph.EntityGraphType.FETCH)
+    @EntityGraph(value = "Employee.jobPositions", type = EntityGraph.EntityGraphType.LOAD)
     Optional<Person> findById(Long id);
 }
