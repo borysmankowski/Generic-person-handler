@@ -10,10 +10,12 @@ import com.example.personmanagement.model.position.PositionDto;
 import com.example.personmanagement.repository.JobPositionRepository;
 import com.example.personmanagement.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 @Service
@@ -32,9 +34,13 @@ public class JobService {
 
         validateJobPositionDates(employeeId, command);
 
-        JobPosition newPosition = PositionMapper.fromCreateCommand(command);
-        newPosition.setEmployee(employee);
-        return PositionMapper.toDto(jobPositionRepository.save(newPosition));
+        try {
+            JobPosition newPosition = PositionMapper.fromCreateCommand(command);
+            newPosition.setEmployee(employee);
+            return PositionMapper.toDto(jobPositionRepository.save(newPosition));
+        } catch (OptimisticLockingFailureException e) {
+            throw new ConcurrentModificationException("The job position was modified by another transaction. Please try again.");
+        }
     }
 
     private void validateJobPositionDates(Long employeeId, CreatePositionCommand command) {
