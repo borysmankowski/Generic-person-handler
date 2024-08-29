@@ -30,15 +30,22 @@ public class JobService {
         Employee employee = (Employee) personRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employeeId));
 
+        validateJobPositionDates(employeeId, command);
+
+        JobPosition newPosition = PositionMapper.fromCreateCommand(command);
+        newPosition.setEmployee(employee);
+        return PositionMapper.toDto(jobPositionRepository.save(newPosition));
+    }
+
+    private void validateJobPositionDates(Long employeeId, CreatePositionCommand command) {
         List<JobPosition> overlappingPositions = jobPositionRepository.findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 employeeId, command.getEndDate(), command.getStartDate());
 
         if (!overlappingPositions.isEmpty()) {
             throw new JobOverlappingException("The position dates overlap with existing position dates.");
         }
-
-        JobPosition newPosition = PositionMapper.fromCreateCommand(command);
-        newPosition.setEmployee(employee);
-        return PositionMapper.toDto(jobPositionRepository.save(newPosition));
+        if(command.getEndDate().isBefore(command.getStartDate())){
+            throw new JobOverlappingException("The position end date is before the start date.");
+        }
     }
 }
