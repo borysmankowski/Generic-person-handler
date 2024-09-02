@@ -12,6 +12,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -22,13 +23,15 @@ public class FileQueueProcessor {
     private final FileInformationRepository fileInformationRepository;
     private final FileProcessor fileProcessor;
     private final FileBatchProcessingProperties fileBatchProcessingProperties;
+    private final Clock clock;
 
     private final FileStorage fileStorage;
 
-    public FileQueueProcessor(FileInformationRepository fileInformationRepository, FileProcessor fileProcessor, FileBatchProcessingProperties fileBatchProcessingProperties, FileStorage fileStorage) {
+    public FileQueueProcessor(FileInformationRepository fileInformationRepository, FileProcessor fileProcessor, FileBatchProcessingProperties fileBatchProcessingProperties, Clock clock, FileStorage fileStorage) {
         this.fileInformationRepository = fileInformationRepository;
         this.fileProcessor = fileProcessor;
         this.fileBatchProcessingProperties = fileBatchProcessingProperties;
+        this.clock = clock;
         this.fileStorage = fileStorage;
     }
 
@@ -40,6 +43,7 @@ public class FileQueueProcessor {
     public void processFileQueue(Long fileImportId) {
         FileInformation fileInformation = fileInformationRepository.findById(fileImportId).orElseThrow(() -> new ResourceNotFoundException("Import file with id: " + fileImportId + " hasn't been found"));
         try {
+            fileInformation.setStartedAt(LocalDateTime.now(clock));
 
             boolean processing = true;
             while (processing) {
@@ -50,12 +54,12 @@ public class FileQueueProcessor {
                 fileStorage.saveProgress(fileInformation);
             }
 
-            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setFinishedAt(LocalDateTime.now(clock));
             fileInformation.setStatus(FileStatus.SUCCESS);
 
         } catch (DuplicateKeyException e) {
             log.error("Error when processing file {}", fileImportId, e);
-            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setFinishedAt(LocalDateTime.now(clock));
             fileInformation.setStatus(FileStatus.FAILED);
             fileStorage.saveProgress(fileInformation);
             throw new DuplicateResourceException("Duplicated resource!");
