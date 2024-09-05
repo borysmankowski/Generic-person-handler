@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class FileProcessor {
     private final FileImportStrategyFacade fileImportStrategyFacade;
     private final FileStorage fileStorage;
     private final JdbcTemplate jdbcTemplate;
+    private final Clock clock;
 
     public Result processFile(FileInformation fileInformation, long batchSize) {
         AtomicInteger processedLines = new AtomicInteger();
@@ -58,13 +60,13 @@ public class FileProcessor {
             }
 
         } catch (IOException e) {
-            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setFinishedAt(LocalDateTime.now(clock));
             fileInformation.setStatus(FileStatus.FAILED);
             fileStorage.saveProgress(fileInformation);
             throw new RuntimeException("Error reading file: " + fileInformation.getFilePath(), e);
 
         } catch (DuplicateKeyException e) {
-            fileInformation.setFinishedAt(LocalDateTime.now());
+            fileInformation.setFinishedAt(LocalDateTime.now(clock));
             fileInformation.setStatus(FileStatus.FAILED);
             fileStorage.saveProgress(fileInformation);
             throw new DuplicateResourceException("Duplicate resource found while processing file: " + fileInformation.getFilePath());
