@@ -29,7 +29,7 @@ public class JobService {
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public PositionDto addJobPosition(Long employeeId, CreatePositionCommand command) {
 
-        Employee employee = (Employee) personRepository.findById(employeeId)
+        Employee employee = personRepository.findByIdWithJobs(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employeeId));
 
         validateJobPositionDates(employeeId, command);

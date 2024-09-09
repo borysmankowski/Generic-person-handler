@@ -4,5 +4,5 @@ import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 
 public interface PersonUpdateStrategy {
-    Person update(Person existingPerson, UpdatePersonCommand command);
+    Person update(long existingPerson, UpdatePersonCommand command);
 }
