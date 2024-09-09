@@ -1,24 +1,45 @@
 package com.example.personmanagement.strategy;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
+import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 import com.example.personmanagement.model.student.Student;
+import com.example.personmanagement.repository.PersonRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class StudentUpdateStrategyTest {
-    private final StudentUpdateStrategy strategy = new StudentUpdateStrategy();
+    @Mock
+    private PersonRepository personRepository;
+
+    @InjectMocks
+    private StudentUpdateStrategy strategy;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     void update_withValidUpdateStudentCommand_shouldUpdateStudent() {
+        long existingPersonId = 1L;
 
         Student existingStudent = new Student();
+        existingStudent.setId(existingPersonId);
         existingStudent.setType("STUDENT");
         existingStudent.setName("Emily");
         existingStudent.setSurname("Davis");
@@ -31,20 +52,17 @@ class StudentUpdateStrategyTest {
         existingStudent.setScholarship(1200);
         existingStudent.setYearOfStudies(3);
 
-        HashMap<String, String> params1 = new HashMap<>();
-        params1.put("nameOfUniversity", "UniName");
-        params1.put("yearOfStudies", "2020");
-        params1.put("courseName", "CourseName");
-        params1.put("scholarship", "2000");
+        when(personRepository.findById(existingPersonId)).thenReturn(Optional.of(existingStudent));
 
         UpdatePersonCommand command = new UpdatePersonCommand();
         command.setType("STUDENT");
         command.setName("Emily Updated");
-        HashMap<String, String> params2 = new HashMap<>();
-        params2.put("yearOfStudies", "2020");
-        command.setPersonUniqueFields(params2);
 
-        Student updatedStudent = (Student) strategy.update(existingStudent, command);
+        HashMap<String, String> params = new HashMap<>();
+        params.put("yearOfStudies", "2020");
+        command.setPersonUniqueFields(params);
+
+        Student updatedStudent = (Student) strategy.update(existingPersonId, command);
 
         assertNotNull(updatedStudent);
         assertEquals("Emily Updated", updatedStudent.getName());
@@ -57,44 +75,39 @@ class StudentUpdateStrategyTest {
         assertEquals(2020, updatedStudent.getYearOfStudies());
         assertEquals("Computer Science", updatedStudent.getCourseName());
         assertEquals(1200.0, updatedStudent.getScholarship());
+
+        verify(personRepository, times(1)).findById(existingPersonId);
     }
 
     @Test
     void update_withInvalidCommandType_shouldThrowInvalidStrategyTypeException() {
+        long existingPersonId = 1L;
 
-        String type = "INVALID";
+        Student existingStudent = new Student();
+        existingStudent.setId(existingPersonId);
+        existingStudent.setType("STUDENT");
 
-        // Arrange
-        Person existingPerson = new Student();
+        when(personRepository.findById(existingPersonId)).thenReturn(Optional.of(existingStudent));
 
-        UpdatePersonCommand invalidCommand = new UpdatePersonCommand() {
-        };
+        UpdatePersonCommand invalidCommand = new UpdatePersonCommand();
+        invalidCommand.setType("INVALID");
 
-        invalidCommand.setType(type);
-        invalidCommand.setName("Emily");
-        invalidCommand.setSurname("Davis");
-        invalidCommand.setPesel("5678901234");
-        invalidCommand.setHeight(170);
-        invalidCommand.setWeight(55);
-        invalidCommand.setEmailAddress("emily.davis@example.com");
+        assertThrows(InvalidStrategyTypeException.class, () -> strategy.update(existingPersonId, invalidCommand));
 
-        HashMap<String, String> params1 = new HashMap<>();
-        params1.put("nameOfUniversity", "University of Example");
-        params1.put("yearOfStudies", "2");
-        params1.put("courseName", "Computer Science");
-        params1.put("scholarship", "1200");
-        invalidCommand.setPersonUniqueFields(params1);
-
-        assertThrows(InvalidStrategyTypeException.class, () -> strategy.update(existingPerson, invalidCommand));
+        verify(personRepository, times(1)).findById(existingPersonId);
     }
 
     @Test
-    void update_withInvalidExistingPersonType_shouldThrowIllegalArgumentException() {
+    void update_withNonExistentStudent_shouldThrowResourceNotFoundException() {
+        long nonExistentPersonId = 99L;
 
-        Person existingPerson = new Person() {
-        };
+        when(personRepository.findById(nonExistentPersonId)).thenReturn(Optional.empty());
 
         UpdatePersonCommand validCommand = new UpdatePersonCommand();
-        assertThrows(IllegalArgumentException.class, () -> strategy.update(existingPerson, validCommand));
+        validCommand.setType("STUDENT");
+
+        assertThrows(ResourceNotFoundException.class, () -> strategy.update(nonExistentPersonId, validCommand));
+
+        verify(personRepository, times(1)).findById(nonExistentPersonId);
     }
 }

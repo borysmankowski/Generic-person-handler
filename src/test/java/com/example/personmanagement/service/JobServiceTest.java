@@ -55,7 +55,7 @@ public class JobServiceTest {
     @Test
     void shouldAddJobPositionSuccessfully() {
         Employee employee = new Employee();
-        when(personRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(personRepository.findByIdWithJobs(1L)).thenReturn(Optional.of(employee));
         when(jobPositionRepository.findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 anyLong(), any(LocalDate.class), any(LocalDate.class)
         )).thenReturn(Collections.emptyList());
@@ -73,7 +73,7 @@ public class JobServiceTest {
 
         assertNotNull(result);
         assertEquals("Developer", result.getPositionName());
-        verify(personRepository).findById(1L);
+        verify(personRepository).findByIdWithJobs(1L);
         verify(jobPositionRepository).findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 anyLong(), any(LocalDate.class), any(LocalDate.class)
         );
@@ -82,11 +82,11 @@ public class JobServiceTest {
 
     @Test
     void shouldThrowResourceNotFoundExceptionWhenEmployeeNotFound() {
-        when(personRepository.findById(1L)).thenReturn(Optional.empty());
+        when(personRepository.findByIdWithJobs(1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> jobService.addJobPosition(1L, createPositionCommand));
 
-        verify(personRepository).findById(1L);
+        verify(personRepository).findByIdWithJobs(1L);
         verify(jobPositionRepository, never()).findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 anyLong(), any(LocalDate.class), any(LocalDate.class)
         );
@@ -97,14 +97,14 @@ public class JobServiceTest {
     void shouldThrowJobOverlappingExceptionWhenOverlappingPositionsExist() {
         Employee employee = new Employee();
         JobPosition existingPosition = new JobPosition();
-        when(personRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(personRepository.findByIdWithJobs(1L)).thenReturn(Optional.of(employee));
         when(jobPositionRepository.findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 anyLong(), any(LocalDate.class), any(LocalDate.class)
         )).thenReturn(Collections.singletonList(existingPosition));
 
         assertThrows(JobOverlappingException.class, () -> jobService.addJobPosition(1L, createPositionCommand));
 
-        verify(personRepository).findById(1L);
+        verify(personRepository).findByIdWithJobs(1L);
         verify(jobPositionRepository).findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 anyLong(), any(LocalDate.class), any(LocalDate.class)
         );

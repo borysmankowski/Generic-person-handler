@@ -1,21 +1,28 @@
 package com.example.personmanagement.strategy;
 
 import com.example.personmanagement.exception.InvalidStrategyTypeException;
+import com.example.personmanagement.exception.ResourceNotFoundException;
 import com.example.personmanagement.model.person.Person;
 import com.example.personmanagement.model.person.UpdatePersonCommand;
 import com.example.personmanagement.model.student.Student;
+import com.example.personmanagement.repository.PersonRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component("studentUpdateStrategy")
+@RequiredArgsConstructor
 public class StudentUpdateStrategy implements PersonUpdateStrategy {
 
     final String EXPECTED_TYPE = "STUDENT";
 
+    private final PersonRepository personRepository;
+
+
     @Override
-    public Person update(Person existingPerson, UpdatePersonCommand command) {
-        if (!(existingPerson instanceof Student existingStudent)) {
-            throw new IllegalArgumentException("Existing person is not an instance of Student");
-        }
+    public Person update(long existingPerson, UpdatePersonCommand command) {
+
+        Student existingStudent = (Student) personRepository.findById(existingPerson)
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + existingPerson));
 
         if (command.getType() == null || !EXPECTED_TYPE.equals(command.getType())) {
             throw new InvalidStrategyTypeException("Invalid type for StudentUpdateStrategy: expected " + EXPECTED_TYPE + " but got " + command.getType());

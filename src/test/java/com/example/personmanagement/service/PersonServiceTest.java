@@ -242,14 +242,14 @@ class PersonServiceTest {
 
         when(personRepository.findById(existingEmployee.getId())).thenReturn(Optional.of(existingEmployee));
         when(personStrategyFacade.getUpdateStrategy("EMPLOYEE")).thenReturn(employeeUpdateStrategy);
-        when(employeeUpdateStrategy.update(existingEmployee, command)).thenReturn(updatedEmployee);
+        when(employeeUpdateStrategy.update(existingEmployee.getId(), command)).thenReturn(updatedEmployee);
         when(personRepository.save(updatedEmployee)).thenReturn(updatedEmployee);
         when(personMapper.toDto(updatedEmployee)).thenReturn(expectedPersonDto);
 
         PersonDto result = personService.updateAnyPerson(existingEmployee.getId(), command);
 
         assertEquals(expectedPersonDto, result);
-        verify(personRepository, times(1)).findById(existingEmployee.getId());
+        verify(personRepository, times(1)).findByIdWithJobs(existingEmployee.getId());
         verify(personRepository, times(1)).save(updatedEmployee);
     }
 
@@ -272,15 +272,14 @@ class PersonServiceTest {
         command.setName("New Name");
         command.setVersion(2);
 
-        when(personRepository.findById(existingEmployee.getId())).thenReturn(Optional.of(existingEmployee));
+        when(personRepository.findByIdWithJobs(existingEmployee.getId())).thenReturn(Optional.of(existingEmployee));
         when(personStrategyFacade.getUpdateStrategy("EMPLOYEE")).thenReturn(employeeUpdateStrategy);
-        when(employeeUpdateStrategy.update(existingEmployee, command)).thenThrow(new ResourceVersionNotValidException("Optimistic lock failure"));
+        when(employeeUpdateStrategy.update(existingEmployee.getId(), command)).thenThrow(new ResourceVersionNotValidException("Optimistic lock failure"));
 
         assertThrows(ResourceVersionNotValidException.class, () -> {
             personService.updateAnyPerson(existingEmployee.getId(), command);
         });
 
-        verify(personRepository, times(1)).findById(existingEmployee.getId());
         verify(personRepository, times(0)).save(any(Employee.class));
     }
 }

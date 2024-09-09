@@ -24,10 +24,8 @@ import java.util.Set;
 @SuperBuilder
 @Entity
 @DiscriminatorValue("EMPLOYEE")
-@NamedEntityGraph(name = "Employee.jobPositions",
-        attributeNodes = @NamedAttributeNode("jobPositions"))
 public class Employee extends Person {
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "employee")
     private Set<JobPosition> jobPositions;
 }

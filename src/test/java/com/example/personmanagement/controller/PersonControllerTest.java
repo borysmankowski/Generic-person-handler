@@ -13,7 +13,10 @@ import com.example.personmanagement.strategy.PersonCreationStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mickaelb.api.AssertHibernateSQLCount;
 import com.mickaelb.integration.spring.HibernateAssertTestListener;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -345,7 +348,12 @@ class PersonControllerTest {
 
         EmployeeDto employee = postEmployee(createEmployeeCommand);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId()).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updateEmployeeCommand))).andDo(print()).andExpect(status().isOk());
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
+                .andDo(print())
+                .andExpect(status()
+                        .isOk());
     }
 
     @Test
