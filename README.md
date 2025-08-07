@@ -8,7 +8,8 @@
 
 The **Person Management System** is a robust, scalable Spring Boot application designed to streamline the creation and management of various person types with customizable attributes. Leveraging the **Strategy design pattern**, it ensures flexibility and extensibility without touching the core codebase. The system supports **manual record creation** via REST APIs and **bulk CSV imports** of any size, optimized for **low memory usage** (≤200 MB heap) and **blazing-fast processing** (millions of records per second). Secured with **Spring Security** and backed by **transactional integrity**, it guarantees protected access and reliable data handling.
 
-📊 **Performance Highlight**: Processes **30+ GB CSV files** with heap usage capped at **200 MB**.
+📊 **Performance Highlight**: Processes **30+ GB CSV files** with heap usage capped at **200 MB**.  
+[![](https://raw.githubusercontent.com/borysmankowski/Generic-person-handler/main/Screenshot%202025-03-20%20at%2018.03.37.png)](https://github.com/borysmankowski/Generic-person-handler/blob/main/Screenshot%202025-03-20%20at%2018.03.37.png)
 
 ---
 
