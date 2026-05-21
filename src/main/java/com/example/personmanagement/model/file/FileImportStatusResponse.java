@@ -16,5 +16,6 @@ public class FileImportStatusResponse {
     private FileStatus status;
     private LocalDateTime createdDate;
     private LocalDateTime startDate;
+    private LocalDateTime finishedDate;
     private Long lastProcessedRow;
 }

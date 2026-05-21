@@ -15,6 +15,8 @@
     <description>Borys_Mankowski_Test_11</description>
     <properties>
         <java.version>17</java.version>
+        <mockito.version>5.12.0</mockito.version>
+        <byte-buddy.version>1.14.18</byte-buddy.version>
     </properties>
     <dependencies>
         <!--     SECURITY     -->
@@ -209,7 +211,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.25.1</version>
+            <version>[3.27.7,)</version>
             <scope>test</scope>
         </dependency>
 

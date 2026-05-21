@@ -31,7 +31,6 @@ public class FileInformation {
     @Enumerated(EnumType.STRING)
     private FileStatus status;
     private LocalDateTime createdAt;
-    @CurrentTimestamp
     private LocalDateTime startedAt;
     private LocalDateTime finishedAt;
 }

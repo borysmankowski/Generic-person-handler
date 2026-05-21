@@ -240,7 +240,6 @@ class PersonServiceTest {
         PersonDto expectedPersonDto = new PersonDto();
         expectedPersonDto.setName("New Name");
 
-        when(personRepository.findById(existingEmployee.getId())).thenReturn(Optional.of(existingEmployee));
         when(personStrategyFacade.getUpdateStrategy("EMPLOYEE")).thenReturn(employeeUpdateStrategy);
         when(employeeUpdateStrategy.update(existingEmployee.getId(), command)).thenReturn(updatedEmployee);
         when(personRepository.save(updatedEmployee)).thenReturn(updatedEmployee);
@@ -249,8 +248,9 @@ class PersonServiceTest {
         PersonDto result = personService.updateAnyPerson(existingEmployee.getId(), command);
 
         assertEquals(expectedPersonDto, result);
-        verify(personRepository, times(1)).findByIdWithJobs(existingEmployee.getId());
         verify(personRepository, times(1)).save(updatedEmployee);
+        verify(personStrategyFacade, times(1)).getUpdateStrategy("EMPLOYEE");
+        verify(employeeUpdateStrategy, times(1)).update(existingEmployee.getId(), command);
     }
 
     @Test
@@ -272,13 +272,12 @@ class PersonServiceTest {
         command.setName("New Name");
         command.setVersion(2);
 
-        when(personRepository.findByIdWithJobs(existingEmployee.getId())).thenReturn(Optional.of(existingEmployee));
         when(personStrategyFacade.getUpdateStrategy("EMPLOYEE")).thenReturn(employeeUpdateStrategy);
-        when(employeeUpdateStrategy.update(existingEmployee.getId(), command)).thenThrow(new ResourceVersionNotValidException("Optimistic lock failure"));
+        when(employeeUpdateStrategy.update(existingEmployee.getId(), command))
+                .thenThrow(new ResourceVersionNotValidException("Optimistic lock failure"));
 
-        assertThrows(ResourceVersionNotValidException.class, () -> {
-            personService.updateAnyPerson(existingEmployee.getId(), command);
-        });
+        assertThrows(ResourceVersionNotValidException.class,
+                () -> personService.updateAnyPerson(existingEmployee.getId(), command));
 
         verify(personRepository, times(0)).save(any(Employee.class));
     }

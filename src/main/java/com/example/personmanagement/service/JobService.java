@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class JobService {
 
     private final PersonRepository personRepository;
     private final JobPositionRepository jobPositionRepository;
+    private static final LocalDate FAR_FUTURE = LocalDate.of(9999, 12, 31);
 
     @Transactional
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
@@ -44,14 +46,27 @@ public class JobService {
     }
 
     private void validateJobPositionDates(Long employeeId, CreatePositionCommand command) {
-        List<JobPosition> overlappingPositions = jobPositionRepository.findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                employeeId, command.getEndDate(), command.getStartDate());
+        LocalDate startDate = command.getStartDate();
+        LocalDate effectiveEndDate = getLocalDate(command, startDate);
+
+        List<JobPosition> overlappingPositions =
+                jobPositionRepository.findByEmployeeIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                        employeeId, effectiveEndDate, startDate);
 
         if (!overlappingPositions.isEmpty()) {
             throw new JobOverlappingException("The position dates overlap with existing position dates.");
         }
-        if(command.getEndDate().isBefore(command.getStartDate())){
+    }
+
+    private static LocalDate getLocalDate(CreatePositionCommand command, LocalDate startDate) {
+        LocalDate endDate   = command.getEndDate();
+
+        if (startDate == null) {
+            throw new JobOverlappingException("The position start date is required.");
+        }
+        if (endDate != null && endDate.isBefore(startDate)) {
             throw new JobOverlappingException("The position end date is before the start date.");
         }
+        return (endDate != null) ? endDate : FAR_FUTURE;
     }
 }

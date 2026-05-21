@@ -69,6 +69,7 @@ public class FileService {
                 fileInformation.getStatus(),
                 fileInformation.getCreatedAt(),
                 fileInformation.getStartedAt(),
+                fileInformation.getFinishedAt(),
                 fileInformation.getLastProcessedRow());
     }
 

@@ -13,10 +13,6 @@ import com.example.personmanagement.strategy.PersonCreationStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mickaelb.api.AssertHibernateSQLCount;
 import com.mickaelb.integration.spring.HibernateAssertTestListener;
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import org.hibernate.SessionFactory;
-import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +25,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -325,35 +322,33 @@ class PersonControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     @Transactional
-    @AssertHibernateSQLCount(inserts = 1, selects = 1, updates = 1, deletes = 1)
-    void updatePersonDetails_ShouldIncrementVersion_ShouldPerform2Queries() throws Exception {
-        UpdatePersonCommand updateEmployeeCommand = new UpdatePersonCommand();
-        updateEmployeeCommand.setType("EMPLOYEE");
-        updateEmployeeCommand.setName("newName");
-        updateEmployeeCommand.setSurname("newSurname");
-        updateEmployeeCommand.setPesel("00250714618");
-        updateEmployeeCommand.setHeight(180);
-        updateEmployeeCommand.setWeight(80);
-        updateEmployeeCommand.setEmailAddress("newemail@test.com");
-        updateEmployeeCommand.setVersion(0);
+    @AssertHibernateSQLCount(selects = 1, updates = 1, inserts = 1, deletes = 1)
+    void updatePersonDetails_ShouldPerformOneSelectAndOneUpdate() throws Exception {
+        CreatePersonCommand createCmd = new CreatePersonCommand();
+        createCmd.setType("EMPLOYEE");
+        createCmd.setName("name");
+        createCmd.setSurname("Surname");
+        createCmd.setPesel("00250714618");
+        createCmd.setHeight(100);
+        createCmd.setWeight(100);
+        createCmd.setEmailAddress("email@email.com");
+        EmployeeDto employee = postEmployee(createCmd);
 
-        CreatePersonCommand createEmployeeCommand = new CreatePersonCommand();
-        createEmployeeCommand.setType("EMPLOYEE");
-        createEmployeeCommand.setName("name");
-        createEmployeeCommand.setSurname("Surname");
-        createEmployeeCommand.setPesel("00250714618");
-        createEmployeeCommand.setHeight(100);
-        createEmployeeCommand.setWeight(100);
-        createEmployeeCommand.setEmailAddress("email@email.com");
 
-        EmployeeDto employee = postEmployee(createEmployeeCommand);
+        UpdatePersonCommand updateCmd = new UpdatePersonCommand();
+        updateCmd.setType("EMPLOYEE");
+        updateCmd.setName("newName");
+        updateCmd.setSurname("newSurname");
+        updateCmd.setPesel("00250714618");
+        updateCmd.setHeight(180);
+        updateCmd.setWeight(80);
+        updateCmd.setEmailAddress("newemail@test.com");
+        updateCmd.setVersion(0);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/people/{personId}", employee.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateEmployeeCommand)))
-                .andDo(print())
-                .andExpect(status()
-                        .isOk());
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateCmd)))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -519,6 +514,6 @@ class PersonControllerTest {
 
     @AfterEach
     void tearDown() {
-        personRepository.deleteAll();
+        personRepository.deleteAllInBatch();
     }
 }
